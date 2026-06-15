@@ -1,0 +1,1093 @@
+#!/usr/bin/env node
+// assistants-template — setup wizard (Epic 5).
+// Story 5.2: prompt flow + deterministic file generation.
+// Story 5.3: post-wizard skills install + active MCP verification.
+
+'use strict';
+
+const fs = require('node:fs');
+const fsp = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
+
+const ROOT = path.join(__dirname, '..');
+const PKG_PATH = path.join(ROOT, 'package.json');
+const NODE_MODULES_PROMPTS = path.join(ROOT, 'node_modules', 'prompts', 'package.json');
+const MCPS_DOC_PATH = path.join(ROOT, 'docs', 'mcps.md');
+const ENV_EXAMPLE_PATH = path.join(ROOT, '.env.example');
+const MCP_CONFIG_PATH = path.join(ROOT, '.cursor', 'mcp.json');
+
+const IDENTITY_RELATIVE_PATH = path.join('memory', 'me', 'identity.md');
+const WORK_PERSONA_RELATIVE_PATH = path.join('agents', 'personas', 'work.md');
+const ENV_RELATIVE_PATH = '.env';
+
+const FIXTURE_ENV_VAR = 'BMAD_STORY_5_2_FIXTURE_PATH';
+const STORY_5_3_FIXTURE_ENV_VAR = 'BMAD_STORY_5_3_FIXTURE_PATH';
+const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SKILLS_INSTALL_ARGS = ['skills', 'add', 'vixxo-copilot/agent-skills'];
+const SKILLS_INSTALL_COMMAND = 'npx ' + SKILLS_INSTALL_ARGS.join(' ');
+const PROBE_TIMEOUT_MS = 5000;
+
+const MCP_REMEDIATION_MAP = Object.freeze({
+  linear: 'Reconnect in Cursor MCP UI and review https://linear.app/docs/mcp',
+  github:
+    'Run gh auth login if needed, ensure bin/github-mcp-server exists (see .cursor/mcp.README.md § GitHub), then restart the GitHub MCP in Cursor',
+  'microsoft-365': 'Rerun Microsoft 365 device-code auth and review https://github.com/softeria/ms-365-mcp-server',
+  salesforce: 'Run sf org login web and ensure @salesforce/cli is installed',
+  gong: 'Export GONG_ACCESS_KEY and GONG_ACCESS_KEY_SECRET; review https://github.com/kenazk/gong-mcp'
+});
+
+const writeQueueByPath = new Map();
+
+function loadPackage() {
+  return JSON.parse(fs.readFileSync(PKG_PATH, 'utf8'));
+}
+
+function printHelp(pkg) {
+  console.log('assistants-template — setup wizard');
+  console.log('');
+  console.log('Usage: ./bin/init [--help | -h] [--version | -v]');
+  console.log('');
+  console.log('Story 5.1: bootstrap entry point + dependency setup.');
+  console.log('Story 5.2: prompts + deterministic file generation.');
+  console.log('Story 5.3: post-wizard skills install + MCP verification.');
+  console.log('');
+  console.log('Version: ' + pkg.version);
+}
+
+function printVersion(pkg) {
+  console.log('assistants-template init ' + pkg.version);
+}
+
+function ensureDependencies() {
+  if (fs.existsSync(NODE_MODULES_PROMPTS)) return;
+  console.log('Installing local dependencies (first-run only)...');
+  const result = spawnSync('npm', ['install'], { cwd: ROOT, stdio: 'inherit' });
+  if (result.error) {
+    const exitCode = result.error.code === 'ENOENT' ? 127 : 1;
+    const reason = result.error.code || result.error.message || 'unknown';
+    console.error('[bin/init] npm install failed; exit ' + String(exitCode) + '. Cause: ' + reason + ". Please run 'npm install' manually and retry.");
+    process.exit(exitCode);
+  }
+
+  if (result.signal) {
+    const signalNumber = os.constants.signals[result.signal];
+    const exitCode = typeof signalNumber === 'number' ? 128 + signalNumber : 1;
+    console.error('[bin/init] npm install failed; signal ' + result.signal + '; exit ' + String(exitCode) + ". Please run 'npm install' manually and retry.");
+    process.exit(exitCode);
+  }
+
+  if (typeof result.status === 'number' && result.status !== 0) {
+    console.error('[bin/init] npm install failed; exit ' + String(result.status) + ". Please run 'npm install' manually and retry.");
+    process.exit(result.status);
+  }
+  console.log('Dependencies installed.');
+}
+
+function normalizeWhitespace(input) {
+  return String(input || '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeEmail(input) {
+  return String(input || '').trim().toLowerCase();
+}
+
+function parseCanonicalMcpKeysFromDocs(docContent) {
+  const keys = [];
+  const lines = docContent.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^\|\s*([a-z0-9-]+)\s*\|\s*(active|active-no-env|placeholder)\s*\|/i);
+    if (match) {
+      keys.push(match[1]);
+    }
+  }
+  return keys;
+}
+
+function loadCanonicalMcpKeys() {
+  const docContent = fs.readFileSync(MCPS_DOC_PATH, 'utf8');
+  const keys = parseCanonicalMcpKeysFromDocs(docContent);
+  if (keys.length === 0) {
+    throw new Error('unable to parse canonical MCP keys from docs/mcps.md');
+  }
+  return keys;
+}
+
+function deriveDepartmentFromRole(role) {
+  const roleLower = role.toLowerCase();
+  const rules = [
+    { department: 'Engineering', tokens: ['engineer', 'developer', 'architect', 'qa', 'sre', 'devops'] },
+    { department: 'Product', tokens: ['product', 'pm'] },
+    { department: 'Design', tokens: ['design', 'ux', 'ui'] },
+    { department: 'Sales', tokens: ['sales', 'account executive', 'business development'] },
+    { department: 'Marketing', tokens: ['marketing', 'growth'] },
+    { department: 'Operations', tokens: ['operations', 'ops'] },
+    { department: 'Finance', tokens: ['finance', 'accounting'] },
+    { department: 'People', tokens: ['hr', 'people', 'talent'] }
+  ];
+
+  for (const rule of rules) {
+    if (rule.tokens.some((token) => roleLower.includes(token))) {
+      return rule.department;
+    }
+  }
+  return 'General';
+}
+
+function deriveManagerPlaceholder(department) {
+  return department + ' Manager (TBD)';
+}
+
+function normalizeSelectedMcps(selectedMcps, canonicalMcpKeys) {
+  const selectedSet = new Set(Array.isArray(selectedMcps) ? selectedMcps : []);
+  return canonicalMcpKeys.filter((key) => selectedSet.has(key));
+}
+
+function normalizeWizardAnswers(rawAnswers, canonicalMcpKeys) {
+  const employeeName = normalizeWhitespace(rawAnswers.employeeName);
+  const employeeRole = normalizeWhitespace(rawAnswers.employeeRole);
+  const employeeEmail = normalizeEmail(rawAnswers.employeeEmail);
+  const department = deriveDepartmentFromRole(employeeRole);
+  const manager = deriveManagerPlaceholder(department);
+  const optionalMcps = normalizeSelectedMcps(rawAnswers.optionalMcps, canonicalMcpKeys);
+
+  return {
+    employeeName,
+    employeeRole,
+    employeeEmail,
+    department,
+    manager,
+    optionalMcps
+  };
+}
+
+function normalizeOutputText(content) {
+  const lf = String(content).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  return lf.endsWith('\n') ? lf : lf + '\n';
+}
+
+function yamlDoubleQuoted(value) {
+  return String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n');
+}
+
+function assertPathInsideRepo(targetPath) {
+  const resolved = path.resolve(ROOT, targetPath);
+  const rootWithSep = ROOT.endsWith(path.sep) ? ROOT : ROOT + path.sep;
+  if (resolved !== ROOT && !resolved.startsWith(rootWithSep)) {
+    throw new Error('path escapes repository root: ' + targetPath);
+  }
+  return resolved;
+}
+
+async function withSerializedWrite(targetPath, operation) {
+  const prior = writeQueueByPath.get(targetPath) || Promise.resolve();
+  const next = prior.then(operation, operation);
+  const wrapped = next.finally(() => {
+    if (writeQueueByPath.get(targetPath) === wrapped) {
+      writeQueueByPath.delete(targetPath);
+    }
+  });
+  writeQueueByPath.set(targetPath, wrapped);
+  return next;
+}
+
+async function writeAtomic(targetPath, content) {
+  const resolvedTarget = assertPathInsideRepo(targetPath);
+  const directory = path.dirname(resolvedTarget);
+  const tempFile = path.join(
+    directory,
+    '.tmp-' + path.basename(resolvedTarget) + '.' + process.pid + '.' + Date.now() + '.' + crypto.randomBytes(4).toString('hex')
+  );
+  const normalizedContent = normalizeOutputText(content);
+
+  return withSerializedWrite(resolvedTarget, async () => {
+    try {
+      await fsp.writeFile(tempFile, normalizedContent, 'utf8');
+      await fsp.rename(tempFile, resolvedTarget);
+    } catch (error) {
+      try {
+        await fsp.unlink(tempFile);
+      } catch {
+        // Best-effort cleanup only; keep original failure context.
+      }
+      throw error;
+    }
+  });
+}
+
+function renderOptionalMcpsSection(optionalMcps) {
+  if (optionalMcps.length === 0) {
+    return 'none selected';
+  }
+  return optionalMcps.map((mcpKey) => '- ' + mcpKey).join('\n');
+}
+
+function renderIdentityMarkdown(profile) {
+  return normalizeOutputText(
+    [
+      '---',
+      'type: identity',
+      'scope: work',
+      'name: "' + yamlDoubleQuoted(profile.employeeName) + '"',
+      'role: "' + yamlDoubleQuoted(profile.employeeRole) + '"',
+      'department: "' + yamlDoubleQuoted(profile.department) + '"',
+      'manager: "' + yamlDoubleQuoted(profile.manager) + '"',
+      'email: "' + yamlDoubleQuoted(profile.employeeEmail) + '"',
+      'created: YYYY-MM-DD',
+      'updated: YYYY-MM-DD',
+      'tags: [identity, work]',
+      '---',
+      '',
+      '# Identity',
+      '',
+      '## Name',
+      '',
+      profile.employeeName,
+      '',
+      '## Role',
+      '',
+      profile.employeeRole,
+      '',
+      '## Department',
+      '',
+      profile.department,
+      '',
+      '## Manager',
+      '',
+      profile.manager,
+      '',
+      '## Email',
+      '',
+      profile.employeeEmail,
+      '',
+      '## Optional MCPs',
+      '',
+      renderOptionalMcpsSection(profile.optionalMcps),
+      '',
+      '## Work Scope',
+      '',
+      'Vixxo work context only. This file records the operator role and reporting line for this template.',
+      '',
+      '## Key References',
+      '',
+      '- `.cursor/rules/agent-identity.mdc`',
+      '- `agents/personas/work.md`',
+      '- `memory/me/preferences.md`',
+      '- `AGENTS.md`',
+      '- `CLAUDE.md`',
+      '- `.cursorrules`'
+    ].join('\n')
+  );
+}
+
+function renderWorkPersonaMarkdown(profile) {
+  return normalizeOutputText(
+    [
+      '---',
+      'type: persona',
+      'scope: work',
+      'role: "' + yamlDoubleQuoted(profile.employeeRole) + '"',
+      'department: "' + yamlDoubleQuoted(profile.department) + '"',
+      'name: "' + yamlDoubleQuoted(profile.employeeName) + '"',
+      'manager: "' + yamlDoubleQuoted(profile.manager) + '"',
+      'tags: [persona, work, vixxo]',
+      '---',
+      '',
+      '# Work Persona',
+      '',
+      '## Role',
+      '',
+      profile.employeeName +
+        ' is ' +
+        profile.employeeRole +
+        ' in ' +
+        profile.department +
+        ' at Vixxo. Reports to ' +
+        profile.manager +
+        '. Defer the `Scope` and `Who the Employee Is` blocks to `.cursor/rules/agent-identity.mdc`.',
+      '',
+      '## Responsibilities',
+      '',
+      '- Deliver the objectives of ' + profile.department + ' as ' + profile.employeeRole + ' at Vixxo.',
+      '- Coordinate with ' + profile.manager + ' and cross-functional partners across the business.',
+      '- Use approved Vixxo systems, MCPs, and tooling for each work task.',
+      '- Keep written artifacts, decisions, and follow-ups clear for collaborators.',
+      '',
+      '## Available MCPs',
+      '',
+      '| MCP | Purpose |',
+      '| --- | --- |',
+      '| **Linear** | Vixxo work task and project management |',
+      '| **GitHub** | Source control, code review, repository documentation |',
+      '| **Microsoft 365** | Outlook email and calendar |',
+      '| **Salesforce** | CRM, pipeline, accounts, contacts |',
+      '| **Gong** | Call recordings, transcripts, deal intelligence |',
+      '',
+      '## Email',
+      '',
+      'Microsoft 365 (Outlook).',
+      '',
+      '## Calendar',
+      '',
+      'Microsoft 365 (Outlook calendar).',
+      '',
+      '## Task System',
+      '',
+      'Linear (Vixxo work task system).',
+      '',
+      '## Communication Tone',
+      '',
+      'Concise and direct. Evidence-backed with clear references when useful. Draft outbound messages under `.cursor/rules/outbound-messaging-guardrail.mdc` discipline.',
+      '',
+      '## Context Files',
+      '',
+      '- `.cursor/rules/agent-identity.mdc`',
+      '- `memory/me/identity.md`',
+      '- `memory/me/preferences.md`',
+      '- `AGENTS.md`',
+      '- `CLAUDE.md`',
+      '- `.cursorrules`'
+    ].join('\n')
+  );
+}
+
+async function materializeEnvFile(overwriteEnv) {
+  const envPath = assertPathInsideRepo(ENV_RELATIVE_PATH);
+  const envExamplePath = assertPathInsideRepo(ENV_EXAMPLE_PATH);
+  const envExampleContents = await fsp.readFile(envExamplePath, 'utf8');
+
+  let exists = false;
+  try {
+    await fsp.access(envPath);
+    exists = true;
+  } catch (error) {
+    exists = false;
+  }
+
+  if (exists && !overwriteEnv) {
+    return { changed: false, action: 'skipped', path: ENV_RELATIVE_PATH };
+  }
+
+  await writeAtomic(envPath, envExampleContents);
+  return { changed: true, action: exists ? 'overwritten' : 'created', path: ENV_RELATIVE_PATH };
+}
+
+function mapFixtureResponse(item, index) {
+  if (item && typeof item === 'object' && !Array.isArray(item)) {
+    if (item.type === 'error') {
+      const message = typeof item.message === 'string' && item.message.trim() !== '' ? item.message : 'fixture-cancelled';
+      const error = new Error(message);
+      error.code = 'WIZARD_CANCELLED';
+      return error;
+    }
+  }
+  return item;
+}
+
+function loadFixtureResponsesIfPresent(env) {
+  const fixturePathRaw = env[FIXTURE_ENV_VAR];
+  if (!fixturePathRaw) {
+    return null;
+  }
+
+  const fixturePath = assertPathInsideRepo(fixturePathRaw);
+  const fixtureText = fs.readFileSync(fixturePath, 'utf8');
+  let parsedFixture;
+  try {
+    parsedFixture = JSON.parse(fixtureText);
+  } catch (error) {
+    throw new Error('invalid fixture JSON at ' + fixturePath + ': ' + error.message);
+  }
+
+  if (!parsedFixture || typeof parsedFixture !== 'object' || Array.isArray(parsedFixture)) {
+    throw new Error('invalid fixture payload at ' + fixturePath + ': expected object');
+  }
+  if (!Array.isArray(parsedFixture.responses)) {
+    throw new Error('invalid fixture payload at ' + fixturePath + ': missing responses array');
+  }
+
+  return parsedFixture.responses.map((item, index) => mapFixtureResponse(item, index));
+}
+
+function validateFixtureResponses(responses, shouldAskEnvOverwrite) {
+  const isCancelError = (value) => value instanceof Error && value.code === 'WIZARD_CANCELLED';
+  const requireIndex = (index) => {
+    if (!Array.isArray(responses) || responses.length <= index) {
+      throw new Error('invalid fixture payload: responses[' + String(index) + '] required');
+    }
+    return responses[index];
+  };
+  if (!Array.isArray(responses)) {
+    throw new Error('invalid fixture payload: responses must be an array');
+  }
+
+  const response0 = requireIndex(0);
+
+  if (isCancelError(response0)) return;
+  if (typeof response0 !== 'string') throw new Error('invalid fixture payload: responses[0] must be string');
+
+  const response1 = requireIndex(1);
+  if (isCancelError(response1)) return;
+  if (typeof response1 !== 'string') throw new Error('invalid fixture payload: responses[1] must be string');
+
+  const response2 = requireIndex(2);
+  if (isCancelError(response2)) return;
+  if (typeof response2 !== 'string') throw new Error('invalid fixture payload: responses[2] must be string');
+
+  const response3 = requireIndex(3);
+  if (isCancelError(response3)) return;
+  if (!Array.isArray(response3)) throw new Error('invalid fixture payload: responses[3] must be array');
+
+  if (shouldAskEnvOverwrite) {
+    const response4 = requireIndex(4);
+    if (typeof response4 !== 'boolean' && !isCancelError(response4)) {
+      throw new Error('invalid fixture payload: responses[4] must be boolean for overwrite prompt');
+    }
+  }
+}
+
+function mcpRemediationFor(serverKey) {
+  return MCP_REMEDIATION_MAP[serverKey] || 'See docs/mcps.md and .cursor/mcp.README.md for setup guidance.';
+}
+
+function normalizeProbeStatus(status) {
+  return status === 'PASS' ? 'PASS' : 'FAIL';
+}
+
+function normalizeProbeReason(reason, fallback) {
+  if (typeof reason === 'string' && reason.trim() !== '') {
+    return reason.trim();
+  }
+  return fallback;
+}
+
+function makeProbeResult(serverKey, status, reason, remediation) {
+  return {
+    server_key: serverKey,
+    status: normalizeProbeStatus(status),
+    reason: reason,
+    remediation: remediation
+  };
+}
+
+function validateStory53FixturePayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('invalid Story 5.3 fixture payload: expected object');
+  }
+  if (!payload.skillsInstall || typeof payload.skillsInstall !== 'object' || Array.isArray(payload.skillsInstall)) {
+    throw new Error('invalid Story 5.3 fixture payload: skillsInstall object is required');
+  }
+  if (!payload.mcpResults || typeof payload.mcpResults !== 'object' || Array.isArray(payload.mcpResults)) {
+    throw new Error('invalid Story 5.3 fixture payload: mcpResults object is required');
+  }
+
+  const validateResultObject = (result, pathLabel) => {
+    if (!result || typeof result !== 'object' || Array.isArray(result)) {
+      throw new Error('invalid Story 5.3 fixture payload: ' + pathLabel + ' must be object');
+    }
+    if (result.status !== 'PASS' && result.status !== 'FAIL') {
+      throw new Error('invalid Story 5.3 fixture payload: ' + pathLabel + '.status must be PASS or FAIL');
+    }
+    if (Object.prototype.hasOwnProperty.call(result, 'reason')) {
+      if (typeof result.reason !== 'string' || result.reason.trim() === '') {
+        throw new Error('invalid Story 5.3 fixture payload: ' + pathLabel + '.reason must be non-empty string when provided');
+      }
+    }
+  };
+
+  validateResultObject(payload.skillsInstall, 'skillsInstall');
+
+  const mcpEntries = Object.entries(payload.mcpResults);
+  if (mcpEntries.length === 0) {
+    throw new Error('invalid Story 5.3 fixture payload: mcpResults must include at least one server entry');
+  }
+  for (const [serverKey, result] of mcpEntries) {
+    if (typeof serverKey !== 'string' || serverKey.trim() === '') {
+      throw new Error('invalid Story 5.3 fixture payload: mcpResults contains empty server key');
+    }
+    validateResultObject(result, 'mcpResults.' + serverKey);
+  }
+}
+
+function loadStory53FixtureIfPresent(env) {
+  const fixturePathRaw = env[STORY_5_3_FIXTURE_ENV_VAR];
+  if (!fixturePathRaw) {
+    return null;
+  }
+
+  const fixturePath = assertPathInsideRepo(fixturePathRaw);
+  const fixtureText = fs.readFileSync(fixturePath, 'utf8');
+  let parsedFixture;
+  try {
+    parsedFixture = JSON.parse(fixtureText);
+  } catch (error) {
+    throw new Error('invalid Story 5.3 fixture JSON at ' + fixturePath + ': ' + error.message);
+  }
+
+  validateStory53FixturePayload(parsedFixture);
+  return parsedFixture;
+}
+
+function loadActiveMcpConfig(mcpConfigPath = MCP_CONFIG_PATH) {
+  const raw = fs.readFileSync(mcpConfigPath, 'utf8');
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error('unable to parse .cursor/mcp.json: ' + error.message + '. Check .cursor/mcp.json for valid JSON.');
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('invalid .cursor/mcp.json: root must be an object. Check .cursor/mcp.json.');
+  }
+  if (!parsed.mcpServers || typeof parsed.mcpServers !== 'object' || Array.isArray(parsed.mcpServers)) {
+    throw new Error('invalid .cursor/mcp.json: mcpServers object is required. Check .cursor/mcp.json.');
+  }
+
+  return {
+    mcpServers: parsed.mcpServers,
+    activeKeys: Object.keys(parsed.mcpServers)
+  };
+}
+
+function loadActiveMcpServerKeys(mcpConfigPath = MCP_CONFIG_PATH) {
+  return loadActiveMcpConfig(mcpConfigPath).activeKeys;
+}
+
+function checkCommandAvailability(command, args, spawnSyncImpl) {
+  const result = spawnSyncImpl(command, args, {
+    cwd: ROOT,
+    stdio: 'pipe',
+    encoding: 'utf8',
+    timeout: PROBE_TIMEOUT_MS
+  });
+  if (result.error) {
+    const reason = result.error.code || result.error.message || 'unknown error';
+    return { ok: false, reason: 'command ' + command + ' unavailable: ' + reason };
+  }
+  if (result.signal) {
+    return { ok: false, reason: 'command ' + command + ' terminated by signal ' + result.signal };
+  }
+  if (typeof result.status === 'number' && result.status !== 0) {
+    return { ok: false, reason: 'command ' + command + ' exited with status ' + String(result.status) };
+  }
+  return { ok: true, reason: command + ' check passed' };
+}
+
+function validateServerConfigObject(serverKey, serverConfig) {
+  if (!serverConfig || typeof serverConfig !== 'object' || Array.isArray(serverConfig)) {
+    return serverKey + ' MCP config missing object entry';
+  }
+  return null;
+}
+
+function probeLinear(serverConfig) {
+  const configError = validateServerConfigObject('linear', serverConfig);
+  if (configError) {
+    return { status: 'FAIL', reason: configError };
+  }
+  if (typeof serverConfig.url !== 'string' || serverConfig.url.trim() === '') {
+    return { status: 'FAIL', reason: 'linear MCP config missing url' };
+  }
+  return { status: 'PASS', reason: 'linear MCP URL is configured' };
+}
+
+function probeGithub(serverConfig, env, spawnSyncImpl) {
+  const configError = validateServerConfigObject('github', serverConfig);
+  if (configError) {
+    return { status: 'FAIL', reason: configError };
+  }
+  if (!env.GITHUB_PERSONAL_ACCESS_TOKEN || String(env.GITHUB_PERSONAL_ACCESS_TOKEN).trim() === '') {
+    return { status: 'FAIL', reason: 'required env var GITHUB_PERSONAL_ACCESS_TOKEN is not set' };
+  }
+  const dockerCheck = checkCommandAvailability('docker', ['--version'], spawnSyncImpl);
+  if (!dockerCheck.ok) {
+    return { status: 'FAIL', reason: dockerCheck.reason };
+  }
+  return { status: 'PASS', reason: 'github MCP config present, docker is available, and required GitHub token env var is set' };
+}
+
+function probeMicrosoft365(serverConfig, spawnSyncImpl) {
+  const configError = validateServerConfigObject('microsoft-365', serverConfig);
+  if (configError) {
+    return { status: 'FAIL', reason: configError };
+  }
+  const npxCheck = checkCommandAvailability('npx', ['--version'], spawnSyncImpl);
+  if (!npxCheck.ok) {
+    return { status: 'FAIL', reason: npxCheck.reason };
+  }
+  return { status: 'PASS', reason: 'microsoft-365 MCP config present and npx is available for server startup' };
+}
+
+function probeSalesforce(serverConfig, spawnSyncImpl) {
+  const configError = validateServerConfigObject('salesforce', serverConfig);
+  if (configError) {
+    return { status: 'FAIL', reason: configError };
+  }
+  const npxCheck = checkCommandAvailability('npx', ['--version'], spawnSyncImpl);
+  if (!npxCheck.ok) {
+    return { status: 'FAIL', reason: npxCheck.reason };
+  }
+  const sfCheck = checkCommandAvailability('sf', ['--version'], spawnSyncImpl);
+  if (!sfCheck.ok) {
+    return { status: 'FAIL', reason: sfCheck.reason };
+  }
+  return { status: 'PASS', reason: 'salesforce MCP config present and required CLIs (npx, sf) are available' };
+}
+
+function probeGong(serverConfig, env, spawnSyncImpl) {
+  const configError = validateServerConfigObject('gong', serverConfig);
+  if (configError) {
+    return { status: 'FAIL', reason: configError };
+  }
+  const missing = [];
+  if (!env.GONG_ACCESS_KEY || String(env.GONG_ACCESS_KEY).trim() === '') missing.push('GONG_ACCESS_KEY');
+  if (!env.GONG_ACCESS_KEY_SECRET || String(env.GONG_ACCESS_KEY_SECRET).trim() === '') missing.push('GONG_ACCESS_KEY_SECRET');
+  if (missing.length > 0) {
+    return { status: 'FAIL', reason: 'required env var(s) missing: ' + missing.join(', ') };
+  }
+
+  const npxCheck = checkCommandAvailability('npx', ['--version'], spawnSyncImpl);
+  if (!npxCheck.ok) {
+    return { status: 'FAIL', reason: npxCheck.reason };
+  }
+  return { status: 'PASS', reason: 'gong MCP config present, npx is available, and required Gong env vars are set' };
+}
+
+function probeDefaultServer(serverKey, serverConfig, spawnSyncImpl) {
+  if (!serverConfig || typeof serverConfig !== 'object' || Array.isArray(serverConfig)) {
+    return { status: 'FAIL', reason: serverKey + ' MCP config missing object entry' };
+  }
+  if (typeof serverConfig.command === 'string' && serverConfig.command.trim() !== '') {
+    const commandCheck = checkCommandAvailability(serverConfig.command, ['--version'], spawnSyncImpl);
+    if (!commandCheck.ok) {
+      return { status: 'FAIL', reason: commandCheck.reason };
+    }
+    return { status: 'PASS', reason: serverKey + ' command prerequisite is available' };
+  }
+  if (typeof serverConfig.url === 'string' && serverConfig.url.trim() !== '') {
+    return { status: 'PASS', reason: serverKey + ' remote URL is configured' };
+  }
+  return { status: 'FAIL', reason: serverKey + ' MCP config has no command or url to verify' };
+}
+
+function validateStory53FixtureAgainstActiveKeys(fixture, activeKeys) {
+  if (!fixture) return;
+  const fixtureKeys = Object.keys(fixture.mcpResults);
+  const activeKeySet = new Set(activeKeys);
+  for (const fixtureKey of fixtureKeys) {
+    if (!activeKeySet.has(fixtureKey)) {
+      throw new Error('invalid Story 5.3 fixture payload: mcpResults includes non-active key ' + fixtureKey);
+    }
+  }
+  for (const activeKey of activeKeys) {
+    if (!Object.prototype.hasOwnProperty.call(fixture.mcpResults, activeKey)) {
+      throw new Error('invalid Story 5.3 fixture payload: mcpResults missing active key ' + activeKey);
+    }
+  }
+}
+
+function runSkillsInstall(env, options = {}) {
+  const fixture = options.fixture || null;
+  if (fixture) {
+    const fixtureReason = normalizeProbeReason(fixture.skillsInstall.reason, 'fixture-simulated skills install result');
+    return {
+      status: fixture.skillsInstall.status,
+      reason: fixtureReason,
+      remediation: 'Re-run command: ' + SKILLS_INSTALL_COMMAND
+    };
+  }
+
+  const spawnSyncImpl = options.spawnSyncImpl || spawnSync;
+  const result = spawnSyncImpl('npx', SKILLS_INSTALL_ARGS, {
+    cwd: ROOT,
+    stdio: 'inherit',
+    env: env
+  });
+
+  if (result.error) {
+    const reason = result.error.code || result.error.message || 'unknown error';
+    return {
+      status: 'FAIL',
+      reason: 'skills install spawn error: ' + reason,
+      remediation: 'Re-run command: ' + SKILLS_INSTALL_COMMAND
+    };
+  }
+  if (result.signal) {
+    return {
+      status: 'FAIL',
+      reason: 'skills install terminated by signal ' + result.signal,
+      remediation: 'Re-run command: ' + SKILLS_INSTALL_COMMAND
+    };
+  }
+  if (typeof result.status === 'number' && result.status !== 0) {
+    return {
+      status: 'FAIL',
+      reason: 'skills install exited with status ' + String(result.status),
+      remediation: 'Re-run command: ' + SKILLS_INSTALL_COMMAND
+    };
+  }
+
+  return {
+    status: 'PASS',
+    reason: 'skills install command completed successfully',
+    remediation: 'none'
+  };
+}
+
+function verifyActiveMcps(env, options = {}) {
+  const spawnSyncImpl = options.spawnSyncImpl || spawnSync;
+  const fixture = options.fixture || null;
+
+  let activeKeys = options.activeKeys || null;
+  let mcpServers = options.mcpServers || {};
+
+  if (!activeKeys) {
+    try {
+      const loaded = loadActiveMcpConfig(options.mcpConfigPath || MCP_CONFIG_PATH);
+      activeKeys = loaded.activeKeys;
+      mcpServers = loaded.mcpServers;
+    } catch (error) {
+      return [
+        makeProbeResult(
+          'mcp-config',
+          'FAIL',
+          normalizeProbeReason(error.message, 'failed to load .cursor/mcp.json'),
+          'Inspect and fix .cursor/mcp.json, then re-run ./bin/init.'
+        )
+      ];
+    }
+  }
+
+  if (fixture) {
+    validateStory53FixtureAgainstActiveKeys(fixture, activeKeys);
+  }
+
+  const results = [];
+  for (const serverKey of activeKeys) {
+    const remediation = mcpRemediationFor(serverKey);
+    if (fixture) {
+      const fixtureResult = fixture.mcpResults[serverKey];
+      results.push(
+        makeProbeResult(
+          serverKey,
+          fixtureResult.status,
+          normalizeProbeReason(fixtureResult.reason, 'fixture-simulated probe result'),
+          remediation
+        )
+      );
+      continue;
+    }
+
+    const serverConfig = mcpServers[serverKey];
+    let probe;
+    if (serverKey === 'linear') {
+      probe = probeLinear(serverConfig);
+    } else if (serverKey === 'github') {
+      probe = probeGithub(serverConfig, env, spawnSyncImpl);
+    } else if (serverKey === 'microsoft-365') {
+      probe = probeMicrosoft365(serverConfig, spawnSyncImpl);
+    } else if (serverKey === 'salesforce') {
+      probe = probeSalesforce(serverConfig, spawnSyncImpl);
+    } else if (serverKey === 'gong') {
+      probe = probeGong(serverConfig, env, spawnSyncImpl);
+    } else {
+      probe = probeDefaultServer(serverKey, serverConfig, spawnSyncImpl);
+    }
+
+    results.push(makeProbeResult(serverKey, probe.status, probe.reason, remediation));
+  }
+  return results;
+}
+
+function summarizePostWizard(skillsResult, mcpResults) {
+  const passCount = mcpResults.filter((result) => result.status === 'PASS').length;
+  const failResults = mcpResults.filter((result) => result.status === 'FAIL');
+  const failCount = failResults.length;
+  const failingKeys = failResults.map((result) => result.server_key);
+  const overallPass = skillsResult.status === 'PASS' && failCount === 0;
+
+  return {
+    skillsStatus: skillsResult.status,
+    passCount: passCount,
+    failCount: failCount,
+    failingKeys: failingKeys,
+    exitCode: overallPass ? 0 : 1
+  };
+}
+
+function printPostWizardSummary(summary, skillsResult, mcpResults) {
+  console.log('=== Story 5.3: Summary ===');
+  console.log('- Skills install status: ' + summary.skillsStatus);
+  console.log('- MCP checks: PASS ' + String(summary.passCount) + ', FAIL ' + String(summary.failCount));
+  console.log('- Failing MCPs:');
+  if (summary.failingKeys.length === 0) {
+    console.log('  - none');
+  } else {
+    for (const key of summary.failingKeys) {
+      const result = mcpResults.find((entry) => entry.server_key === key);
+      console.log('  - ' + key + ': ' + result.remediation);
+    }
+  }
+  if (skillsResult.status === 'FAIL') {
+    console.log('- Skills remediation: ' + skillsResult.remediation);
+  }
+}
+
+async function runPostWizardSetup(env, options = {}) {
+  const fixture = options.fixture || loadStory53FixtureIfPresent(env);
+
+  console.log('=== Story 5.3: Skills install ===');
+  const skillsResult = runSkillsInstall(env, {
+    fixture: fixture,
+    spawnSyncImpl: options.spawnSyncImpl
+  });
+  console.log('[' + skillsResult.status + '] skills install - ' + skillsResult.reason);
+  if (skillsResult.status === 'FAIL') {
+    console.log('  Remediation: ' + skillsResult.remediation);
+  }
+
+  console.log('=== Story 5.3: Active MCP verification ===');
+  const mcpResults = verifyActiveMcps(env, {
+    fixture: fixture,
+    spawnSyncImpl: options.spawnSyncImpl,
+    mcpConfigPath: options.mcpConfigPath
+  });
+  for (const result of mcpResults) {
+    console.log('[' + result.status + '] ' + result.server_key + ' - ' + result.reason);
+    if (result.status === 'FAIL') {
+      console.log('  Remediation: ' + result.remediation);
+    }
+  }
+
+  const summary = summarizePostWizard(skillsResult, mcpResults);
+  printPostWizardSummary(summary, skillsResult, mcpResults);
+  return summary.exitCode;
+}
+
+function renderWriteSummary(writeResults) {
+  const changed = writeResults.filter((result) => result.changed).map((result) => result.path + ' (' + result.action + ')');
+  const skipped = writeResults.filter((result) => !result.changed).map((result) => result.path + ' (' + result.action + ')');
+
+  console.log('Wizard completed.');
+  console.log('Changed files:');
+  if (changed.length === 0) {
+    console.log('- none');
+  } else {
+    for (const item of changed) {
+      console.log('- ' + item);
+    }
+  }
+  console.log('Skipped files:');
+  if (skipped.length === 0) {
+    console.log('- none');
+  } else {
+    for (const item of skipped) {
+      console.log('- ' + item);
+    }
+  }
+}
+
+function promptSchema(canonicalMcpKeys, shouldAskEnvOverwrite) {
+  const schema = [
+    {
+      type: 'text',
+      name: 'employeeName',
+      message: 'Employee name',
+      validate: (value) => (normalizeWhitespace(value) !== '' ? true : 'Employee name is required.')
+    },
+    {
+      type: 'text',
+      name: 'employeeEmail',
+      message: 'Work email',
+      validate: (value) => {
+        const normalized = normalizeEmail(value);
+        if (normalized === '') return 'Work email is required.';
+        if (!BASIC_EMAIL_REGEX.test(normalized)) return 'Enter a valid work email address.';
+        return true;
+      }
+    },
+    {
+      type: 'text',
+      name: 'employeeRole',
+      message: 'Vixxo role/title',
+      validate: (value) => (normalizeWhitespace(value) !== '' ? true : 'Vixxo role/title is required.')
+    },
+    {
+      type: 'multiselect',
+      name: 'optionalMcps',
+      message: 'Optional MCP interests (select zero or more)',
+      instructions: false,
+      choices: canonicalMcpKeys.map((key) => ({ title: key, value: key }))
+    }
+  ];
+
+  if (shouldAskEnvOverwrite) {
+    schema.push({
+      type: 'confirm',
+      name: 'overwriteEnv',
+      message: '.env already exists. Overwrite with .env.example?',
+      initial: false
+    });
+  }
+
+  return schema;
+}
+
+async function collectWizardAnswers(promptsModule, canonicalMcpKeys, shouldAskEnvOverwrite) {
+  const cancelState = { cancelled: false };
+  const questions = promptSchema(canonicalMcpKeys, shouldAskEnvOverwrite);
+  let answers;
+  try {
+    answers = await promptsModule(questions, {
+      onCancel: () => {
+        cancelState.cancelled = true;
+        return false;
+      }
+    });
+  } catch (error) {
+    const message = String((error && error.message) || '').toLowerCase();
+    if (error && (error.code === 'WIZARD_CANCELLED' || message.includes('cancel') || message.includes('abort'))) {
+      cancelState.cancelled = true;
+    } else {
+      throw error;
+    }
+  }
+
+  if (cancelState.cancelled) {
+    const cancellationError = new Error('wizard-cancelled');
+    cancellationError.code = 'WIZARD_CANCELLED';
+    throw cancellationError;
+  }
+
+  return answers;
+}
+
+async function runWizard(promptsModule, env) {
+  const canonicalMcpKeys = loadCanonicalMcpKeys();
+
+  const envPath = assertPathInsideRepo(ENV_RELATIVE_PATH);
+  let envExists = false;
+  try {
+    await fsp.access(envPath);
+    envExists = true;
+  } catch (error) {
+    envExists = false;
+  }
+
+  const fixtureResponses = loadFixtureResponsesIfPresent(env);
+  if (fixtureResponses) {
+    validateFixtureResponses(fixtureResponses, envExists);
+    promptsModule.inject(fixtureResponses);
+  }
+
+  const answers = await collectWizardAnswers(promptsModule, canonicalMcpKeys, envExists);
+  const normalized = normalizeWizardAnswers(answers, canonicalMcpKeys);
+  const overwriteEnv = envExists ? Boolean(answers.overwriteEnv) : true;
+
+  const identityMarkdown = renderIdentityMarkdown(normalized);
+  const workPersonaMarkdown = renderWorkPersonaMarkdown(normalized);
+
+  await writeAtomic(assertPathInsideRepo(IDENTITY_RELATIVE_PATH), identityMarkdown);
+  await writeAtomic(assertPathInsideRepo(WORK_PERSONA_RELATIVE_PATH), workPersonaMarkdown);
+  const envResult = await materializeEnvFile(overwriteEnv);
+
+  const writeResults = [
+    { changed: true, action: 'written', path: IDENTITY_RELATIVE_PATH },
+    { changed: true, action: 'written', path: WORK_PERSONA_RELATIVE_PATH },
+    envResult
+  ];
+  renderWriteSummary(writeResults);
+}
+
+async function main(argv = process.argv.slice(2), env = process.env) {
+  const pkg = loadPackage();
+  if (argv.indexOf('--help') !== -1 || argv.indexOf('-h') !== -1) {
+    printHelp(pkg);
+    return 0;
+  }
+  if (argv.indexOf('--version') !== -1 || argv.indexOf('-v') !== -1) {
+    printVersion(pkg);
+    return 0;
+  }
+
+  ensureDependencies();
+  const promptsModule = require('prompts');
+
+  try {
+    await runWizard(promptsModule, env);
+    return await runPostWizardSetup(env);
+  } catch (error) {
+    if (error && error.code === 'WIZARD_CANCELLED') {
+      console.error('[bin/init] setup cancelled. No files were changed; re-run ./bin/init to continue.');
+      return 1;
+    }
+    console.error('[bin/init] setup failed: ' + (error && error.message ? error.message : 'unknown error'));
+    return 1;
+  }
+}
+
+if (require.main === module) {
+  main().then((code) => {
+    if (code !== 0) {
+      process.exitCode = code;
+    }
+  });
+}
+
+module.exports = {
+  BASIC_EMAIL_REGEX,
+  FIXTURE_ENV_VAR,
+  MCP_CONFIG_PATH,
+  MCPS_DOC_PATH,
+  PROBE_TIMEOUT_MS,
+  SKILLS_INSTALL_COMMAND,
+  STORY_5_3_FIXTURE_ENV_VAR,
+  assertPathInsideRepo,
+  checkCommandAvailability,
+  collectWizardAnswers,
+  deriveDepartmentFromRole,
+  deriveManagerPlaceholder,
+  loadCanonicalMcpKeys,
+  loadActiveMcpConfig,
+  loadActiveMcpServerKeys,
+  loadFixtureResponsesIfPresent,
+  loadStory53FixtureIfPresent,
+  mapFixtureResponse,
+  materializeEnvFile,
+  mcpRemediationFor,
+  makeProbeResult,
+  normalizeOutputText,
+  normalizeProbeReason,
+  normalizeProbeStatus,
+  normalizeSelectedMcps,
+  normalizeWizardAnswers,
+  parseCanonicalMcpKeysFromDocs,
+  printPostWizardSummary,
+  probeDefaultServer,
+  probeGithub,
+  probeGong,
+  probeLinear,
+  probeMicrosoft365,
+  probeSalesforce,
+  validateServerConfigObject,
+  promptSchema,
+  validateFixtureResponses,
+  validateStory53FixtureAgainstActiveKeys,
+  validateStory53FixturePayload,
+  renderIdentityMarkdown,
+  renderOptionalMcpsSection,
+  runPostWizardSetup,
+  runSkillsInstall,
+  renderWorkPersonaMarkdown,
+  summarizePostWizard,
+  verifyActiveMcps,
+  main,
+  runWizard,
+  writeAtomic
+};

@@ -1,0 +1,13 @@
+name: one-on-one
+title: "One-on-One"
+description: "Prepares one-on-one packets and captures follow-ups with optional Linear routing."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [one-on-one, 1-on-1, meetings, action-items, linear]
+status: approved
+requires_mcp: [linear]
+source: vixxo

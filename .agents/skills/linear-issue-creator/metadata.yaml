@@ -1,0 +1,13 @@
+name: linear-issue-creator
+title: "Linear Issue Creator"
+description: "The governed path for creating Linear issues from Cursor: single issues, bulk lists, and decomposed business requests. Enforces Business Owner, Work Type, epic numbering, duplicate checks, and an intake-readiness bar, then confirms before creating. Also covers triage updates and audit comments for issues it created."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "2.0.0"
+tags: [linear, issue-creation, bulk-intake, business-request, decomposition, governance, business-owner, work-type, readiness]
+status: approved
+requires_mcp: [linear]
+source: vixxo

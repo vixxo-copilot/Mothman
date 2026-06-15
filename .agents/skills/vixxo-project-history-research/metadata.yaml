@@ -1,0 +1,16 @@
+name: vixxo-project-history-research
+title: "Project History Research"
+description: "Researches Sign & Lighting project folders in the SharePoint New L Drive and provisions new ones. Five modes: history brief (with combined PDF), QC review, combined deliverable PDF, single-folder create, and batch-create. Replaces ad-hoc folder spelunking and the legacy n8n folder-creation workflow."
+category: operations
+agents: ["cursor", "claude-code"]
+author: "PCardinal"
+version: "1.0.0"
+tags: ["sharepoint", "microsoft-365", "sign-and-lighting", "project-folders", "pdf", "qc", "history-brief"]
+status: draft
+requires_mcp: ["microsoft-365"]
+source: vixxo
+provenance: user
+created_by: "Soulground33"
+created_at: "2026-05-14T19:50:22.291Z"
+last_updated_by: "Soulground33"
+last_updated_at: "2026-05-14T19:50:22.291Z"

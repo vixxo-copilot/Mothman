@@ -1,0 +1,13 @@
+name: slt-meeting-prep
+title: "SLT Meeting Prep"
+description: "Creates senior leadership meeting briefs with decision asks, risk framing, and evidence-backed talking points."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [slt, leadership, meeting, prep, strategy]
+status: approved
+requires_mcp: [microsoft-365, linear]
+source: vixxo

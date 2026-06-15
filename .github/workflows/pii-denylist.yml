@@ -1,0 +1,180 @@
+# PII deny-list GitHub Action (Story 6.2)
+#
+# Deny-list source (single source of truth):
+#   .github/pii-denylist.txt  (Story 6.1; read-only input; byte-stable)
+#
+# AC4 exclusion set — paths excluded from the deny-list scan. Any PR that
+# only touches paths in this set is a PASS (zero files after exclusion).
+# Original AC4 set (10 paths) PLUS four Dev-added exclusions derived from
+# the Task 1 baseline audit (pre-existing legitimate-English matches in
+# framework-internal and policy documentation). See the Completion Notes
+# in the story file for the full triage rationale.
+#
+#   .git/                                              (version control metadata)
+#   .github/pii-denylist.txt                           (self — deny-list file)
+#   .github/workflows/pii-denylist.yml                 (self — this workflow)
+#   docs/pii-denylist.md                               (policy doc)
+#   _bmad/                                             (BMAD framework source; not Vixxo-authored)
+#   _bmad-output/implementation-artifacts/*.md         (story files enumerate tokens as audit evidence)
+#   _bmad-output/implementation-artifacts/tests/*.md   (baseline / blueprint docs enumerate tokens)
+#   _bmad-output/implementation-artifacts/tests/*.sh   (validation harnesses embed banned-term regex)
+#   _bmad-output/implementation-artifacts/*.yaml       (sprint-status.yaml holds immutable Linear identifiers)
+#   _bmad-output/planning-artifacts/                   (epics.md, architecture.md enumerate tokens)
+#   .cursor/skills/                                    (BMAD skill copies; mirror of excluded _bmad/)
+#   .claude/skills/                                    (BMAD skill copies; mirror of excluded _bmad/)
+#   .cursor/rules/                                     (policy files with legitimate scope-boundary language)
+#   node_modules/                                      (if present; skill-bundle install artifacts)
+#
+# Human-facing policy:      docs/pii-denylist.md
+# Implementation rationale: _bmad-output/implementation-artifacts/6-2-github-action-blocks-prs-violating-denylist.md
+
+name: PII deny-list
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan PR diff for banned patterns
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Checkout repository with history
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Verify deny-list self-integrity
+        run: |
+          set -euo pipefail
+          if grep -vE '^(#|$)' .github/pii-denylist.txt | grep -Fq 'SAFE-TO-PUBLISH'; then
+            echo "FAIL: deny-list self-integrity — 'SAFE-TO-PUBLISH' sentinel found in a pattern line; refusing to scan"
+            exit 1
+          fi
+
+      - name: Load banned patterns
+        id: load
+        run: |
+          set -euo pipefail
+          mapfile -t RAW < <(grep -vE '^(#|$)' .github/pii-denylist.txt \
+            | grep -vFx 'DEREK_HOME_ADDRESS_FORK_LOCAL' \
+            | grep -vFx 'DEREK_FAMILY_FORK_LOCAL')
+          if [ "${#RAW[@]}" -lt 25 ]; then
+            echo "FAIL: loaded pattern count ${#RAW[@]} is below the sanity floor (25)"
+            exit 1
+          fi
+          ESCAPED=()
+          for p in "${RAW[@]}"; do
+            e=$(printf '%s' "$p" | sed 's/[][(){}.^$|*+?\\]/\\&/g')
+            ESCAPED+=("$e")
+          done
+          ALT=$(IFS='|'; printf '%s' "${ESCAPED[*]}")
+          REGEX="(^|[^A-Za-z])(${ALT})(\$|[^A-Za-z])"
+          TOKEN_REGEX="(${ALT})"
+          printf '%s\n' "$REGEX" > "$RUNNER_TEMP/pii-regex.txt"
+          printf '%s\n' "$TOKEN_REGEX" > "$RUNNER_TEMP/pii-token-regex.txt"
+          echo "Loaded ${#RAW[@]} banned patterns from .github/pii-denylist.txt"
+
+      - name: Identify changed files
+        id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          # Unbounded fetch of the base branch so the merge-base is always
+          # locally present (F9 fix — --depth=1 can miss the merge-base on
+          # multi-commit PRs against force-pushed base branches).
+          git fetch origin "$BASE_REF"
+          git diff --name-only --diff-filter=ACMR \
+            "origin/$BASE_REF...HEAD" > "$RUNNER_TEMP/changed-all.txt" || true
+          if [ ! -s "$RUNNER_TEMP/changed-all.txt" ]; then
+            echo "NOTE: base branch unreachable or empty diff; falling back to HEAD commit scan"
+            git diff-tree --no-commit-id --name-only -r HEAD > "$RUNNER_TEMP/changed-all.txt"
+          fi
+          grep -vE \
+            -e '^\.github/pii-denylist\.txt$' \
+            -e '^\.github/workflows/pii-denylist\.yml$' \
+            -e '^docs/pii-denylist\.md$' \
+            -e '^_bmad/' \
+            -e '^_bmad-output/implementation-artifacts/.*\.md$' \
+            -e '^_bmad-output/implementation-artifacts/tests/.*\.(md|sh)$' \
+            -e '^_bmad-output/implementation-artifacts/.*\.yaml$' \
+            -e '^_bmad-output/planning-artifacts/' \
+            -e '^\.cursor/skills/' \
+            -e '^\.claude/skills/' \
+            -e '^\.cursor/rules/' \
+            -e '^node_modules/' \
+            "$RUNNER_TEMP/changed-all.txt" > "$RUNNER_TEMP/changed-filtered.txt" || true
+          N=$(wc -l < "$RUNNER_TEMP/changed-filtered.txt" | tr -d ' ')
+          echo "Changed files after exclusion: $N"
+          echo "n=$N" >> "$GITHUB_OUTPUT"
+
+      - name: Scan for banned patterns
+        if: steps.diff.outputs.n != '0'
+        run: |
+          set -euo pipefail
+          REGEX=$(cat "$RUNNER_TEMP/pii-regex.txt")
+          : > "$RUNNER_TEMP/pii-matches.txt"
+          SANITIZED_TMP="$RUNNER_TEMP/sanitized.tmp"
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ ! -f "$f" ] && continue
+            # Skip binary files (F2 fix carry-over); prevents grep from
+            # emitting 'Binary file X matches' (unparseable) or leaking
+            # raw bytes into the workflow log.
+            grep -Iq . "$f" 2>/dev/null || continue
+            # Sanitize well-known legitimate constants whose substrings
+            # overlap deny-list tokens, matching the
+            # `sanitize_for_banned_scan()` pre-filter in the Story 4.1 /
+            # 4.2 / 4.3 / 4.4 validation harnesses. Currently:
+            #   GITHUB_PERSONAL_ACCESS_TOKEN — canonical GitHub PAT env
+            #   var name; its 'PERSONAL' substring matches the deny-list
+            #   entry 'personal'. sed is line-oriented, so line numbers
+            #   emitted by `grep -n` on the sanitized file remain
+            #   accurate against the original.
+            sed -E 's/GITHUB_PERSONAL_ACCESS_TOKEN/__GH_PAT_NAME__/g' "$f" \
+              > "$SANITIZED_TMP"
+            # Escape special sed replacement characters: \, &, and delimiter #
+            f_escaped=$(printf '%s' "$f" | sed 's/[\\&#]/\\&/g')
+            grep -inE "$REGEX" "$SANITIZED_TMP" \
+              | sed "s#^#$f_escaped:#" \
+              >> "$RUNNER_TEMP/pii-matches.txt" || true
+          done < "$RUNNER_TEMP/changed-filtered.txt"
+
+      - name: Report
+        run: |
+          set -euo pipefail
+          N="${{ steps.diff.outputs.n }}"
+          if [ -z "$N" ] || [ "$N" = "0" ]; then
+            echo "PASS: PII deny-list scan — 0 files after exclusions, nothing to scan"
+            exit 0
+          fi
+          if [ ! -s "$RUNNER_TEMP/pii-matches.txt" ]; then
+            echo "PASS: PII deny-list scan — $N files scanned, 0 violations"
+            exit 0
+          fi
+          TOKEN_REGEX=$(cat "$RUNNER_TEMP/pii-token-regex.txt")
+          # awk-based parse (F5 fix) handles colons in file paths safely:
+          # grep -n emits "<path>:<lineno>:<content>" where <content> may
+          # itself contain colons. awk takes the first two colon-separated
+          # fields as path and lineno, and reconstructs the rest as content.
+          # Token extraction (F1 fix) runs grep -oiE against each content
+          # line to emit the first matched banned token per AC6 format.
+          while IFS= read -r raw; do
+            [ -z "$raw" ] && continue
+            path=$(printf '%s\n' "$raw" | awk -F: '{print $1}')
+            lineno=$(printf '%s\n' "$raw" | awk -F: '{print $2}')
+            content=$(printf '%s\n' "$raw" | awk -F: '{out=$3; for(i=4;i<=NF;i++) out=out ":" $i; print out}')
+            token=$(printf '%s\n' "$content" | grep -oiE "$TOKEN_REGEX" | head -n1 | sed 's/^[^A-Za-z]*//' | sed 's/[^A-Za-z]*$//' || true)
+            [ -z "$token" ] && token="(unresolved)"
+            echo "FAIL: ${path}:${lineno}: matched banned pattern '${token}'"
+          done < "$RUNNER_TEMP/pii-matches.txt"
+          VIOL=$(wc -l < "$RUNNER_TEMP/pii-matches.txt" | tr -d ' ')
+          FILES=$(awk -F: '{print $1}' "$RUNNER_TEMP/pii-matches.txt" | sort -u | wc -l | tr -d ' ')
+          echo "FAIL: PII deny-list scan — $VIOL violations in $FILES files; see offending lines above"
+          exit 1

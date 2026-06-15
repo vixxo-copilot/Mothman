@@ -1,0 +1,13 @@
+name: inbox-processing
+title: "Inbox Processing"
+description: "Classifies and routes memory inbox captures into vault files or approved task systems."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [inbox, triage, memory, routing, linear, benji]
+status: approved
+requires_mcp: [linear, user-benji]
+source: vixxo

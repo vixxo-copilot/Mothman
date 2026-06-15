@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# VIXXO-sp-performance-monitor — Outlook draft recipients
+# ---------------------------------------------------------------------------
+# Who receives the drafted "at-risk SPs" Outlook email. The skill resolves
+# every address through the Microsoft 365 directory tool — it will NOT invent
+# SMTP addresses. Names alone are enough; the directory tool resolves them.
+#
+# Leave values as <TBD> until confirmed with Maria. The skill will still run,
+# but the drafted email will go to Maria's drafts with no To/CC until this is
+# filled in.
+#
+# Linear: AIA-462 (calibration), AIA-403 (parent story).
+# ---------------------------------------------------------------------------
+
+version: 1
+
+# Shake-out mode (2026-04-24): drafts go only to Maria while we tune
+# thresholds and the report shape. After the first clean run (AIA-466),
+# expand `to:` to include the approved distribution list.
+to:
+  - maria.clavijo-demchalk@vixxo.com
+
+cc: []
+
+bcc: []
+
+# From / sender is always the authenticated M365 user; no override here.
+
+# Subject line template. {window_end} is replaced with the current window end
+# date (YYYY-MM-DD); {critical_count} with the count of critical SPs.
+subject_template: "SP Performance Monitor — at-risk SPs for {window_end} ({critical_count} critical)"
+
+# Send policy — this value is enforced in SKILL.md and cannot be overridden
+# without the user's explicit approval per the outbound-messaging guardrail.
+send_policy: draft_only

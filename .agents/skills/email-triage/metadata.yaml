@@ -1,0 +1,13 @@
+name: email-triage
+title: "Email Triage (M365)"
+description: "Prioritizes Outlook inbox work, batches responses, and captures follow-up actions using Microsoft 365 workflows."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [email, triage, outlook, microsoft-365, productivity]
+status: approved
+requires_mcp: [microsoft-365]
+source: vixxo

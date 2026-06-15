@@ -1,0 +1,13 @@
+name: vixxo-rbat-ror-rate-review
+title: "Vixxo RBAT to ROR Rate Review"
+description: "Review Finance RBAT-to-ROR rate issue workbooks and validate suspected SP rate mismatches against Gateway and ORMB evidence."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Maria Clavijo-Demchalk"
+version: "1.0.0"
+tags: [rates, rbat, ror, gateway, ormb, finance, invoices]
+status: approved
+requires_mcp: [gateway]
+source: vixxo

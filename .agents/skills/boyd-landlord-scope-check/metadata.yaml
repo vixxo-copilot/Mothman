@@ -1,0 +1,18 @@
+name: boyd-landlord-scope-check
+title: "BOYD Landlord Scope Check"
+description: "Evaluates BOYD/Gerber service requests against a monthly CoStar lease responsibility extract and landlord-review SOPs to recommend tenant dispatch, landlord handling, pass-through dispatch, or lease review."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: vixxojmac
+version: "0.1.0"
+tags: [vixxo, boyd, costar, lease-review, landlord-review, facilities, operations]
+status: draft
+requires_mcp: [vixxolink, gateway]
+source: vixxo
+provenance: user
+created_by: vixxojmac
+created_at: "2026-05-13T23:01:00.000Z"
+last_updated_by: vixxojmac
+last_updated_at: "2026-05-13T23:01:00.000Z"

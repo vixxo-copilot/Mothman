@@ -1,0 +1,18 @@
+name: sr-triage-pre-dispatch
+title: "Vixxo SR Triage — Pre-Dispatch, Post-Facto, and Next-Action Classifier"
+description: "Living triage layer for Vixxo Service Requests. Three modes — pre-dispatch (run at SR assignment to surface prior-failure triggers, asset-history risk, parent/child SR linkage, sub-status truth, asset-data lineage, and dispatch packet completeness before the SP gets the call), post-facto (run during SR-quality review to apply the same decoders so the agent does not mistranslate Siebel sub-statuses, miss parent/child SR siblings, or attribute Siebel asset-record gaps to Tech Dispatch), and next-action classifier (sweep an open-SR queue and bucket each SR into dispatch/follow-up/escalation/close with deterministic rules and an LLM fallback). Built from real plumbing-batch, cold-beverage-cohort, Circle K all-trades, Boyd plumbing, and five-run consistency-test findings. Trade skills inherit this layer and call it before any dispatch read, closure-quality scoring, or queue sweep."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Jim McCarthy"
+version: "1.0.0"
+tags: [sr-triage, pre-dispatch, service-requests, siebel, vixxolink, gateway, dispatch-intelligence, quality-signals, trade-operations, post-facto-review, next-action-classifier]
+status: approved
+requires_mcp: [vixxolink, gateway]
+source: vixxo
+provenance: user
+created_by: "vixxojmac"
+created_at: "2026-05-11T21:53:00.000Z"
+last_updated_by: "Jim McCarthy"
+last_updated_at: "2026-05-12T19:45:00.000Z"

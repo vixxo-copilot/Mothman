@@ -1,0 +1,13 @@
+name: meeting-prep
+title: "Meeting Prep"
+description: "Builds a concise pre-meeting brief with context, decisions, risks, and talking points."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [meeting, preparation, briefing, agenda, stakeholders]
+status: approved
+requires_mcp: []
+source: vixxo

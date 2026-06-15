@@ -1,0 +1,39 @@
+schema_name: linear-issue-creator-profile
+profile_schema_version: 1
+required:
+  - profile_schema_version
+  - profile_name
+  - linear.team
+  - business_owner.label_group
+  - business_owner.policy
+  - assignee.policy
+  - work_type_labels
+  - confirmation.required
+  - duplicate_check.enabled
+allowed_values:
+  business_owner.policy:
+    - approved-default
+    - explicit-or-current-user
+    - explicit-only
+  assignee.policy:
+    - default-assignee
+    - ask
+    - unassigned-triage
+  duplicate_check.search_scope:
+    - team-project
+    - team
+    - workspace
+work_type_labels:
+  exact_set:
+    - Epic
+    - Story
+    - Chore
+    - Bug
+notes:
+  - Omit linear.project when the workspace routes team/project by content (see reference/routing-maps.md).
+  - Business Owner and assignee are separate concepts.
+  - Epic titles must use [Epic N] and child titles must use [N.M].
+  - Story, Chore, and Bug issues must attach to the matching parent epic before creation.
+  - Profiles with business_owner.policy approved-default must declare business_owner.default_label.
+  - Profiles with assignee.policy default-assignee must declare assignee.default.
+  - The active repo profile should be stored in .agents/skills/linear-issue-creator/local/profile.yaml in consuming repos.

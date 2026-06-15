@@ -1,0 +1,47 @@
+# Example profile for repos with varied contributors and varied business owners,
+# such as Vixxo or VixxoLink. Copy to:
+# .agents/skills/linear-issue-creator/local/profile.yaml
+profile_schema_version: 1
+profile_name: vixxo-explicit-owner
+profile_kind: example
+
+linear:
+  team: VIX
+  project: "<Repo or product project name>"
+
+business_owner:
+  label_group: "Business Owner"
+  policy: explicit-or-current-user
+  default_label: ""
+  allowed_labels:
+    - "<Operations stakeholder label>"
+    - "<Finance stakeholder label>"
+    - "<Product stakeholder label>"
+
+assignee:
+  policy: ask
+  default: ""
+
+work_type_labels:
+  - Epic
+  - Story
+  - Chore
+  - Bug
+
+labels:
+  required: []
+  optional:
+    - Feature
+    - Backend
+    - Frontend
+    - Integration
+    - Infrastructure
+    - Operations
+    - UI/UX
+
+duplicate_check:
+  enabled: true
+  search_scope: team-project
+
+confirmation:
+  required: true

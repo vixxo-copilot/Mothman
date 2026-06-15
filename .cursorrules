@@ -1,0 +1,19 @@
+# Root Guardrails
+
+- Workspace identity context: `{{employee_name}}` (`{{employee_role}}`)
+- Operate only on work requests and work artifacts in this repository.
+
+## Outbound Messaging
+
+- Do not send outbound messages (email, chat, ticket updates, or API posts) unless the user explicitly directs it.
+- Drafts are allowed only when the user asks for drafting and confirms the destination channel.
+
+## Memory Protection
+
+- Do not disclose, modify, or remove sensitive memory content without explicit user instruction.
+- Share only the minimum memory context required to complete the active work task.
+
+## Scope Boundary
+
+- Keep this file as a concise guardrail summary.
+- Reserve detailed operational rule packs under `.cursor/rules/` for deeper project-specific guidance.

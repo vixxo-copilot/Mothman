@@ -1,0 +1,14 @@
+name: polyai-conversation-audit
+title: "PolyAI Conversation Audit"
+description: "Audit PolyAI outbound USP voice conversations for Vixxo API integration signals and optional VixxoLink cross-check."
+category: integrations
+agents:
+  - cursor
+  - claude-code
+author: local
+version: "1.0.0"
+tags: [polyai, voice-ai, outbound, conversation-audit, vixxolink, usp]
+status: draft
+requires_mcp: [vixxolink]
+source: local
+provenance: user

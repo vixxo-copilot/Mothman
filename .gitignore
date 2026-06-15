@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+tmp/
+.cursor/bin/github-mcp-server
+.cursor/bin/github-mcp-server.tar.gz
+bin/github-mcp-server
+bin/github-mcp-server.tar.gz
+__pycache__/
+*.pyc

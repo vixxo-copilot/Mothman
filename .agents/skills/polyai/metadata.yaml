@@ -1,0 +1,14 @@
+name: polyai
+title: "PolyAI"
+description: "Standalone PolyAI operations — Conversations API, conversation audit, Jupiter/Studio config, integration signal analysis."
+category: integration
+agents:
+  - cursor
+  - claude-code
+author: local
+version: "1.1.0"
+tags: [polyai, agent-studio, jupiter, voice-ai, conversations-api, outbound, audit]
+status: draft
+requires_mcp: []
+source: local
+provenance: user

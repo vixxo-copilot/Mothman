@@ -1,0 +1,13 @@
+name: vixxo-recognition
+title: "Vixxo Recognition"
+description: "Generates evidence-backed recognition drafts for teams and individuals based on recent work impact."
+category: communication
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [recognition, wins, teams, communication, leadership]
+status: approved
+requires_mcp: [microsoft-365]
+source: vixxo

@@ -1,0 +1,13 @@
+name: outlook-email-categorizer
+title: "Outlook Email Categorizer (M365)"
+description: "Classifies and applies Outlook categories to Microsoft 365 mail with dry-run review before any mailbox writes."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [email, outlook, categories, microsoft-365, productivity, organization]
+status: approved
+requires_mcp: [microsoft-365]
+source: vixxo

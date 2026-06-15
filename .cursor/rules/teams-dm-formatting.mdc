@@ -1,0 +1,51 @@
+---
+description: Formatting rules for Microsoft Teams messages drafted for {{employee_name}}
+globs: []
+alwaysApply: true
+---
+
+# Teams Message Formatting
+
+Applies when drafting messages for Microsoft Teams (DMs, group chats,
+channel posts, and replies) on behalf of {{employee_name}}.
+
+Identity and scope are owned by the sibling rule
+`.cursor/rules/agent-identity.mdc`. The draft-then-approve guardrail and
+inline signing convention are owned by
+`.cursor/rules/outbound-messaging-guardrail.mdc`. This rule focuses on
+Microsoft Teams message formatting only.
+
+## Rules
+
+1. **Treat Teams like text messaging, not email.** Keep it conversational,
+   direct, and short by default.
+2. **Plain-text review first.** Show {{employee_name}} plain-text drafts for
+   approval. Do not present HTML in drafts unless requested.
+3. **Convert only at send time.** After approval, map the plain-text draft
+   to Teams HTML payload format.
+4. **No greeting or name prefix in DMs.** Do not open with "Hi [Name]," or
+   "Hey [Name],". State the point.
+5. **Signing convention lives in
+   `.cursor/rules/outbound-messaging-guardrail.mdc`.** Follow the inline
+   Teams sign-off from that rule; do not restate it here.
+6. **Keep it tight.** Prefer one short paragraph. Avoid multi-section
+   formatting and spacer lines unless {{employee_name}} explicitly asks for
+   a longer structured post.
+7. **Use HTML payloads.** Send Teams messages as `contentType: "html"` with
+   a single `<p>` wrapper in the common case.
+
+For channel posts, `@mentions` are allowed when useful. Keep the same
+concise text-message style and inline sign-off.
+
+### Example Teams body
+
+```json
+{
+  "body": {
+    "content": "<p>Short status update. -- AI assistant for {{employee_name}}</p>",
+    "contentType": "html"
+  }
+}
+```
+
+<!-- Why: Teams is conversational — walls of text and wrong signatures cost trust. -->

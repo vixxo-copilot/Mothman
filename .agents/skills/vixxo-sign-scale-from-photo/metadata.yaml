@@ -1,0 +1,18 @@
+name: vixxo-sign-scale-from-photo
+title: "Sign Scale From Photo"
+description: "Estimates sign dimensions from storefront or fascia photos, produces red-line dimension overlays (PNG + PDF), and supports dual-axis panel scaling for mockups on building photos. Handles channel-letter storefronts and white-panel fascia mockups."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Eric Ziemann"
+version: "1.1.0"
+tags: [signs, dimensions, photo-scale, fascia, mockup, channel-letters, overlay, design, operations]
+status: approved
+requires_mcp: []
+source: vixxo
+provenance: user
+created_by: "eziemann"
+created_at: "2026-06-09T00:00:00.000Z"
+last_updated_by: "eziemann"
+last_updated_at: "2026-06-09T00:00:00.000Z"

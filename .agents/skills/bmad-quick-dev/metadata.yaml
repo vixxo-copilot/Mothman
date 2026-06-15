@@ -1,0 +1,13 @@
+name: bmad-quick-dev
+title: "BMAD Quick Dev"
+description: "Fast implementation workflow for turning clear requirements into tested, scoped code changes."
+category: development
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [bmad, development, implementation, tests, workflow]
+status: approved
+requires_mcp: []
+source: vixxo

@@ -1,0 +1,13 @@
+name: memory-capture
+title: "Memory Capture"
+description: "Captures structured and unstructured notes into memory vault files with inbox-first defaults."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [memory, capture, notes, inbox, knowledge]
+status: approved
+requires_mcp: []
+source: vixxo

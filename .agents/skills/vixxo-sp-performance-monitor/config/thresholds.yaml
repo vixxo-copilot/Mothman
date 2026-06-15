@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------------------
+# VIXXO-sp-performance-monitor — detection thresholds (playbook-calibrated)
+# ---------------------------------------------------------------------------
+# Hybrid detection: an SP is flagged if EITHER an absolute threshold is
+# breached on any KPI, OR the 45-day trend vs the prior 45-day window degrades
+# beyond the configured percent delta.
+#
+# v2 (2026-05-13) thresholds are taken from the current SP performance
+# goals in `references/sp-playbook-kpis.md`. These are the customer-facing
+# performance bar — not placeholders.
+#
+# Linear: AIA-462 (calibration), AIA-403 (parent story).
+# ---------------------------------------------------------------------------
+
+version: 2
+
+# Active-SP filter: SPs with fewer jobs than this over the current 45-day
+# window are excluded from scoring (volume-noise guard).
+min_jobs_45d: 10
+
+# Absolute per-KPI thresholds, sourced from the SP Playbook. Breach
+# direction follows `higher_is_worse` in export-schema.yaml. Units are
+# percent unless noted.
+thresholds:
+  # SLA Compliance Rate — playbook target ≥ 85%. Flag when below.
+  sla_compliance_pct_min: 85.0
+  # First-Time Fix Rate — playbook target ≥ 90%. Flag when below.
+  first_time_fix_pct_min: 90.0
+  # Recall Rate — playbook target ≤ 5% (30-day lookback). Flag when above.
+  recall_rate_pct_max: 5.0
+  # Quote Turnaround Time for P0/P1 — target ≤ 24 hours / 1 day.
+  # Flag when above.
+  quote_turnaround_p0_p1_hours_max: 24.0
+  # VixxoLink Adoption Rate — target ≥ 70%. Flag when below.
+  vixxolink_adoption_pct_min: 70.0
+  # Invoice Rejection Rate — target ≤ 2%. Flag when above.
+  invoice_rejection_pct_max: 2.0
+
+# Trend degradation: relative change between current 45d and prior 45d.
+# All values are percent points of degradation — positive numbers only unless
+# noted. Work-orders-completed is symmetric (+/-) per the SP performance team's
+# 2026-04-29 request: drops signal disengagement / lost work, spikes signal
+# capacity pressure worth a check-in.
+trend:
+  sla_compliance_dropped_pct: 5            # SLA dropped by ≥ 5 pct points
+  first_time_fix_dropped_pct: 5            # FTF dropped by ≥ 5 pct points
+  recall_rate_increased_pct: 25            # recall rate grew by ≥ 25% relative
+  quote_turnaround_increased_pct: 25       # quote TAT grew by ≥ 25% relative
+  vixxolink_adoption_dropped_pct: 5        # adoption dropped by ≥ 5 pct points
+  invoice_rejection_increased_pct: 25      # rejection rate grew by ≥ 25% relative
+  # Work-orders-completed trend (symmetric). Both flags require prior window
+  # volume >= min_jobs_45d to avoid boundary noise. A drop alone yields
+  # `watch`; it only escalates to `warning`/`critical` when combined with a
+  # threshold breach on another KPI. Spikes are always informational.
+  wo_completed_drop_pct: 30                # flag if current ≤ prior * (1 - 30%)
+  wo_completed_spike_pct: 50               # flag if current ≥ prior * (1 + 50%)
+
+# Severity model applied per SP after scoring each KPI.
+severity:
+  # critical: threshold breached AND trend degraded on the same KPI
+  # warning:  threshold breached OR trend degraded ≥ 1.5x the configured delta
+  # watch:    trend degraded at exactly the configured delta, no threshold breach
+  warning_trend_multiplier: 1.5
+
+# Freshness guard, mirrored from export-schema.yaml so tuning stays in one
+# obvious place for the SP performance team.
+freshness_window_days: 7

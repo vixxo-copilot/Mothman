@@ -1,0 +1,47 @@
+# Example profile for the Bridge repo (approved single-owner defaults).
+# This is an EXAMPLE shipped with the skill. To activate it in the Bridge repo,
+# either run the first-run configuration interview (reference/onboarding.md) or
+# copy this file to .agents/skills/linear-issue-creator/local/profile.yaml and
+# set profile_kind: local.
+profile_schema_version: 1
+profile_name: bridge
+profile_kind: example
+
+linear:
+  team: BRG
+  project: Bridge
+
+business_owner:
+  label_group: "Business Owner"
+  policy: approved-default
+  default_label: "Robert Hunnicutt"
+  allowed_labels:
+    - "Robert Hunnicutt"
+
+assignee:
+  policy: default-assignee
+  default: bobby
+
+work_type_labels:
+  - Epic
+  - Story
+  - Chore
+  - Bug
+
+labels:
+  required: []
+  optional:
+    - Backend
+    - Frontend
+    - Integration
+    - Infrastructure
+    - UI/UX
+    - AI
+    - Business Request
+
+duplicate_check:
+  enabled: true
+  search_scope: team-project
+
+confirmation:
+  required: true

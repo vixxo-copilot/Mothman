@@ -1,0 +1,20 @@
+{
+  "name": "assistants-template",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vixxo-deployable employee AI agent template; clone, run ./bin/init, work.",
+  "type": "commonjs",
+  "bin": {
+    "assistants-init": "./bin/init"
+  },
+  "scripts": {
+    "init": "node ./bin/init",
+    "start": "node ./bin/init"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "prompts": "2.4.2"
+  }
+}

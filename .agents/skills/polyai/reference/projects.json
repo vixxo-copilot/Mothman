@@ -1,0 +1,28 @@
+{
+  "account_id": "vixxo-us",
+  "region": "us",
+  "default_project": "vixxo-outbound-usp",
+  "projects": {
+    "vixxo-outbound-usp": {
+      "label": "Outbound USP — ETA / arrival follow-up",
+      "enabled": true,
+      "channel": "outbound",
+      "variants": ["outbound-live", "outbound-dev-1", "inbound-dev"],
+      "notes": "Primary live outbound voice project."
+    },
+    "vixxo-inbound-usp": {
+      "label": "Inbound USP — provider / SP inbound line",
+      "enabled": true,
+      "channel": "inbound",
+      "variants": [],
+      "notes": "New inbound USP project. Add Jupiter variant names when live."
+    },
+    "vixxo-usp": {
+      "label": "Legacy inbound (pre-USP split)",
+      "enabled": false,
+      "channel": "inbound",
+      "variants": ["inbound-live", "inbound-dev"],
+      "notes": "Older inbound project; keep disabled unless auditing historical calls."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+name: vixxo-spm-invoice-concerns
+title: "Vixxo SPM Invoice Concerns"
+description: "Dry-run Freshdesk SPM-Invoice Concerns tickets by comparing provider invoice asks with Gateway invoice, quote, payment, and audit evidence."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Maria Clavijo-Demchalk"
+version: "1.0.0"
+tags: [freshdesk, invoice-concerns, gateway, spm, payments, vixxo]
+status: approved
+requires_mcp: [freshdesk, gateway]
+source: vixxo

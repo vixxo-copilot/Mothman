@@ -1,0 +1,13 @@
+name: review-teams-pulse
+title: "Review Teams Pulse"
+description: "Analyzes Microsoft Teams activity for high-signal threads, unanswered asks, and actionable follow-ups."
+category: communication
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [teams, microsoft-365, communication, follow-up, triage]
+status: approved
+requires_mcp: [microsoft-365]
+source: vixxo

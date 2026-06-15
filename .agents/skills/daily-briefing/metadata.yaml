@@ -1,0 +1,13 @@
+name: daily-briefing
+title: "Daily Briefing (Work-Only)"
+description: "Builds a focused daily work briefing from Outlook, Linear, and Teams signals."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [daily-briefing, outlook, microsoft-365, linear, teams, productivity]
+status: approved
+requires_mcp: [microsoft-365, linear]
+source: vixxo

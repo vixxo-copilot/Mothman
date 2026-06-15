@@ -1,0 +1,16 @@
+# Vixxo internal canonical license text
+
+This file is the canonical source text for the repository root `LICENSE` file.
+Update this file first if legal-approved wording changes.
+
+Vixxo Internal License
+Copyright (c) 2026 Vixxo, Inc.
+All Rights Reserved.
+
+This repository and all associated materials are proprietary to Vixxo, Inc.
+
+Permission is granted to use, copy, and modify this material solely for internal business use by authorized Vixxo employees and approved contractors acting on behalf of Vixxo.
+
+Any external distribution, publication, sublicensing, or disclosure is prohibited unless Vixxo Legal provides prior written approval.
+
+THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.

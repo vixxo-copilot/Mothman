@@ -1,0 +1,16 @@
+name: polyai-vixxo-bridge
+title: "PolyAI ↔ Vixxo Bridge"
+description: "Wires VixxoLink and Gateway MCP into PolyAI Agent Studio for voice agents. Documents which VixxoLink tools to enable, read-only voice guardrails, and Cursor-side SR validation."
+category: integration
+agents: ["cursor", "claude-code"]
+author: "sakshimural7651"
+version: "1.0.0"
+tags: ["polyai", "voice-ai", "agent-studio", "vixxolink", "gateway", "mcp", "service-requests", "phone-agent"]
+status: approved
+requires_mcp: ["vixxolink", "gateway"]
+source: vixxo
+provenance: user
+created_by: "sakshimural7651"
+created_at: "2026-06-09T19:10:26.553Z"
+last_updated_by: "sakshimural7651"
+last_updated_at: "2026-06-09T19:10:26.553Z"

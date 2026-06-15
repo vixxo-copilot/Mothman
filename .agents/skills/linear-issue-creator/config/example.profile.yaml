@@ -1,0 +1,48 @@
+# Copy this file into the consuming repo and customize it:
+# .agents/skills/linear-issue-creator/local/profile.yaml
+#
+# This example is a template, not a live creation profile.
+profile_schema_version: 1
+profile_name: example-team
+profile_kind: template
+
+linear:
+  team: "<Linear team key or name>"
+  project: "<Linear project name>"
+
+business_owner:
+  label_group: "Business Owner"
+  # allowed: approved-default, explicit-or-current-user, explicit-only
+  policy: explicit-or-current-user
+  # Only set default_label when the repo has a safe, approved default owner.
+  default_label: ""
+  allowed_labels:
+    - "<Business Owner label name>"
+
+assignee:
+  # allowed: default-assignee, ask, unassigned-triage
+  policy: ask
+  default: ""
+
+work_type_labels:
+  - Epic
+  - Story
+  - Chore
+  - Bug
+
+labels:
+  required: []
+  optional:
+    - Feature
+    - Backend
+    - Frontend
+    - Integration
+    - Infrastructure
+    - UI/UX
+
+duplicate_check:
+  enabled: true
+  search_scope: team-project
+
+confirmation:
+  required: true

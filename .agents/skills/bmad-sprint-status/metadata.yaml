@@ -1,0 +1,13 @@
+name: bmad-sprint-status
+title: "BMAD Sprint Status"
+description: "Summarizes sprint health, surfaces risks, and recommends the next workflow action."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [bmad, sprint, status, planning, risk]
+status: approved
+requires_mcp: []
+source: vixxo

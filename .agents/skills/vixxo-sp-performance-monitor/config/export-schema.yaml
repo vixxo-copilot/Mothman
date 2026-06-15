@@ -1,0 +1,193 @@
+# ---------------------------------------------------------------------------
+# VIXXO-sp-performance-monitor — v2 input contract (playbook-aligned)
+# ---------------------------------------------------------------------------
+# The user (or an approved operator) exports VixxoLens visuals to CSV or XLSX and
+# drops the file into `memory/sp-performance/_inbox/`. This file is the
+# canonical contract for what columns the skill expects.
+#
+# When VixxoLens column names shift, edit this file — do NOT edit the skill
+# workflow. Schema drift surfaces as a stop-with-diff validation error, not a
+# silent mis-mapping.
+#
+# v2 (2026-05-13): KPI columns aligned to the current SP performance goal set
+# (`references/sp-playbook-kpis.md`).
+# Replaces `response_time` with `sla_compliance`, renames `callback_rate` to
+# `recall_rate`, and replaces the prior downstream KPI set with Quote
+# Turnaround Time (P0/P1), VixxoLink Adoption, and Invoice Rejection.
+# Old aliases retained only where they do not risk mis-scoring a different KPI.
+#
+# Linear: AIA-461 (define the contract), AIA-403 (parent story).
+# ---------------------------------------------------------------------------
+
+version: 2
+
+formats:
+  - csv
+  - xlsx
+
+# Identifier columns. At least one of (sp_id, sp_name) MUST be present; if both
+# are present, sp_id wins for matching across files.
+identifier:
+  sp_id:
+    required: false            # flip to true once VixxoLens has a stable SP ID column
+    aliases: [sp_id, provider_id, vendor_id, service_provider_id]
+    type: string
+  sp_name:
+    required: true
+    aliases: [sp_name, provider_name, vendor_name, service_provider]
+    type: string
+
+# Window handling. Either (period_start + period_end) OR a pre-labeled
+# period_label is required so the skill can split the export into the current
+# 45-day window and the prior 45-day baseline.
+window:
+  period_label:
+    required: false
+    aliases: [period_label, window, period]
+    type: string
+    allowed_values: [current_45d, prior_45d]
+  period_start:
+    required: false
+    aliases: [period_start, start_date, window_start]
+    type: date
+  period_end:
+    required: false
+    aliases: [period_end, end_date, window_end]
+    type: date
+
+# Activity filter + work-orders-completed trend signal.
+# `jobs_count` is the denominator for the activity floor.
+# `jobs_completed` is scored as a standalone +/- trend (see thresholds.yaml
+# `wo_completed_drop_pct` / `wo_completed_spike_pct`).
+activity:
+  jobs_count:
+    required: true
+    aliases: [jobs_count, job_count, wo_count, work_orders, jobs]
+    type: integer
+  jobs_completed:
+    required: false                    # v0.5 accepts absence (derived from Work Date)
+    aliases: [jobs_completed, wo_completed, work_orders_completed, completed_count]
+    type: integer
+
+# KPI columns. Names, definitions, and targets follow the SP Playbook
+# (`references/sp-playbook-kpis.md`). Units matter — if VixxoLens changes
+# units, bump the version and update `unit` here.
+kpis:
+  sla_compliance:
+    required: true
+    unit: percent
+    description: >-
+      % of work orders completed within customer-required response and
+      resolution windows. Replaces the legacy `response_time_hours_avg`
+      signal — average response time is a component of SLA, not a
+      separate KPI.
+    aliases:
+      - sla_compliance_pct
+      - sla_compliance_rate
+      - sla_compliance
+      - sla_pct
+      - sla_rate
+      - response_resolution_compliance
+    type: number
+    higher_is_worse: false
+  first_time_fix:
+    required: true
+    unit: percent
+    description: >-
+      % of WOs completed without a subsequent recall for the same issue.
+    aliases:
+      - first_time_fix_pct
+      - first_time_fix_rate
+      - ftf_pct
+      - ftf_rate
+      - ftf
+      - first_time_fix
+    type: number
+    higher_is_worse: false
+  recall_rate:
+    required: true
+    unit: percent
+    description: >-
+      % of completed WOs that generate a recall work order within 30 days.
+      Renamed from `callback_rate` in v2 to match the SP Playbook.
+    aliases:
+      - recall_rate_pct
+      - recall_rate
+      - recall_pct
+      - callback_rate_pct          # v1 back-compat
+      - callback_rate
+      - callback_pct
+    type: number
+    higher_is_worse: true
+  quote_turnaround_p0_p1:
+    required: true
+    unit: hours
+    description: >-
+      Quote turnaround time for P0 and P1 quote activity only. Target is
+      <= 24 hours / 1 day. If the export cannot isolate P0/P1 quote
+      turnaround, stop and surface a schema/calibration gap.
+    aliases:
+      - quote_turnaround_p0_p1_hours
+      - quote_turnaround_hours_p0_p1
+      - quote_tat_p0_p1_hours
+      - quote_tat_hours_p0_p1
+      - p0_p1_quote_turnaround_hours
+      - p0_p1_quote_tat_hours
+      - quote_turnaround_time_p0_p1
+      - quote_turnaround_time_hours_p0_p1
+    type: number
+    higher_is_worse: true
+  vixxolink_adoption:
+    required: true
+    unit: percent
+    description: >-
+      % of eligible work performed through VixxoLink by the service provider.
+    aliases:
+      - vixxolink_adoption_pct
+      - vixxolink_adoption_rate
+      - vixxolink_adoption
+      - vl_adoption_pct
+      - vl_adoption_rate
+      - vixxolink_usage_pct
+    type: number
+    higher_is_worse: false
+  invoice_rejection:
+    required: true
+    unit: percent
+    description: >-
+      % of submitted invoices rejected during the reporting window.
+    aliases:
+      - invoice_rejection_pct
+      - invoice_rejection_rate
+      - invoice_rejection
+      - rejected_invoice_pct
+      - rejected_invoice_rate
+      - invoice_reject_rate
+    type: number
+    higher_is_worse: true
+
+# Optional but useful columns. Missing is fine; the report omits fields it
+# cannot populate.
+optional:
+  customer:
+    aliases: [customer_number, customer_id, customer, customer_name]
+    type: string
+    description: >-
+      Customer identifier/name used to calculate each SP's highest-volume
+      current-window customer for report context. Prefer a customer name when
+      available; fall back to customer number.
+  region:
+    aliases: [region, market, territory]
+    type: string
+  category:
+    aliases: [category, trade, service_type, los]
+    type: string
+
+# Freshness contract. The skill refuses to run if the newest file in _inbox/
+# is older than this many days. Tune alongside thresholds.yaml.
+freshness_window_days: 7
+
+# Multi-file ingest behavior. When set to `latest_by_filename_date`, the skill
+# picks the file whose ISO date in the filename is newest; fallback is file
+# mtime. When `error_if_multiple`, the skill stops and asks.
+multi_file_policy: latest_by_filename_date

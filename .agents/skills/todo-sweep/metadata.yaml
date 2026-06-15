@@ -1,0 +1,13 @@
+name: todo-sweep
+title: "Todo Sweep"
+description: "Processes unswept meeting action items, routes approved work, and marks meetings as swept."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [todo, meetings, action-items, linear, benji, sweep]
+status: approved
+requires_mcp: [linear, user-benji]
+source: vixxo

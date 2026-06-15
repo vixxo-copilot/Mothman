@@ -1,0 +1,13 @@
+name: vixxo-freshdesk-invoice-review
+title: "Vixxo Freshdesk Invoice Review"
+description: "Triage the Vixxo AP help desk's Freshdesk queue and deep-dive individual invoice tickets using Freshdesk and Gateway."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Maria Clavijo-Demchalk"
+version: "1.0.0"
+tags: [freshdesk, invoices, ap, gateway, spm, triage, vixxo]
+status: approved
+requires_mcp: [freshdesk, gateway]
+source: vixxo

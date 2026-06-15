@@ -1,0 +1,222 @@
+# Sprint Status - assistants-template
+# generated: 2026-04-20
+# project: assistants-template
+# project_key: NOKEY
+# tracking_system: Linear
+# story_location: "_bmad-output/implementation-artifacts"
+#
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# LINEAR INTEGRATION:
+# ==================
+# - linear_team: AI Personal Agent - Skills
+# - linear_project_id: ef9c8145-62ab-4c5c-9ef5-8befbbd88bd1
+# - Each epic/story has a linear_id field for syncing
+
+generated: "2026-04-20"
+last_updated: "2026-04-23"
+project: "assistants-template"
+project_key: "NOKEY"
+tracking_system: "Linear"
+story_location: "_bmad-output/implementation-artifacts"
+
+# Linear Integration
+linear_team: "AI Personal Agent - Skills"
+linear_project_id: "ef9c8145-62ab-4c5c-9ef5-8befbbd88bd1"
+linear_project_url: "https://linear.app/vixxo/project/assistants-template-e4cee6d7ae70"
+
+development_status:
+  # ===============================
+  # Epic 0: Microsoft 365 MCP maintenance follow-ups
+  # ===============================
+  epic-0:
+    status: in-progress
+    linear_id: "AIP-70"
+    linear_url: "https://linear.app/vixxo/issue/AIP-70/epic-0-microsoft-365-mcp-maintenance-follow-ups-e0"
+  0-1-microsoft-365-org-mode-and-doc-consent-guidance:
+    status: ready-for-dev
+    linear_id: "AIP-71"
+    linear_url: "https://linear.app/vixxo/issue/AIP-71/story-01-enable-org-mode-and-document-m365-consent-flow"
+  epic-0-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 1: Bootstrap assistants-template skeleton
+  # ===============================
+  epic-1:
+    status: done
+    linear_id: "AIP-25"
+    linear_url: "https://linear.app/vixxo/issue/AIP-25/epic-1-bootstrap-assistants-template-skeleton-e1"
+  1-1-scaffold-directory-structure-and-root-files:
+    status: done
+    linear_id: "AIP-34"
+    linear_url: "https://linear.app/vixxo/issue/AIP-34/story-11-scaffold-directory-structure-and-root-files"
+  1-2-write-generic-readme-license-gitignore:
+    status: done
+    linear_id: "AIP-35"
+    linear_url: "https://linear.app/vixxo/issue/AIP-35/story-12-write-generic-readmemd-license-gitignore"
+  1-3-write-generic-agents-claude-cursorrules:
+    status: done
+    linear_id: "AIP-33"
+    linear_url: "https://linear.app/vixxo/issue/AIP-33/story-13-write-generic-agentsmd-claudemd-cursorrules"
+  epic-1-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 2: Port and generalize agent identity + rules, work-only
+  # ===============================
+  epic-2:
+    status: done
+    linear_id: "AIP-22"
+    linear_url: "https://linear.app/vixxo/issue/AIP-22/epic-2-port-and-generalize-agent-identity-rules-work-only-e2"
+  2-1-port-agent-identity-rule-generic:
+    status: done
+    linear_id: "AIP-29"
+    linear_url: "https://linear.app/vixxo/issue/AIP-29/story-21-port-agent-identity-rule-generic"
+  2-2-port-guardrail-and-formatting-rules:
+    status: done
+    linear_id: "AIP-30"
+    linear_url: "https://linear.app/vixxo/issue/AIP-30/story-22-port-guardrail-and-formatting-rules"
+  2-3-create-single-generic-work-persona:
+    status: done
+    linear_id: "AIP-28"
+    linear_url: "https://linear.app/vixxo/issue/AIP-28/story-23-create-single-generic-agentspersonasworkmd"
+  2-4-confirm-benji-inbox-default-not-ported:
+    status: done
+    linear_id: "AIP-32"
+    linear_url: "https://linear.app/vixxo/issue/AIP-32/story-24-confirm-benji-inbox-defaultmdc-is-not-ported"
+  epic-2-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 3: Memory vault empty scaffold
+  # ===============================
+  epic-3:
+    status: done
+    linear_id: "AIP-27"
+    linear_url: "https://linear.app/vixxo/issue/AIP-27/epic-3-memory-vault-empty-scaffold-e3"
+  3-1-port-template-trees-from-gtd-life-memory:
+    status: done
+    linear_id: "AIP-31"
+    linear_url: "https://linear.app/vixxo/issue/AIP-31/story-31-port-template-trees-from-gtd-life-memory"
+  3-2-portable-obsidian-config:
+    status: done
+    linear_id: "AIP-38"
+    linear_url: "https://linear.app/vixxo/issue/AIP-38/story-32-create-portable-obsidian-config"
+  3-3-seed-empty-identity-and-preferences:
+    status: done
+    linear_id: "AIP-41"
+    linear_url: "https://linear.app/vixxo/issue/AIP-41/story-33-seed-empty-identity-and-preferences-files"
+  epic-3-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 4: MCP packaging (project-local)
+  # ===============================
+  epic-4:
+    status: done
+    linear_id: "AIP-21"
+    linear_url: "https://linear.app/vixxo/issue/AIP-21/epic-4-mcp-packaging-project-local-e4"
+  4-1-write-cursor-mcp-json-with-active-mcps:
+    status: done
+    linear_id: "AIP-40"
+    linear_url: "https://linear.app/vixxo/issue/AIP-40/story-41-write-cursormcpjson-with-active-mcps"
+  4-2-add-commented-out-placeholders-for-pending-mcps:
+    status: done
+    linear_id: "AIP-43"
+    linear_url: "https://linear.app/vixxo/issue/AIP-43/story-42-add-commented-placeholders-for-pending-mcps"
+  4-3-write-env-example:
+    status: done
+    linear_id: "AIP-37"
+    linear_url: "https://linear.app/vixxo/issue/AIP-37/story-43-write-envexample"
+  4-4-rewrite-setup-and-mcps-docs:
+    status: done
+    linear_id: "AIP-42"
+    linear_url: "https://linear.app/vixxo/issue/AIP-42/story-44-rewrite-docssetupmd-and-docsmcpsmd"
+  epic-4-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 5: Interactive setup wizard bin/init
+  # ===============================
+  epic-5:
+    status: done
+    linear_id: "AIP-24"
+    linear_url: "https://linear.app/vixxo/issue/AIP-24/epic-5-interactive-setup-wizard-bininit-e5"
+  5-1-scaffold-bin-init-node-entry-point:
+    status: done
+    linear_id: "AIP-39"
+    linear_url: "https://linear.app/vixxo/issue/AIP-39/story-51-scaffold-bininit-node-entry-point"
+  5-2-wizard-prompts-and-file-generation:
+    status: done
+    linear_id: "AIP-36"
+    linear_url: "https://linear.app/vixxo/issue/AIP-36/story-52-wizard-prompts-and-file-generation"
+  5-3-wizard-runs-skills-install-and-verifies:
+    status: done
+    linear_id: "AIP-49"
+    linear_url: "https://linear.app/vixxo/issue/AIP-49/story-53-wizard-runs-skills-install-and-verifies-mcps"
+  epic-5-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 6: PII scrub + CI guardrail
+  # ===============================
+  epic-6:
+    status: done
+    linear_id: "AIP-26"
+    linear_url: "https://linear.app/vixxo/issue/AIP-26/epic-6-pii-scrub-ci-guardrail-template-half-of-e9"
+  6-1-write-shared-pii-denylist-config:
+    status: done
+    linear_id: "AIP-47"
+    linear_url: "https://linear.app/vixxo/issue/AIP-47/story-61-write-shared-pii-deny-list-config"
+  6-2-github-action-blocks-prs-violating-denylist:
+    status: done
+    linear_id: "AIP-44"
+    linear_url: "https://linear.app/vixxo/issue/AIP-44/story-62-add-github-action-blocking-deny-list-violations"
+  epic-6-retrospective:
+    status: optional
+
+  # ===============================
+  # Epic 7: Pilot rollout to Vixxo AI cohort
+  # ===============================
+  epic-7:
+    status: done
+    linear_id: "AIP-23"
+    linear_url: "https://linear.app/vixxo/issue/AIP-23/epic-7-pilot-rollout-to-vixxo-ai-cohort-e10"
+  7-1-write-vixxo-internal-getting-started:
+    status: done
+    linear_id: "AIP-45"
+    linear_url: "https://linear.app/vixxo/issue/AIP-45/story-71-write-vixxo-internal-getting-startedmd"
+  7-2-30-minute-kickoff-with-ai-cohort:
+    status: done
+    linear_id: "AIP-48"
+    linear_url: "https://linear.app/vixxo/issue/AIP-48/story-72-run-30-minute-kickoff-with-ai-cohort"
+  7-3-personal-agents-teams-channel-and-feedback-loop:
+    status: done
+    linear_id: "AIP-46"
+    linear_url: "https://linear.app/vixxo/issue/AIP-46/story-73-stand-up-personal-agents-teams-channel-and-feedback-loop"
+  epic-7-retrospective:
+    status: optional

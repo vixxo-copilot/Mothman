@@ -1,0 +1,12 @@
+name: outlook-email-formatter
+title: "Outlook Email Formatter"
+description: "Renders email or Teams message drafts as clean HTML for copy-paste into Outlook or Teams without dark-background artifacts or lost hyperlinks."
+category: communication
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [email, outlook, teams, formatting, html]
+status: approved
+requires_mcp: []

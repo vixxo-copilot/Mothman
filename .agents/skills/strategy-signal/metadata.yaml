@@ -1,0 +1,13 @@
+name: strategy-signal
+title: "Strategy Signal"
+description: "Turns delivery context into concise strategic risk/confidence signals with clear decisions and next actions."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [strategy, signal, risk, leadership, decision]
+status: approved
+requires_mcp: [linear]
+source: vixxo

@@ -1,0 +1,13 @@
+name: bmad-code-review
+title: "BMAD Code Review"
+description: "Structured adversarial review workflow for spotting regressions, edge cases, and missing tests."
+category: development
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [bmad, code-review, quality, testing, risk]
+status: approved
+requires_mcp: []
+source: vixxo

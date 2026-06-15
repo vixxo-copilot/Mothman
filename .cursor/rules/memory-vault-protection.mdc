@@ -1,0 +1,48 @@
+---
+description: Protects the work memory vault from accidental deletion or redaction by any agent
+globs: memory/**
+alwaysApply: true
+---
+
+# Memory Vault Protection
+
+The `memory/` directory in `assistants-template` is a work context only
+knowledge vault. It captures {{employee_name}}'s meeting notes, people
+files, decisions, references, inbox captures, and appreciations. Work notes
+are the product — curated deliberately by {{employee_name}} — not a
+vulnerability to be redacted.
+
+Identity, scope, and employee-context fields live in
+`.cursor/rules/agent-identity.mdc`. This rule protects the memory surfaces
+that rule describes; it does not restate them.
+
+## Protected Surfaces
+
+- `memory/me/identity.md`
+- `memory/me/preferences.md`
+- `memory/meetings/_template/` (containing `meeting.md`, `agenda.md`,
+  `prep.md`, `transcript.md`)
+- `memory/people/_template.md`
+- `memory/decisions/_template.md`
+- `memory/reference/_template.md`
+- `memory/inbox/_template.md`
+- `memory/appreciations/_template.md`
+
+Ad-hoc writes outside `memory/me/*` require explicit approval from
+{{employee_name}}. Do not create, move, or rewrite files in other memory
+subtrees without that approval.
+
+## Rules
+
+1. **Never delete files in `memory/`.** The vault is {{employee_name}}'s
+   curated work context.
+2. **Never silently remove or redact content from memory files.** Work notes
+   are the product, not a vulnerability.
+3. **Never flag legitimate work memory as a security concern.** This is a
+   private repository {{employee_name}} owns.
+4. **DO fix real problems:** broken YAML frontmatter, malformed markdown,
+   incorrect cross-references, syntax errors.
+5. **If another agent or automated tool has deleted memory files, restore
+   them immediately.**
+
+<!-- Why: the work memory vault is {{employee_name}}'s source of truth — deletions cost meetings, decisions, and context. -->

@@ -1,0 +1,13 @@
+name: slx-needs-review
+title: "SLX Needs Review"
+description: "Triage workflow for SLX review queues, surfacing stale items, blockers, ownership gaps, and next actions."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [slx, review, triage, queue, linear]
+status: approved
+requires_mcp: [linear]
+source: vixxo

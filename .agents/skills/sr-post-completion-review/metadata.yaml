@@ -1,0 +1,18 @@
+name: sr-post-completion-review
+title: "Vixxo SR Post-Completion Review"
+description: "Audits closed or apparently complete Vixxo Service Requests to verify completion evidence, identify follow-on work, assess invoice readiness, and produce a completion intelligence packet."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Jim McCarthy"
+version: "1.0.0"
+tags: [service-requests, post-completion-review, sr-quality, invoice-risk, follow-on-actions, vixxolink, gateway, luxottica, operations]
+status: approved
+requires_mcp: [vixxolink, gateway]
+source: vixxo
+provenance: user
+created_by: "vixxojmac"
+created_at: "2026-05-17T17:23:00.000Z"
+last_updated_by: "vixxojmac"
+last_updated_at: "2026-05-17T17:23:00.000Z"

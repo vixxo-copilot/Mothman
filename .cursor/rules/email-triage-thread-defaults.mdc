@@ -1,0 +1,37 @@
+---
+description: Default Microsoft 365 email triage thread detail and archive behavior
+globs: []
+alwaysApply: true
+---
+
+# Email Triage Thread Defaults
+
+Applies when {{employee_name}} issues a Microsoft 365 email triage request
+(`/email-triage`, "triage my email", "process my inbox"). Identity and scope
+are owned by `.cursor/rules/agent-identity.mdc`; this rule governs thread
+presentation and archive behavior only.
+
+## Rules
+
+1. **Thread handling is the default, not optional.**
+2. **For each threaded message, gather:**
+   - current message body
+   - quoted history in body
+   - other Inbox items with the same Microsoft Graph `conversationId`
+3. **Present thread details as per-message entries (newest to oldest),
+   each with:**
+   - sender
+   - timestamp
+   - subject
+   - detailed message summary or full cleaned body (not a 1-2 sentence
+     blurb; capture asks, decisions, dates, names, action items)
+   - explicit tag: `Ask` / `Decision` / `FYI`
+   - status: `Open` / `Closed` / `Waiting` / `Superseded`
+4. **Never collapse thread context into one oversized paragraph summary.**
+5. **Line-width discipline.** Keep all triage output narrow enough to read
+   without horizontal scrolling. Break long lines, use short paragraphs,
+   add vertical whitespace between sections. No wall-of-text blocks.
+6. **On `Archive`, archive ALL same-`conversationId` messages currently in
+   Inbox.**
+
+<!-- Why: email threads lose signal when collapsed; preserve structure so {{employee_name}} can decide fast. -->

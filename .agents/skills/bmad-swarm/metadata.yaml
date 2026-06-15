@@ -1,0 +1,12 @@
+name: bmad-swarm
+title: "BMAD Swarm"
+description: "Full autonomous BMAD v6.3 development pipeline. Takes a story from backlog to merged PR with zero user interaction using parallel subagents. Supports single story, next-in-backlog, and full-epic modes with automatic branch creation, code review, and changelog fragment generation."
+category: development
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.1.0"
+tags: [bmad, automation, pipeline, subagents, pr, epic, v6.3]
+status: approved
+requires_mcp: []

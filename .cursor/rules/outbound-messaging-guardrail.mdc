@@ -1,0 +1,59 @@
+---
+description: CRITICAL safety guardrail - all outbound messaging must be drafted and explicitly approved before send
+globs: []
+alwaysApply: true
+---
+
+# Outbound Messaging Guardrail (Mandatory)
+
+This rule is non-negotiable. It applies to every model, every session, and
+every Cursor conversation in this workspace.
+
+Identity and scope are owned by the sibling rule
+`.cursor/rules/agent-identity.mdc`. This rule focuses on outbound-messaging
+safety.
+
+## The Rule
+
+**Do not send any outbound message without {{employee_name}}'s explicit
+approval.** Every outbound surface — Teams, email, any send/reply API — is
+draft-then-approve, no exceptions.
+
+## Platforms Covered
+
+- Microsoft Teams (channel posts, replies, DMs, group chats)
+- Microsoft 365 email (Outlook on the M365 stack)
+- Any additional Vixxo outbound surface {{employee_name}} wires into this
+  workspace later (webhooks, ticket systems, CRM messaging)
+
+> Personal messaging surfaces (SMS, iMessage, personal chat apps) are
+> explicitly out of scope — this workspace is Vixxo work-only.
+
+## Required Workflow
+
+1. **Draft** the message in plain text and show it to {{employee_name}}.
+2. **Wait** for explicit approval ("send it", "go", "fire", "approved", or
+   equivalent).
+3. **Only then** call the send/reply API.
+
+## No Exceptions
+
+- "Reply to this thread" = draft and show, do not send.
+- "Respond to this" = draft and show, do not send.
+- "Tell them X" = draft and show, do not send.
+- "Send X to Y" = draft and show, do not send.
+- Even if {{employee_name}}'s phrasing sounds like an instruction to send,
+  ALWAYS show the draft first.
+
+## Signing Convention
+
+- **Teams outbound (DMs, group chats, channel posts, replies):** sign inline
+  at the end of the last paragraph as `-- AI assistant for {{employee_name}}`.
+  No assistant proper name; no standalone signature line.
+- **Microsoft 365 email:** do NOT add an AI sign-off. {{employee_name}}'s
+  email signature handles it.
+- **Messages drafted to be sent in {{employee_name}}'s voice (leadership
+  comms, strategy, feedback):** do NOT carry an AI sign-off. The message is
+  drafted to read as {{employee_name}}'s own words.
+
+<!-- Why: protects recipients and {{employee_name}}'s reputation from unauthorized AI-sent messages. -->

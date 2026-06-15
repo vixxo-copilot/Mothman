@@ -1,0 +1,74 @@
+# Purpose: This file is the single source of truth for banned personal patterns. Do not duplicate.
+# CI contract: Each line is a literal substring. Story 6.2's workflow wraps each pattern in a
+#   POSIX-ERE boundary-guard regex (^|[^A-Za-z])TOKEN($|[^A-Za-z]) at scan time, case-insensitive.
+#   Blank lines and lines starting with `#` are ignored. This file itself is excluded from the scan.
+# How to extend: Add the new token in alphabetical order under the correct `# === CATEGORY: <name>
+#   ===` section, in a PR against main, with a one-line commit message explaining why the token
+#   belongs on the list.
+# Mirror: This file is mirrored in the companion `agent-skills` repository at the same path
+#   (.github/pii-denylist.txt). Drift between the two repos is a policy violation; synchronization
+#   is an operational concern for the `agent-skills` maintainers and is out of scope for this
+#   repository's CI.
+# Safe-to-publish policy: This shipped deny-list contains ZERO raw home addresses, ZERO zip codes,
+#   ZERO minor children's names, and ZERO phone numbers. Home-address and family-minor categories
+#   use marker comments + fork-local sentinels so that consumer forks can add their real tokens
+#   locally without committing PII to the public template.
+# SAFE-TO-PUBLISH deny-list
+
+# === CATEGORY: Names ===
+# Public-safe name tokens associated with the current template maintainer.
+Derek
+Neighbors
+Deke
+Laurie
+Bobby
+
+# === CATEGORY: Home Address ===
+# marker: street address (number + street name)
+# marker: city
+# marker: state or state abbreviation
+# marker: zip code
+# marker: apartment / suite / unit number
+# Fork-local customization: replace the sentinel below with real tokens in a private fork.
+DEREK_HOME_ADDRESS_FORK_LOCAL
+
+# === CATEGORY: Family ===
+# marker: spouse first name (non-public)
+# marker: child first names (MUST NOT be committed; fork-local only)
+# Fork-local customization: replace the sentinel below with real tokens in a private fork.
+DEREK_FAMILY_FORK_LOCAL
+
+# === CATEGORY: Businesses ===
+# Publicly-known business / product tokens associated with the template maintainer.
+Agile Weekly
+Benji
+Bodybuilding.com
+Chiron
+Flowtopic
+Gangplank
+Integrum
+MasteryLab
+Omarchy
+Playrix
+RevivaGo
+
+# === CATEGORY: Blog & Public Content ===
+# Public blog domain, source-repo, and notable public-content tokens.
+derekneighbors.com
+gtd-life
+gtdlife
+Queen Creek
+
+# === CATEGORY: Personal Scope Words ===
+# Generic English words that mark personal-life scope. CI word-boundary enforcement
+# prevents false positives on unrelated compounds (e.g. "homepage" won't match `home`).
+blog
+cheyenne
+daughter
+dog
+family
+home
+personal
+son
+wife
+wyoming

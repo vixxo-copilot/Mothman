@@ -1,0 +1,13 @@
+name: vixxo-sp-performance-monitor
+title: "Vixxo SP Performance Monitor"
+description: "Flag at-risk service providers from a VixxoLens export using SP Playbook KPI thresholds and 45-day trend detection, then draft an Outlook summary."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Maria Clavijo-Demchalk"
+version: "1.1.0"
+tags: [sp-performance, vixxolens, service-providers, operations, outlook, microsoft-365]
+status: approved
+requires_mcp: [microsoft-365]
+source: vixxo

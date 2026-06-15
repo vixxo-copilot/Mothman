@@ -1,0 +1,104 @@
+{
+  "mcpServers": {
+    "business-objects": {
+      "url": "https://vixxonow.com/mcp/bo-universe"
+    },
+    "chatfpt": {
+      "url": "https://vixxonow.com/mcp/chatfpt"
+    },
+    "dynamics365": {
+      "url": "https://vixxonow.com/mcp/dynamics365"
+    },
+    "freshdesk": {
+      "args": [
+        "-y",
+        "freshdesk-mcp"
+      ],
+      "command": "npx",
+      "env": {
+        "FRESHDESK_DOMAIN": "vixxo-helpdesk.freshdesk.com",
+        "NODE_ENV": "production"
+      }
+    },
+    "freshservice": {
+      "command": "/Users/smural/Documents/Dev/assistant-sakshimural7651-vixxo/bin/run-freshservice-mcp.sh",
+      "args": [],
+      "env": {
+        "FRESHSERVICE_DOMAIN": "vixxo.freshservice.com"
+      }
+    },
+    "gateway": {
+      "url": "https://vixxonow.com/mcp/gateway"
+    },
+    "github": {
+      "command": "/Users/smural/Documents/Dev/assistant-sakshimural7651-vixxo/bin/run-github-mcp.sh",
+      "args": []
+    },
+    "gong": {
+      "args": [
+        "-y",
+        "github:kenazk/gong-mcp"
+      ],
+      "command": "npx"
+    },
+    "gong-transact": {
+      "url": "https://transact.vixxo.com/mcp/gong"
+    },
+    "hubspot": {
+      "url": "https://vixxonow.com/mcp/hubspot"
+    },
+    "linear": {
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "microsoft-365": {
+      "args": [
+        "-y",
+        "@softeria/ms-365-mcp-server@latest"
+      ],
+      "command": "npx"
+    },
+    "ms365": {
+      "args": [
+        "-y",
+        "@softeria/ms-365-mcp-server",
+        "--org-mode"
+      ],
+      "command": "npx"
+    },
+    "powerbi-prod": {
+      "url": "https://vixxonow.com/mcp/powerbi"
+    },
+    "salesforce": {
+      "args": [
+        "-y",
+        "@salesforce/mcp@latest",
+        "--orgs",
+        "DEFAULT_TARGET_ORG",
+        "--toolsets",
+        "orgs,metadata,data,users"
+      ],
+      "command": "npx"
+    },
+    "skills": {
+      "command": "node",
+      "args": [
+        "/Users/smural/Documents/Dev/agent-skills/mcp/src/index.mjs"
+      ]
+    },
+    "smartsheet": {
+      "command": "bash",
+      "args": [
+        ".cursor/bin/smartsheet-mcp-stdio.sh"
+      ]
+    },
+    "vixxolink": {
+      "url": "https://vixxonow.com/mcp/vixxolink"
+    },
+    "vixxonow": {
+      "url": "https://vixxonow.com/mcp/vixxonow"
+    },
+    "zoominfo": {
+      "url": "https://mcp.zoominfo.com/mcp"
+    }
+  }
+}

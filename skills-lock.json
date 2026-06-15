@@ -1,0 +1,431 @@
+{
+  "version": 1,
+  "skills": {
+    "VIXXO-coi-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-coi-review/SKILL.md",
+      "computedHash": "f24ae82c10cc5278e57c7566309d98d8bf0d772048ee72a1779fc4f9c57c9c4b"
+    },
+    "VIXXO-spm-invoice-concerns": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-spm-invoice-concerns/SKILL.md",
+      "computedHash": "1179085495dd3ccb8d4bdcaf3c099500ca32a653b52e4eb985bfc88fd7e83d10"
+    },
+    "bmad-advanced-elicitation": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-advanced-elicitation/SKILL.md",
+      "computedHash": "9242eabf5f0c1502d1e8881f83c19dbd3d7226701107e2cdb4d977bff06fd780"
+    },
+    "bmad-agent-analyst": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-analyst/SKILL.md",
+      "computedHash": "6fa86035dfa42e60208dd112801cf17281a37ae5b6e8953fb0e520d9cbe44371"
+    },
+    "bmad-agent-architect": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-architect/SKILL.md",
+      "computedHash": "38b98eb71f4d5e105dffec8d8996406dab50d1f4d2157cc899cc8cf0b1c33f1d"
+    },
+    "bmad-agent-dev": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-dev/SKILL.md",
+      "computedHash": "5bdd396ec27640e698d86a5929e2c585d5878d7a9ef00fb1eaba4c17cad5d512"
+    },
+    "bmad-agent-pm": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-pm/SKILL.md",
+      "computedHash": "132537514d3860008637fff0a7cb6b382035ba0dd400b7881ec621d907c6f084"
+    },
+    "bmad-agent-tech-writer": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-tech-writer/SKILL.md",
+      "computedHash": "b499c28bb3f80b29bd69f0b97522dbfe5791113b3dd6e00f8055d7062f550710"
+    },
+    "bmad-agent-ux-designer": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-agent-ux-designer/SKILL.md",
+      "computedHash": "e31eadc567325d130313635a3662b5b81b4cec067588bedf5ab5f8ef018032ec"
+    },
+    "bmad-brainstorming": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-brainstorming/SKILL.md",
+      "computedHash": "78d88b9ba203c2198892ca0e2559bca8dcaa9ef412333b81b95c8d0f9a333a15"
+    },
+    "bmad-check-implementation-readiness": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-check-implementation-readiness/SKILL.md",
+      "computedHash": "dfafd286b4bb1b97bc6a1c229b57550286153a579446e244a2bc40f0af143464"
+    },
+    "bmad-checkpoint-preview": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-checkpoint-preview/SKILL.md",
+      "computedHash": "7c15d806d173c8d1511144aba7565825cd283c4952e5390d087b1a939f36e53f"
+    },
+    "bmad-code-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/bmad-code-review/SKILL.md",
+      "computedHash": "87318992034601f451d663d65de1ea0e700f960108ba397fd4272703cbc0e4bd"
+    },
+    "bmad-correct-course": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-correct-course/SKILL.md",
+      "computedHash": "e95551c83ca34f6ac012b28b2a0d5a48bb5226beae2f456179ce52282358fb81"
+    },
+    "bmad-create-architecture": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-create-architecture/SKILL.md",
+      "computedHash": "8b90739c3fc789e319ec7afa79e6b929f51a5e8faa680cc8d1486176a0223214"
+    },
+    "bmad-create-epics-and-stories": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-create-epics-and-stories/SKILL.md",
+      "computedHash": "1c4d810f5968b9e31e4036da7d8bc324c264f202e25c0ec65361b83ceac927d0"
+    },
+    "bmad-create-prd": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-create-prd/SKILL.md",
+      "computedHash": "cca1770c2c4476b0d5ae9d0b7dae751e9c23d714c55fa8c90d64c67cc735e095"
+    },
+    "bmad-create-story": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-create-story/SKILL.md",
+      "computedHash": "651928b9eadf57832014eb93039299f5009d90611d0e0431a399fc9b9c1f0938"
+    },
+    "bmad-create-ux-design": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-create-ux-design/SKILL.md",
+      "computedHash": "488aad55f24f2886afc4b6049dd3a0dff2c1a1bfe1d65e4d0eab56db860cfff5"
+    },
+    "bmad-dev-story": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-dev-story/SKILL.md",
+      "computedHash": "20016dbb9c94ad25aee2532dce1025b8c1715ce8298759dd79528d011b10083c"
+    },
+    "bmad-distillator": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-distillator/SKILL.md",
+      "computedHash": "199e78eefda46d50db6ae40cabe0d46d8587ba95ca5383fc6cb0de184ea753c8"
+    },
+    "bmad-document-project": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-document-project/SKILL.md",
+      "computedHash": "536f5c6e352142683b13ef9fc48fdf8c1ba11df34abfe6278e46a4c3020ef0a8"
+    },
+    "bmad-domain-research": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-domain-research/SKILL.md",
+      "computedHash": "ff847ffd3c16f651b57ad6ffcf9aaa3ac0212bd83938de9f5f24a2b3898a6bc1"
+    },
+    "bmad-edit-prd": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-edit-prd/SKILL.md",
+      "computedHash": "c72736f540a18fcf8e62dde61c81d967e29b86ba2b131fac85e1fcf3e68ff13f"
+    },
+    "bmad-editorial-review-prose": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-editorial-review-prose/SKILL.md",
+      "computedHash": "76625946103c848ff9b3bdaaada60a5f945e420110dc1b0146404f94569f326d"
+    },
+    "bmad-editorial-review-structure": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-editorial-review-structure/SKILL.md",
+      "computedHash": "1f1190b5f45b32365cacc2695072ae8f9cb6d889bd7254b37332873f2ef5e8a6"
+    },
+    "bmad-generate-project-context": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-generate-project-context/SKILL.md",
+      "computedHash": "d88233034b0594eae9c9ae3fc561c5985785dcb6b4c15305f9528dd50b737171"
+    },
+    "bmad-help": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-help/SKILL.md",
+      "computedHash": "bf41d58244acee6b9eb110b9c9c2e7bac5d025dd961b8193356c1338e533c9d1"
+    },
+    "bmad-index-docs": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-index-docs/SKILL.md",
+      "computedHash": "843f60344a4938aa9a18ec6013c1dfeaea814722b7d00954d6bed3a7ee9fad35"
+    },
+    "bmad-market-research": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-market-research/SKILL.md",
+      "computedHash": "a8df26411f7f24bf02d0ce225c11b2c73ffb19595000b45c0af701d413e5debb"
+    },
+    "bmad-party-mode": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-party-mode/SKILL.md",
+      "computedHash": "08d61b062468a27481ab47ff8ecbd19e863cdff47448eb1235bf8d2235122a3d"
+    },
+    "bmad-prfaq": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-prfaq/SKILL.md",
+      "computedHash": "4297f2cf38f4cdc738f661590f636fe4d4f609fa9fa5341d307df6a005d4d1ab"
+    },
+    "bmad-product-brief": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-product-brief/SKILL.md",
+      "computedHash": "024862ef7eb9ba928e9bad9e94108d0996e95ed27226763193cc02b56ecaeed0"
+    },
+    "bmad-qa-generate-e2e-tests": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-qa-generate-e2e-tests/SKILL.md",
+      "computedHash": "4e81ab76f3f73785e9b00a3f55f5713211e5cadd52069a13221b05adfacf353f"
+    },
+    "bmad-quick-dev": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/bmad-quick-dev/SKILL.md",
+      "computedHash": "7d9c5119852109ec6cb701d14319e34105d005d0469bee570d32adc131475fff"
+    },
+    "bmad-retrospective": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-retrospective/SKILL.md",
+      "computedHash": "02b89af318edb5a5ca57d7ed2134f4944507abe6dea645a2d783065f7689056d"
+    },
+    "bmad-review-adversarial-general": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-review-adversarial-general/SKILL.md",
+      "computedHash": "3c341d6f5ab5fddc124eef46ba5381573e1e13dad9695afe880997d23f8768f2"
+    },
+    "bmad-review-edge-case-hunter": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-review-edge-case-hunter/SKILL.md",
+      "computedHash": "047efb68781fa79b8ca6b4743fe5a43028fd937a51bcf6d7d90109adf8a757ee"
+    },
+    "bmad-shard-doc": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-shard-doc/SKILL.md",
+      "computedHash": "37a4546f9c53b51e6770dd9318da3394282bcf9b855868fd4e7dd9689cf2cedb"
+    },
+    "bmad-sprint-planning": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-sprint-planning/SKILL.md",
+      "computedHash": "9d02b3eb7dc846c8c665b47ef78dbcfb3b1beff59bad9026909852e98a9062f3"
+    },
+    "bmad-sprint-status": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/bmad-sprint-status/SKILL.md",
+      "computedHash": "a3c674c21aeb837af0d742d5606d7e391d6dc951dc7761f552106772254b9cd4"
+    },
+    "bmad-swarm": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/bmad-swarm/SKILL.md",
+      "computedHash": "bec737c3bbcdea37ec2518a8fefe5db3e3b05b44def72b6fc0f88011026f13da"
+    },
+    "bmad-technical-research": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-technical-research/SKILL.md",
+      "computedHash": "4092662fc241a523118f523cf18acb8ce81223e2c6a99b3a89d02710b089dd84"
+    },
+    "bmad-validate-prd": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/bmad-validate-prd/SKILL.md",
+      "computedHash": "22b967911e80c66cafc7106edbcdd554d27b400317ef0193cc8d192911e5a9bb"
+    },
+    "boyd-landlord-scope-check": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/boyd-landlord-scope-check/SKILL.md",
+      "computedHash": "3901b96348d16d55874d213d7c9df40d30e1f2d0d5cd2f7bbbdfb45ff5f130aa"
+    },
+    "daily-briefing": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/daily-briefing/SKILL.md",
+      "computedHash": "645fb90c6a278df521f61019980a516161f9793d9684763ebfe868f08d254940"
+    },
+    "email-triage": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/email-triage/SKILL.md",
+      "computedHash": "c91f9d18c34667047f04000c89c88c0423bd6e6e225501b8020be9f684dc6f1f"
+    },
+    "grill-me": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/grill-me/SKILL.md",
+      "computedHash": "eb0fcc16c60c83279926d4e5a2b5f9ed4164cf10d91e9daabe324e5fa00b7b3e"
+    },
+    "inbox-processing": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/inbox-processing/SKILL.md",
+      "computedHash": "5c8b329cb4fbac9d148b92173f84b23c91476907c21b190d4b5d778b738ea575"
+    },
+    "linear-issue-creator": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/linear-issue-creator/SKILL.md",
+      "computedHash": "4fc09a1fbf692a1ab21819690fdcd5c763810320ffb7d3619cba4a23bda9b09a"
+    },
+    "meeting-prep": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/meeting-prep/SKILL.md",
+      "computedHash": "212c9341f51fc76b314d27b7487e0ab32f55b6420136dace2b7e164feb99761e"
+    },
+    "memory-capture": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/memory-capture/SKILL.md",
+      "computedHash": "f1f4e820e23cb47bd9c2e03150229961b2d42b886d34f08a8e2d2244b4ab75a4"
+    },
+    "one-on-one": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/one-on-one/SKILL.md",
+      "computedHash": "17bf61b11a33505c0144cc0d635730d021a8c5547d3ccaece15dac87347a9f1f"
+    },
+    "outlook-email-formatter": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/outlook-email-formatter/SKILL.md",
+      "computedHash": "61e3a98d63bf1a5fb22359d6b046964d4989af873a465c2a25ac02690fdcd59d"
+    },
+    "pm-survey-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pm-survey-review/SKILL.md",
+      "computedHash": "7b95f20a37c56d5d880166ec8b01b19b5e06d45c1b9bd749e8e99a436703a465"
+    },
+    "polyai-vixxo-bridge": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/polyai-vixxo-bridge/SKILL.md",
+      "computedHash": "25e20692306fbc732452744fdb53d94c0d309f334ad57260fa52662d231ee3ee"
+    },
+    "review-teams-pulse": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-teams-pulse/SKILL.md",
+      "computedHash": "7d1b9abd8c4f1ac8f48a559a5010b88db70a914ad1d4031fc05de9be23c505d2"
+    },
+    "slt-meeting-prep": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/slt-meeting-prep/SKILL.md",
+      "computedHash": "e7fc4ac56cff1ab700973b6f026e0f4e88963f361a176584b089240a333494ee"
+    },
+    "slx-needs-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/slx-needs-review/SKILL.md",
+      "computedHash": "37af9776da26679320593584558c8dbab6a27eebb931639ab3925ed037979c4f"
+    },
+    "sr-post-completion-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sr-post-completion-review/SKILL.md",
+      "computedHash": "948d6704af4e82d842c8a2a67b6413858d545632f9b6512f3b1ea5a2bfa07583"
+    },
+    "sr-triage-pre-dispatch": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sr-triage-pre-dispatch/SKILL.md",
+      "computedHash": "b0f5c5ce0e684399e6a4f1bd11a70d5050fd946b077ef39a95a5da24e41b0825"
+    },
+    "strategy-signal": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/strategy-signal/SKILL.md",
+      "computedHash": "59bb99dfde4bcd672bfdcdc597353387ed32f951b3fea4c24c6101b3fc9ffbcb"
+    },
+    "todo-sweep": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/todo-sweep/SKILL.md",
+      "computedHash": "86481d000398185ff626d9ee1428f80c00e2f4169196f8d608c967ac439a9a4f"
+    },
+    "vixxo-electrical-cbsa-coverage-builder": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-electrical-cbsa-coverage-builder/SKILL.md",
+      "computedHash": "aae65db9993e14933f92f4c0209a52b6119451d674c531d477666034fe1d6b6c"
+    },
+    "vixxo-freshdesk-invoice-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-freshdesk-invoice-review/SKILL.md",
+      "computedHash": "5d433828dd24b1b192a7a1f33c350221d28aa301a8b15f1ce0bb9c2c01a46ed1"
+    },
+    "vixxo-handyman-cbsa-coverage-builder": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-handyman-cbsa-coverage-builder/SKILL.md",
+      "computedHash": "c6af5e516e4374adb31123d2cfb6c960db96a7ab6aac1acdbedea08c912aab58"
+    },
+    "vixxo-hvacr-cbsa-coverage-builder": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-hvacr-cbsa-coverage-builder/SKILL.md",
+      "computedHash": "9b47b622160f175c02a47ccd263778340c4da07ce6473028f16275b5e0f3fa10"
+    },
+    "vixxo-project-history-research": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-project-history-research/SKILL.md",
+      "computedHash": "79ba04623e3e8bed5c4b58f957382186be65c4b2d4287ee9dd9449bb43836715"
+    },
+    "vixxo-rbat-ror-rate-review": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-rbat-ror-rate-review/SKILL.md",
+      "computedHash": "7107c1122e28512d82b07202c9ee50a6dabda50e5bae3d29bad11127925fa049"
+    },
+    "vixxo-recognition": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-recognition/SKILL.md",
+      "computedHash": "969fbb6cbb5b3854a2b45991115e8737579957d7258b2aa180789ce2007fbd23"
+    },
+    "vixxo-sp-performance-monitor": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-sp-performance-monitor/SKILL.md",
+      "computedHash": "5d43145fd3fa42e9c09e6c2575ebf35597bdadc2e221c8d3d91f49110f0b09fe"
+    }
+  }
+}

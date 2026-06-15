@@ -1,0 +1,13 @@
+name: vixxo-electrical-cbsa-coverage-builder
+title: "Vixxo Electrical CBSA Coverage Builder"
+description: "Build VixxoLink-ready Electrical coverage from CBSA recommendations, site export, active LOS/SD, and active Siebel SP exports."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "Maria Clavijo-Demchalk"
+version: "1.0.1"
+tags: [coverage, electrical, cbsa, vixxolink, mcd, service-providers]
+status: approved
+requires_mcp: []
+source: vixxo
