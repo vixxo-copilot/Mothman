@@ -77,11 +77,11 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
   audio or use body text.
 
 **Batch REST script (Freshdesk-only):** When running
-`scripts/batch_process_freshdesk.py`, the script downloads `.wav` attachments and
-transcribes via **OpenAI Whisper** (`OPENAI_API_KEY`). Use
-`--no-transcribe` for metadata-only fallback. For scheduled automation without
-external vetting, prefer sibling **`sp-voicemail-triage-fast`**.
-See [reference/automation-setup.md](reference/automation-setup.md).
+`scripts/batch_process_freshdesk.py`, the script downloads the ticket **`.wav`**
+attachment and transcribes via **OpenAI Whisper** (`OPENAI_API_KEY`). Transcription
+**must succeed** before any note, forward, or resolve — failed STT leaves the ticket
+open. For scheduled automation without external vetting, use sibling
+**`sp-voicemail-triage-fast`**. See [reference/automation-setup.md](reference/automation-setup.md).
 
 ### 2. Outlook — {{employee_name}}'s inbox
 
@@ -187,17 +187,28 @@ Then one **triage packet** per item (see below).
 
 ## Acquire and transcribe
 
-**Prefer existing text.** Exchange/Teams voicemail emails often include a body
-transcript — use it; note `Transcript source: email body`.
+**Transcription is required.** Do not post Freshdesk internal notes, forwards, or
+resolves until a verbatim transcript exists. If WAV download or STT fails, **leave
+the ticket/message unchanged** and report the failure.
 
-**Audio only:**
+**Freshdesk KSOnboarding voicemails:** Each notification ticket includes a **`.wav`
+attachment** (from the voicemail email). Download and transcribe that file — do not
+classify from the notification email body or thread text.
 
-1. Download attachment (`download-bytes` for M365; Freshdesk attachment URL for REST batch).
-2. Transcribe verbatim via Whisper API (batch script) or agent STT; mark `[inaudible]` where needed.
-3. Note `Transcript source: audio transcription` or `openai-whisper`.
+**Outlook voicemails:** Download the audio attachment (`download-bytes` on M365);
+transcribe via Whisper or agent STT. Use an email body transcript only when the
+message explicitly includes a spoken-word transcript in the body (rare).
 
-Do not use email body or thread text for intake or keyword classification —
-only subject prefix (intake) and spoken transcript / audio (classification).
+**Batch REST script steps:**
+
+1. Pick the first `.wav` attachment on the ticket.
+2. Download via Freshdesk attachment URL (authenticated).
+3. Transcribe via **OpenAI Whisper** (`OPENAI_API_KEY`, model `whisper-1`).
+4. Note `Transcript source: openai-whisper`.
+5. Only then run classify, vetting (if applicable), and Phase 2 writes.
+
+Mark `[inaudible]` where needed. Do not use metadata-only placeholders for routing
+in production runs.
 
 ## Routing checklist (automatic)
 
@@ -224,6 +235,7 @@ batch summary **Status** column, and do not re-attempt without user direction.
 
 - Work context only — Vixxo SP operations.
 - Facts from recording/transcript and MCP responses; mark assumptions.
+- **Transcription required** before any Freshdesk write — failed WAV/STT → skip ticket.
 - Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
   automatically when this skill is invoked — except in explicit **dry-run** mode.
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.

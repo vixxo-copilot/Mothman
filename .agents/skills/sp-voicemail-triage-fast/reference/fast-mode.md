@@ -18,11 +18,10 @@ Internal notes record **vetting skipped** and **entity posture: Unknown**.
 ## Still performed
 
 - Freshdesk KSOnboarding search + voicemail subject filter
-- WAV download + **OpenAI Whisper** transcription (`OPENAI_API_KEY`)
-- Keyword classification + callback decision
-- Freshdesk private internal note
-- Email forward to SPM / AP / COI / recruitment (unless `--no-email`)
-- Resolve ticket (`status: 5`, `cf_sp: Unknown`)
+- **`.wav` download** from ticket attachments (required)
+- **OpenAI Whisper** transcription (`OPENAI_API_KEY`) — **required before any write**
+- On success: keyword classification, callback decision, internal note, forward, resolve
+- On transcription failure: **no Freshdesk updates** — ticket stays open
 
 ## When to use parent instead
 
@@ -41,8 +40,8 @@ Optional flags (passed through to parent script):
 
 | Flag | Effect |
 | --- | --- |
-| `--dry-run` | Triage only; no writes |
+| `--dry-run` | Triage preview only; no writes |
 | `--no-email` | Same as `sp-voicemail-triage-no-email` |
-| `--no-transcribe` | Metadata-only fallback (not recommended) |
+| `--no-transcribe` | **Not for automation** — disables STT; no writes (dry-run may show metadata preview) |
 
 Scheduled automation setup: [../../sp-voicemail-triage/reference/automation-setup.md](../../sp-voicemail-triage/reference/automation-setup.md)

@@ -380,16 +380,37 @@ def process_ticket(
     meta = extract_metadata(ticket)
     transcript_source = "metadata-only"
     stt_error = ""
+    transcription_ok = False
     if transcribe:
         stt = transcribe_ticket(ticket, api_key)
         if stt.get("ok"):
             transcript = format_stt_transcript(stt, meta, ticket)
             transcript_source = str(stt.get("source") or "openai-whisper")
+            transcription_ok = True
         else:
-            transcript = build_transcript(meta, ticket)
             stt_error = str(stt.get("error") or "transcription failed")
+            transcript = ""
     else:
-        transcript = build_transcript(meta, ticket)
+        stt_error = "transcription disabled (--no-transcribe)"
+        transcript = build_transcript(meta, ticket) if dry_run else ""
+
+    if not transcription_ok:
+        result = Result(
+            ticket_id=tid,
+            caller=str(meta["caller"]),
+            phone=str(meta["phone"]),
+            category="Skipped",
+            route="—",
+            callback="—",
+            transcribed="no",
+            transcript_source="failed",
+            note="dry-run:transcription-required" if dry_run else "skipped:transcription-required",
+            forward="not-sent:transcription-required",
+            resolve="not-closed:transcription-required",
+            error=stt_error or "transcription required",
+        )
+        return result
+
     category, route, sr = classify(transcript, meta)
     callback, urgency = callback_decision(transcript)
 
@@ -502,6 +523,8 @@ def main() -> int:
     skip_vetting = "--skip-vetting" in sys.argv
     transcribe = "--no-transcribe" not in sys.argv
     api_key = load_credentials()
+    if transcribe and not os.environ.get("OPENAI_API_KEY", "").strip():
+        raise SystemExit("ERROR: OPENAI_API_KEY required — transcription is mandatory for batch triage")
     tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -540,6 +563,9 @@ def main() -> int:
         "skip_vetting": skip_vetting,
         "transcribe": transcribe,
         "transcribed": sum(1 for r in results if r.transcribed == "yes"),
+        "transcription_failed": sum(
+            1 for r in results if str(r.note).startswith("skipped:transcription-required")
+        ),
         "routed": sum(
             1
             for r in results
@@ -556,7 +582,17 @@ def main() -> int:
         json.dumps(
             {
                 "summary_path": str(out_path),
-                **{k: summary[k] for k in ("processed", "transcribed", "routed", "closed", "failed")},
+                **{
+                    k: summary[k]
+                    for k in (
+                        "processed",
+                        "transcribed",
+                        "transcription_failed",
+                        "routed",
+                        "closed",
+                        "failed",
+                    )
+                },
             },
             indent=2,
         )

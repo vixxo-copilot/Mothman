@@ -32,9 +32,13 @@ or Salesforce Lead notes are required.
 | --- | --- |
 | `FRESHDESK_API_KEY` | Yes |
 | `FRESHDESK_DOMAIN` | Optional (default `vixxo-helpdesk.freshdesk.com`) |
-| `OPENAI_API_KEY` | Yes (Whisper transcription) |
+| `OPENAI_API_KEY` | **Yes — mandatory**; script exits if missing |
 
 Load from repo `.env` or `~/.vixxo/freshdesk_token`.
+
+**OpenAI:** key must reach the Whisper API; automation host needs egress to
+`api.openai.com`. See
+[../sp-voicemail-triage/reference/automation-setup.md](../sp-voicemail-triage/reference/automation-setup.md).
 
 ## Batch command (default path)
 
@@ -42,8 +46,8 @@ Load from repo `.env` or `~/.vixxo/freshdesk_token`.
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 ```
 
-The wrapper injects **`--skip-vetting`**. Transcription is **on** unless
-`--no-transcribe` is passed.
+The wrapper injects **`--skip-vetting`**. Transcription is **always on** — do not
+pass `--no-transcribe` in automation.
 
 ## Intake filter
 
@@ -51,16 +55,16 @@ Same as parent — subject must **include** `New voicemail`:
 
 [../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md](../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md)
 
+Each ticket includes a **`.wav`** attachment from the voicemail email.
+
 ## Pipeline
 
 1. Search open KSOnboarding tickets (paginated REST)
 2. Filter voicemail subjects
-3. Download `.wav` attachment
-4. Transcribe with **OpenAI Whisper** (`whisper-1`)
-5. Classify + callback decision (parent rules)
-6. Post internal note (**vetting skipped** — [reference/fast-mode.md](reference/fast-mode.md))
-7. Forward email (unless `--no-email`)
-8. Resolve (`status: 5`, `cf_sp: Unknown`)
+3. Download **`.wav`** attachment (required)
+4. Transcribe with **OpenAI Whisper** (`whisper-1`) — **required**
+5. **On transcription success only:** classify, internal note, forward, resolve
+6. **On transcription failure:** skip ticket — no Freshdesk updates
 
 Phase 2 runs automatically (except `--dry-run`).
 
@@ -78,8 +82,9 @@ Recommended automation prompt:
 Run SP voicemail fast batch:
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 
-Report processed, transcribed, routed, closed, failed from JSON summary.
-Do not invoke Gateway or Salesforce MCP — vetting is skipped by design.
+Report processed, transcribed, transcription_failed, routed, closed, failed from JSON summary.
+Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP — vetting is skipped by design.
+Tickets with transcription_failed were left open unchanged.
 ```
 
 ## Sibling skills
