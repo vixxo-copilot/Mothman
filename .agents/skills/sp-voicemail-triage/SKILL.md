@@ -51,18 +51,26 @@ applicable) → resolve Freshdesk.
 
 Process **both** on every batch run unless the user narrows scope:
 
-### 1. Freshdesk — KSOnboarding queue
+### 1. Freshdesk — KSOnboarding queue (voicemail only)
 
 ```
 group_id:159000485013 AND status:2 AND type:'KSOnboarding'
 ```
 
-- SPM group `159000485013`; ticket type `KSOnboarding` (see
-  `vixxo-freshdesk-invoice-review` Freshdesk type enum).
-- Use `search_tickets`; paginate until the result set is exhausted or the user
-  cap is hit (default **20** tickets per run).
-- For each ticket: `get_ticket`, conversations, attachments; transcribe audio
-  or use body text.
+Then **post-filter** to voicemail items only — see
+[reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md).
+
+**In scope:** subject/body contains `voicemail` / 8x8 `New voicemail from …` text,
+or tag `voicemail`.
+
+**Out of scope:** other KSOnboarding mail in the same queue (invoice concerns,
+account updates, etc.). Log skipped IDs in the batch summary; do not triage them
+with this skill.
+
+- SPM group `159000485013`; ticket type `KSOnboarding`.
+- Use `search_tickets`; paginate all pages; apply voicemail filter.
+- For each in-scope ticket: `get_ticket`, conversations, attachments; transcribe
+  audio or use body text.
 
 ### 2. Outlook — {{employee_name}}'s inbox
 
@@ -102,7 +110,7 @@ in one batch run.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | FD #12345 | … | Apex Mechanical | Payment | Yes | Known SP | aphelp@vixxo.com | routed |
 
-**Counts:** {n} triaged | {n} callback Yes | {n} routed | {n} failed
+**Counts:** {n} triaged | {n} skipped (non-voicemail) | {n} callback Yes | {n} routed | {n} failed
 ```
 
 Then one **triage packet** per item (see below).
@@ -162,7 +170,8 @@ Then one **triage packet** per item (see below).
 7. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
 8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
 9. **Salesforce Lead note** — onboarding branch when Lead found.
-10. **Resolve Freshdesk** — `status: 5` with valid `type`.
+10. **Resolve Freshdesk** — `status: 5` with valid `type` and required
+    `custom_fields.cf_sp` (use `Unknown` when SP is not identified).
 
 ## Acquire and transcribe
 
@@ -216,5 +225,6 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | [reference/callback-rules.md](reference/callback-rules.md) | Callback decision |
 | [reference/company-vetting.md](reference/company-vetting.md) | Siebel, Gateway, JDE, SF |
 | [reference/routing-actions.md](reference/routing-actions.md) | Forwards + resolve rules |
+| [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | Voicemail-only queue filter |
 | [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
 | [reference/examples.md](reference/examples.md) | Sample outputs |

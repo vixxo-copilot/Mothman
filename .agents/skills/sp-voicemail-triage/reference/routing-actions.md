@@ -130,10 +130,19 @@ Use `update_ticket`:
   "ticket_id": "<id>",
   "ticket": {
     "status": 5,
-    "type": "<KSOnboarding | VixxoLink Support | Invoice Support | COIs | as appropriate>"
+    "type": "<KSOnboarding | VixxoLink Support | Invoice Support | COIs | as appropriate>",
+    "custom_fields": {
+      "cf_sp": "<SP number or Unknown>"
+    }
   }
 }
 ```
+
+This tenant requires `cf_sp` when closing — use `Unknown` when the SP is not
+identified during triage.
+
+Only resolve tickets that pass the voicemail filter in
+[freshdesk-voicemail-filter.md](freshdesk-voicemail-filter.md).
 
 Freshdesk requires a valid `type` when changing status. Allowed values include:
 `Account Update`, `Invoice Support`, `VixxoLink Support`, `Credit/Debit

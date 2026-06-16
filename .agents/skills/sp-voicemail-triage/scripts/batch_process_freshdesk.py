@@ -22,6 +22,9 @@ QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
 OUT_DIR = Path(__file__).resolve().parent.parent / ".tmp" / "batch-run"
 TIMEOUT = 90
 
+VOICEMAIL_SUBJECT_RE = re.compile(
+    r"\bvoicemail\b|\bvoice mail\b|\bnew voice message\b", re.I
+)
 PHONE_RE = re.compile(r"\(\+1(\d{10})\)|\+1(\d{10})|(\d{3})[-. ](\d{3})[-. ](\d{4})")
 DURATION_RE = re.compile(r"Duration:\s*(\d{2}:\d{2})", re.I)
 CALLER_SUBJECT_RE = re.compile(
@@ -109,6 +112,27 @@ def strip_html(html: str) -> str:
     return unescape(re.sub(r"\s+", " ", text)).strip()
 
 
+def is_voicemail_ticket(ticket: dict) -> bool:
+    tags = [str(t).lower() for t in (ticket.get("tags") or [])]
+    if "voicemail" in tags or any("voicemail" in t for t in tags):
+        return True
+    subject = ticket.get("subject") or ""
+    if VOICEMAIL_SUBJECT_RE.search(subject):
+        return True
+    desc = ticket.get("description_text") or strip_html(ticket.get("description") or "")
+    lowered = desc.lower()
+    if "new voicemail from" in lowered or "has a new voicemail" in lowered:
+        return True
+    return False
+
+
+def search_voicemail_tickets(api_key: str) -> tuple[list[dict], list[dict]]:
+    all_tickets = search_tickets(api_key)
+    voicemail = [t for t in all_tickets if is_voicemail_ticket(t)]
+    skipped = [t for t in all_tickets if not is_voicemail_ticket(t)]
+    return voicemail, skipped
+
+
 def normalize_phone(raw: str | None) -> str | None:
     if not raw:
         return None
@@ -179,14 +203,22 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     return "\n".join(lines)
 
 
+def _keyword_in_text(keyword: str, text: str) -> bool:
+    if " " in keyword:
+        return keyword in text
+    return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
+
+
 def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
     text = transcript.lower()
     sr = None
     sm = SR_RE.search(transcript)
     if sm:
         sr = sm.group(1)
+    if "audio attachment only" in text or "[inaudible]" in text:
+        return "General Inquiry", "service.providermanagement@vixxo.com", sr or ""
     for category, keywords, route in CATEGORY_RULES:
-        if any(k in text for k in keywords):
+        if any(_keyword_in_text(k, text) for k in keywords):
             if route == "SR_BRANCH" and sr:
                 return category, route, sr
             if route == "SR_BRANCH":
@@ -270,8 +302,23 @@ class Result:
     error: str = ""
 
 
-def process_ticket(api_key: str, ticket_summary: dict, dry_run: bool = False) -> Result:
+def process_ticket(
+    api_key: str,
+    ticket_summary: dict,
+    dry_run: bool = False,
+    reroute_correction: bool = False,
+) -> Result:
     tid = int(ticket_summary["id"])
+    if not is_voicemail_ticket(ticket_summary):
+        return Result(
+            ticket_id=tid,
+            caller="—",
+            phone="—",
+            category="Skipped",
+            route="—",
+            callback="—",
+            note="skipped:non-voicemail",
+        )
     ticket = http_json("GET", f"/api/v2/tickets/{tid}", api_key)
     meta = extract_metadata(ticket)
     transcript = build_transcript(meta, ticket)
@@ -320,6 +367,10 @@ def process_ticket(api_key: str, ticket_summary: dict, dry_run: bool = False) ->
         f"— Automated triage (sp-voicemail-triage). Please listen to the attached "
         f"voicemail for full message content."
     )
+    if reroute_correction:
+        forward_body += (
+            "\nNote: Prior misroute to AP (keyword false match) — corrected forward to SPM."
+        )
     fwd_payload: dict[str, Any] = {
         "body": forward_body,
         "to_emails": [route] if "@" in route else [],
@@ -360,14 +411,22 @@ def process_ticket(api_key: str, ticket_summary: dict, dry_run: bool = False) ->
 
 def main() -> int:
     dry_run = "--dry-run" in sys.argv
+    reroute_correction = "--reroute-spm" in sys.argv
     api_key = load_credentials()
-    tickets = search_tickets(api_key)
+    tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     results: list[Result] = []
     for t in tickets:
         try:
-            results.append(process_ticket(api_key, t, dry_run=dry_run))
+            results.append(
+                process_ticket(
+                    api_key,
+                    t,
+                    dry_run=dry_run,
+                    reroute_correction=reroute_correction,
+                )
+            )
         except Exception as exc:  # noqa: BLE001
             results.append(
                 Result(
@@ -383,6 +442,8 @@ def main() -> int:
 
     summary = {
         "processed": len(results),
+        "skipped_non_voicemail": len(skipped),
+        "skipped_ids": [int(t["id"]) for t in skipped],
         "dry_run": dry_run,
         "routed": sum(1 for r in results if r.forward and not r.forward.startswith("failed")),
         "closed": sum(1 for r in results if r.resolve == "closed"),
