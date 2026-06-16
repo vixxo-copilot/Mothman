@@ -60,12 +60,11 @@ group_id:159000485013 AND status:2 AND type:'KSOnboarding'
 Then **post-filter** to voicemail items only — see
 [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md).
 
-**In scope:** subject/body contains `voicemail` / 8x8 `New voicemail from …` text,
-or tag `voicemail`.
+**In scope:** subject **begins with** `New voicemail` (8x8 notification shape).
 
-**Out of scope:** other KSOnboarding mail in the same queue (invoice concerns,
-account updates, etc.). Log skipped IDs in the batch summary; do not triage them
-with this skill.
+**Out of scope:** everything else in the KSOnboarding queue — including tickets
+whose body or thread mentions `voicemail`, `ACH`, payment, or billing but whose
+subject does not start with `New voicemail`. Log skipped IDs; do not triage.
 
 - SPM group `159000485013`; ticket type `KSOnboarding`.
 - Use `search_tickets`; paginate all pages; apply voicemail filter.
@@ -78,8 +77,9 @@ with this skill.
 2. `list-mail-folder-messages` — `mailFolderId: inbox`.
 3. Candidate filter (run sequential passes if needed — do not combine
    `$search` and `$filter` on one Graph call):
-   - Subject contains: `Voice Mail`, `Voicemail`, `New Voice Message`, `VM from`
-   - Or `hasAttachments eq true` combined with voicemail subject patterns
+   - **Subject begins with** `New voicemail` (case-insensitive) — required
+   - Do **not** include messages that only mention voicemail, ACH, or payment in
+     the body or quoted thread with a different subject
    - Default window: **last 7 days**, unread first; user may override
 4. Prefer body auto-transcript; else `download-bytes` on audio attachment.
 
@@ -184,7 +184,8 @@ transcript — use it; note `Transcript source: email body`.
 2. Transcribe verbatim; mark `[inaudible]` where needed.
 3. Note `Transcript source: audio transcription`.
 
-Do not invent content.
+Do not use email body or thread text for intake or keyword classification —
+only subject prefix (intake) and spoken transcript / audio (classification).
 
 ## Routing checklist (automatic)
 

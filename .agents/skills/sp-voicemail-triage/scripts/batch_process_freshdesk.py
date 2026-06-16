@@ -22,9 +22,7 @@ QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
 OUT_DIR = Path(__file__).resolve().parent.parent / ".tmp" / "batch-run"
 TIMEOUT = 90
 
-VOICEMAIL_SUBJECT_RE = re.compile(
-    r"\bvoicemail\b|\bvoice mail\b|\bnew voice message\b", re.I
-)
+NEW_VOICEMAIL_SUBJECT_RE = re.compile(r"^\s*new voicemail\b", re.I)
 PHONE_RE = re.compile(r"\(\+1(\d{10})\)|\+1(\d{10})|(\d{3})[-. ](\d{3})[-. ](\d{4})")
 DURATION_RE = re.compile(r"Duration:\s*(\d{2}:\d{2})", re.I)
 CALLER_SUBJECT_RE = re.compile(
@@ -112,18 +110,12 @@ def strip_html(html: str) -> str:
     return unescape(re.sub(r"\s+", " ", text)).strip()
 
 
+def is_voicemail_subject(subject: str | None) -> bool:
+    return bool(NEW_VOICEMAIL_SUBJECT_RE.match(subject or ""))
+
+
 def is_voicemail_ticket(ticket: dict) -> bool:
-    tags = [str(t).lower() for t in (ticket.get("tags") or [])]
-    if "voicemail" in tags or any("voicemail" in t for t in tags):
-        return True
-    subject = ticket.get("subject") or ""
-    if VOICEMAIL_SUBJECT_RE.search(subject):
-        return True
-    desc = ticket.get("description_text") or strip_html(ticket.get("description") or "")
-    lowered = desc.lower()
-    if "new voicemail from" in lowered or "has a new voicemail" in lowered:
-        return True
-    return False
+    return is_voicemail_subject(ticket.get("subject"))
 
 
 def search_voicemail_tickets(api_key: str) -> tuple[list[dict], list[dict]]:
@@ -183,7 +175,6 @@ def extract_metadata(ticket: dict) -> dict[str, str | None]:
 
 def build_transcript(meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
-    desc_text = ticket.get("description_text") or strip_html(ticket.get("description") or "")
     att_names = [a.get("name") for a in ticket.get("attachments") or [] if a.get("name")]
     lines = [
         f"[Voicemail notification — audio attachment only; no email body transcript]",
@@ -194,8 +185,6 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     ]
     if att_names:
         lines.append(f"Attachments: {', '.join(att_names)}")
-    if desc_text and len(desc_text) > 40:
-        lines.append(f"Email body excerpt: {desc_text[:500]}")
     lines.append(
         "[Note: Full message content is in the WAV attachment; triage based on "
         "caller metadata pending audio transcription. Callback Recommended.]"
