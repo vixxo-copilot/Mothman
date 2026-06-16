@@ -22,7 +22,7 @@ QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
 OUT_DIR = Path(__file__).resolve().parent.parent / ".tmp" / "batch-run"
 TIMEOUT = 90
 
-NEW_VOICEMAIL_SUBJECT_RE = re.compile(r"^\s*new voicemail\b", re.I)
+NEW_VOICEMAIL_SUBJECT_RE = re.compile(r"\bnew voicemail\b", re.I)
 PHONE_RE = re.compile(r"\(\+1(\d{10})\)|\+1(\d{10})|(\d{3})[-. ](\d{3})[-. ](\d{4})")
 DURATION_RE = re.compile(r"Duration:\s*(\d{2}:\d{2})", re.I)
 CALLER_SUBJECT_RE = re.compile(
@@ -111,7 +111,7 @@ def strip_html(html: str) -> str:
 
 
 def is_voicemail_subject(subject: str | None) -> bool:
-    return bool(NEW_VOICEMAIL_SUBJECT_RE.match(subject or ""))
+    return bool(NEW_VOICEMAIL_SUBJECT_RE.search(subject or ""))
 
 
 def is_voicemail_ticket(ticket: dict) -> bool:

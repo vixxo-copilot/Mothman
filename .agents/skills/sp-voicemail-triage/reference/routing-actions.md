@@ -142,8 +142,8 @@ This tenant requires `cf_sp` when closing — use `Unknown` when the SP is not
 identified during triage.
 
 Only resolve tickets that pass the voicemail filter in
-[freshdesk-voicemail-filter.md](freshdesk-voicemail-filter.md) (subject begins
-with `New voicemail`).
+[freshdesk-voicemail-filter.md](freshdesk-voicemail-filter.md) (subject includes
+`New voicemail`).
 
 Freshdesk requires a valid `type` when changing status. Allowed values include:
 `Account Update`, `Invoice Support`, `VixxoLink Support`, `Credit/Debit

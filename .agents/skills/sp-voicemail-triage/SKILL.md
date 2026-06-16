@@ -62,11 +62,11 @@ group_id:159000485013 AND status:2 AND type:'KSOnboarding'
 Then **post-filter** to voicemail items only — see
 [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md).
 
-**In scope:** subject **begins with** `New voicemail` (8x8 notification shape).
+**In scope:** subject **includes** `New voicemail` (case-insensitive).
 
 **Out of scope:** everything else in the KSOnboarding queue — including tickets
 whose body or thread mentions `voicemail`, `ACH`, payment, or billing but whose
-subject does not start with `New voicemail`. Log skipped IDs; do not triage.
+subject does not include `New voicemail`. Log skipped IDs; do not triage.
 
 - SPM group `159000485013`; ticket type `KSOnboarding`.
 - Use `search_tickets`; paginate all pages; apply voicemail filter.
@@ -79,7 +79,7 @@ subject does not start with `New voicemail`. Log skipped IDs; do not triage.
 2. `list-mail-folder-messages` — `mailFolderId: inbox`.
 3. Candidate filter (run sequential passes if needed — do not combine
    `$search` and `$filter` on one Graph call):
-   - **Subject begins with** `New voicemail` (case-insensitive) — required
+   - **Subject includes** `New voicemail` (case-insensitive) — required
    - Do **not** include messages that only mention voicemail, ACH, or payment in
      the body or quoted thread with a different subject
    - Default window: **last 7 days**, unread first; user may override

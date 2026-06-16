@@ -50,10 +50,10 @@ Phase 2 runs automatically when invoked (except dry-run).
 
 ## Intake (unchanged)
 
-Follow parent rules — subject must **begin with** `New voicemail`:
+Follow parent rules — subject must **include** `New voicemail`:
 
 - Freshdesk KSOnboarding queue — [../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md](../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md)
-- Outlook inbox — subject begins with `New voicemail` only
+- Outlook inbox — subject includes `New voicemail` only
 
 Do not triage items where voicemail or ACH appears only in body/thread.
 

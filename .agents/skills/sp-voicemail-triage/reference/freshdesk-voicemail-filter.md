@@ -6,8 +6,7 @@ updates, account threads, etc.). This skill triages **8x8 intake only**.
 
 ## Include (process)
 
-**Subject must begin with** `New voicemail` (case-insensitive; ignore leading
-whitespace).
+**Subject must include** the phrase `New voicemail` (case-insensitive).
 
 Typical subject:
 
@@ -15,24 +14,23 @@ Typical subject:
 New voicemail from {CALLER} via VENDOR RELATIONS
 ```
 
-That is the 8x8 extension notification — the only Freshdesk shape this skill
-handles.
+Prefixes or suffixes before/after the phrase are allowed as long as `New voicemail`
+appears in the subject line.
 
 ## Exclude (skip)
 
-Do **not** triage when the subject does **not** start with `New voicemail`, even if:
+Do **not** triage when the subject does **not** include `New voicemail`, even if:
 
 - The body or conversation thread mentions `voicemail`, `voice mail`, or `VM`
 - The body or thread mentions `ACH`, payment, billing, or invoice text
 - Tags contain `voicemail` or related labels
-- The subject contains `voicemail` mid-string but does not **begin** with
-  `New voicemail`
+- The subject contains `voicemail` alone but not the phrase `New voicemail`
 
 Examples to **skip**:
 
 - `Vendor Contact Information Is Incorrect` (body may mention unrelated terms)
 - Invoice / SPM threads tagged `spm-invoice-concerns-reviewed`
-- Replies or forwards where `voicemail` appears only in thread history
+- Subject `Voicemail follow-up` without `New voicemail`
 
 Log skipped ticket IDs in the batch summary under **Skipped (non-voicemail)**.
 
@@ -43,14 +41,14 @@ group_id:159000485013 AND status:2 AND type:'KSOnboarding'
 ```
 
 Paginate all pages, then **post-filter**: keep only tickets whose **subject**
-starts with `New voicemail`. Do not use body or thread text for inclusion.
+includes `New voicemail`. Do not use body or thread text for inclusion.
 
 ## Outlook
 
-Same rule: **subject must begin with** `New voicemail` (case-insensitive).
+Same rule: **subject must include** `New voicemail` (case-insensitive).
 
 Do not include messages that only mention voicemail, ACH, or payment in the
-body or quoted thread while using a different subject line.
+body or quoted thread while the subject lacks `New voicemail`.
 
 Optional secondary signal after subject match: audio attachment (`.wav`) from
 8x8/Teams — never use body keywords alone to include a message.
