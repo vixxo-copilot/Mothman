@@ -118,6 +118,31 @@ macOS caveat: when Cursor is launched from Finder (double-click), it inherits th
 These integrations use agent skills and `.env` credentials. They do **not** appear
 in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
+### Vixxo HTTP MCPs (Gateway, VixxoLink, VixxoNow, …)
+
+**Purpose:** Internal Vixxo read/write tools via `https://vixxonow.com/mcp/*`.
+
+**Transport:** local stdio via `npx mcp-remote` (direct HTTP endpoint in
+`.cursor/mcp.json`; no token pre-check wrapper).
+
+**Auth:** If the endpoint requires a Bearer token, add it via Cursor HTTP MCP
+OAuth or extend the `mcp-remote` args with
+`--header Authorization:Bearer <token>`. Optional token storage (for scripts/skills):
+
+- `~/.vixxo/vixxolink_api_token` (recommended)
+- `~/.vixxo/vixxonow_api_token`
+- `~/.vixxo/gateway_api_token`
+- or `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+
+After auth changes, open **Cursor Settings → MCP** and restart the affected
+servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
+
+**Verify:**
+
+```bash
+python bin/diagnose-mcp.py
+```
+
 ### PolyAI
 
 **Purpose:** Outbound voice-agent operations — Conversations API health, list/get,

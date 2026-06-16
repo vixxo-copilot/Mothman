@@ -1,13 +1,28 @@
 {
   "mcpServers": {
     "business-objects": {
-      "url": "https://vixxonow.com/mcp/bo-universe"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/bo-universe"
+      ],
+      "command": "npx"
     },
     "chatfpt": {
-      "url": "https://vixxonow.com/mcp/chatfpt"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/chatfpt"
+      ],
+      "command": "npx"
     },
     "dynamics365": {
-      "url": "https://vixxonow.com/mcp/dynamics365"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/dynamics365"
+      ],
+      "command": "npx"
     },
     "freshdesk": {
       "args": [],
@@ -28,7 +43,12 @@
       }
     },
     "gateway": {
-      "url": "https://vixxonow.com/mcp/gateway"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/gateway"
+      ],
+      "command": "npx"
     },
     "github": {
       "args": [
@@ -45,7 +65,12 @@
       "command": "npx"
     },
     "gong-transact": {
-      "url": "https://transact.vixxo.com/mcp/gong"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://transact.vixxo.com/mcp/gong"
+      ],
+      "command": "npx"
     },
     "hubspot": {
       "url": "https://mcp.hubspot.com"
@@ -68,18 +93,16 @@
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "powerbi-prod": {
-      "url": "https://vixxonow.com/mcp/powerbi"
-    },
-    "salesforce": {
       "args": [
         "-y",
-        "@salesforce/mcp@latest",
-        "--orgs",
-        "DEFAULT_TARGET_ORG",
-        "--toolsets",
-        "orgs,metadata,data,users"
+        "mcp-remote",
+        "https://vixxonow.com/mcp/powerbi"
       ],
       "command": "npx"
+    },
+    "salesforce": {
+      "args": [],
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-salesforce-mcp.cmd"
     },
     "skills": {
       "args": [
@@ -89,16 +112,24 @@
       "command": "npx"
     },
     "smartsheet": {
-      "args": [
-        ".cursor/bin/smartsheet-mcp-stdio.sh"
-      ],
-      "command": "bash"
+      "args": [],
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-smartsheet-mcp.cmd"
     },
     "vixxolink": {
-      "url": "https://vixxonow.com/mcp/vixxolink"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/vixxolink"
+      ],
+      "command": "npx"
     },
     "vixxonow": {
-      "url": "https://vixxonow.com/mcp/vixxonow"
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vixxonow.com/mcp/vixxonow"
+      ],
+      "command": "npx"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"

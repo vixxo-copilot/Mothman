@@ -1,0 +1,57 @@
+{
+  "mode": "dry-run",
+  "queue": "KSOnboarding",
+  "query": "group_id:159000485013 AND status:2 AND type:'KSOnboarding'",
+  "run_at": "2026-06-16T19:00:00Z",
+  "data_sources": {
+    "gateway": "project-0-assistant-CGagner-gateway MCP (gateway_get_service_request, gateway_search_invoices)",
+    "salesforce": "project-0-assistant-CGagner-salesforce MCP (run_soql_query, org: vixxo)",
+    "freshdesk": "prior run (32 tickets)"
+  },
+  "summary": {
+    "total": 32,
+    "known_sp": 12,
+    "prospect_sf_lead": 2,
+    "unknown": 18
+  },
+  "gateway_sp_registry": {
+    "KS69315": "KS - Texas Premier Locksmith Inc",
+    "KS101031": "KS - Alpha Concepts LLC",
+    "KS101347": "KS- Hamilton Lock & Safe",
+    "KS101178": "KS - Trevena Handyman"
+  },
+  "items": [
+    {"ticket_id": 56532, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 56531, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 56525, "company": "Ambius / L'Oreal (system notification)", "posture": "Unknown / Not in systems", "cf_sp_target": "Unknown", "gateway_source": null},
+    {"ticket_id": 56502, "company": "ALLIED LOCKSMITHS OF YOUNGSTOWN", "posture": "Unknown / Not in systems", "cf_sp_target": "Unknown", "gateway_source": "gateway_search_invoices(Allied Locksmiths) — no hits"},
+    {"ticket_id": 54919, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_get_service_request(1-6582223572)"},
+    {"ticket_id": 54896, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 54727, "company": "Internal forward (Contract)", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 54635, "company": "Alpha Concepts LLC", "posture": "Known SP", "cf_sp_target": "KS101031 - KS - Alpha Concepts LLC", "gateway_source": "gateway_search_invoices(KS101031)", "cf_sp_current": "Alpha Concepts LLC - KS101031"},
+    {"ticket_id": 54152, "company": "Hamilton Lock and Safe", "posture": "Known SP", "cf_sp_target": "KS101347 - KS- Hamilton Lock & Safe", "gateway_source": "gateway_search_invoices(KS101347)"},
+    {"ticket_id": 54103, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 54088, "company": "Stone, Saunders & Associates (collections)", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 54054, "company": "MAURICE ZEPEDA", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 53928, "company": "Ashley Mechanical", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(Ashley Mechanical) — no hits"},
+    {"ticket_id": 51923, "company": "Golterman and Sabo", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(Golterman) — no hits"},
+    {"ticket_id": 51777, "company": "FastSigns", "posture": "Prospect (SF Lead only)", "cf_sp_target": "FastSigns Virginia Beach - Norfolk - Chesapeake", "sf_lead": {"Id": "00QTS00000c5vfh2AA", "Name": "Derek Fletcher", "Status": "New"}},
+    {"ticket_id": 50346, "company": "Internal auto-reply", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 50268, "company": "Minuteman, Inc.", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(Minuteman) — no hits"},
+    {"ticket_id": 50235, "company": "E3 Construction", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(E3 Construction) — no hits"},
+    {"ticket_id": 49255, "company": "Ideal Air LLC", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(Ideal Air) — no hits"},
+    {"ticket_id": 48741, "company": "FlyLock Security Solutions", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(FlyLock) — no hits"},
+    {"ticket_id": 47978, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 47977, "company": "Texas Premier Locksmith", "posture": "Known SP", "cf_sp_target": "KS69315 - KS - Texas Premier Locksmith Inc", "gateway_source": "gateway_search_invoices(KS69315)"},
+    {"ticket_id": 46735, "company": "INDUSTRIAL DOOR & WEATHERSTRIP CO INC", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null, "sf_note": "No SF Lead/Case match via MCP"},
+    {"ticket_id": 46572, "company": "ClickUp notification", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 46521, "company": "ClickUp notification", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 46482, "company": "Paradise Kitchens and Floors LLC (COI)", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_search_invoices(Paradise Kitchens) — no hits"},
+    {"ticket_id": 46467, "company": "Reagan Niemann", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": "gateway_get_service_request(16491517272) — SR not found"},
+    {"ticket_id": 46409, "company": "Ulta SR forward (Trevena)", "posture": "Known SP", "cf_sp_target": "KS101178 - KS - Trevena Handyman", "gateway_source": "gateway_get_service_request(1-6565263552)"},
+    {"ticket_id": 46277, "company": "Patrick Ashley (Business Insurance)", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 44001, "company": "Internal WO forward", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null},
+    {"ticket_id": 40938, "company": "Glass Doctor DFW", "posture": "Prospect (SF Lead only)", "cf_sp_target": "Peruna Glass Inc DBA Glass Doctor of North Texas", "sf_lead": {"Id": "00QTS00000aZv8M2AS", "Name": "Taylor Dennis", "Status": "New", "Email": "tdennis@glassdoctordfw.com"}},
+    {"ticket_id": 33370, "company": "Internal (Vendor Contact Incorrect)", "posture": "Unknown / Not in systems", "cf_sp_target": "(keep existing)", "gateway_source": null}
+  ]
+}

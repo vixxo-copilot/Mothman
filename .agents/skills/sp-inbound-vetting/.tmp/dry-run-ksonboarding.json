@@ -1,0 +1,1009 @@
+{
+  "mode": "dry-run",
+  "queue": "KSOnboarding",
+  "query": "group_id:159000485013 AND status:2 AND type:'KSOnboarding'",
+  "total_open_ks_onboarding": 32,
+  "in_scope_count": 32,
+  "skipped": {
+    "voicemail": {
+      "count": 0,
+      "ids": []
+    },
+    "sp_vetted": {
+      "count": 0,
+      "ids": []
+    },
+    "not_ksonboarding": {
+      "count": 0,
+      "ids": []
+    }
+  },
+  "items": [
+    {
+      "ticket_id": 56532,
+      "subject": "Past Due Invoice",
+      "created_at": "2026-06-16T18:30:16Z",
+      "requester": "workorders@txpremierlocksmith.com",
+      "company": "Workorders",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": null,
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "Unknown",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 56531,
+      "subject": "Past Due Invoice",
+      "created_at": "2026-06-16T18:30:15Z",
+      "requester": "workorders@txpremierlocksmith.com",
+      "company": "Workorders",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": null,
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "Unknown",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 56525,
+      "subject": "Vendor with Workday Status of WDOnHold assigned to Open Ticket notification:Ambius for Parent: L'Oreal USA, Inc.",
+      "created_at": "2026-06-16T18:20:16Z",
+      "requester": "knowledgesync@vixxo.com",
+      "company": "Knowledgesync",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": null,
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "Unknown",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 56502,
+      "subject": "Invoice 22024 from ALLIED LOCKSMITHS OF YOUNGSTOWN",
+      "created_at": "2026-06-16T17:56:48Z",
+      "requester": "invoices2904@gmail.com",
+      "company": "Invoices2904",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": null,
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "Unknown",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54919,
+      "subject": "Your service with\u00a0Texas Premier Locksmith -\u00a01-6582223572",
+      "created_at": "2026-06-09T21:48:10Z",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "company": "Your service with\u00a0Texas Premier Locksmith",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54896,
+      "subject": "",
+      "created_at": "2026-06-09T20:49:07Z",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "company": "Texas_premier_locksmith",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54727,
+      "subject": "FW: Contract",
+      "created_at": "2026-06-09T17:02:35Z",
+      "requester": "amanda.pearson@vixxo.com",
+      "company": "Amanda Pearson",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54635,
+      "subject": "Update on your Vixxo account",
+      "created_at": "2026-06-09T15:34:12Z",
+      "requester": "philips@alphaconceptsllc.com",
+      "company": "Philips",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Alpha Concepts LLC - KS101031",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54152,
+      "subject": "KS101347 - Hamilton Lock and Safe account updates and payment issues.",
+      "created_at": "2026-06-07T17:41:56Z",
+      "requester": "stefan.bishop@vixxo.com",
+      "company": "KS101347",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54103,
+      "subject": "",
+      "created_at": "2026-06-06T18:04:52Z",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "company": "Texas_premier_locksmith",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54088,
+      "subject": "Follow-Up: Account #2026-0991 \u2014 $365.00 Balance",
+      "created_at": "2026-06-06T15:21:59Z",
+      "requester": "collections@stonesaunders.com",
+      "company": "Stone, Saunders & Associates",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 54054,
+      "subject": "Fw: ADDITIONAL COVERAGE",
+      "created_at": "2026-06-05T23:14:01Z",
+      "requester": "mauricezepeda@yahoo.com",
+      "company": "MAURICE ZEPEDA",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 53928,
+      "subject": "Rick Aragona shared \"AshleyMechanical\" with you",
+      "created_at": "2026-06-05T16:56:54Z",
+      "requester": "raragona@ashleymechanical.com",
+      "company": "Rick Aragona",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 51923,
+      "subject": "RE: Onboarding setup for Golterman and Sabo",
+      "created_at": "2026-06-01T16:56:18Z",
+      "requester": "karenh@golterman.com",
+      "company": "Karen Hoxworth",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "account-team-needed",
+        "vixxolink-support",
+        "pending-hold",
+        "gateway-unavailable"
+      ],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 51777,
+      "subject": "Transfer of account",
+      "created_at": "2026-06-01T12:53:35Z",
+      "requester": "johanna.northern@fastsigns.com",
+      "company": "Johanna Northern",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 50346,
+      "subject": "Automatic reply: Ticket #: 12962279 Invoiced",
+      "created_at": "2026-05-28T20:57:34Z",
+      "requester": "whitney.kerans@vixxo.com",
+      "company": "Whitney Kerans",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 50268,
+      "subject": "Natural, here's your receipt from Minuteman, Inc.",
+      "created_at": "2026-05-28T17:50:36Z",
+      "requester": "minuteman_inc@msg.workiz.com",
+      "company": "Minuteman_inc",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 50235,
+      "subject": "Needing to get an invoice rejection resolved",
+      "created_at": "2026-05-28T16:40:25Z",
+      "requester": "tim@e3construction.net",
+      "company": "Tim Emery",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 49255,
+      "subject": "Re: VixxoLink Training Resources",
+      "created_at": "2026-05-26T21:35:40Z",
+      "requester": "idealairllc@gmail.com",
+      "company": "Timothy L Pepper",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 48741,
+      "subject": "FlyLock Security Solutions Richmond 6622302",
+      "created_at": "2026-05-26T12:38:58Z",
+      "requester": "david.millure@flylock.com",
+      "company": "David Millure",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 47978,
+      "subject": "Polo Ralph, here's your receipt from Texas Premier Locksmith",
+      "created_at": "2026-05-21T16:07:03Z",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "company": "Texas_premier_locksmith",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 47977,
+      "subject": "Polo Ralph, here's your receipt from Texas Premier Locksmith",
+      "created_at": "2026-05-21T16:06:10Z",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "company": "Texas_premier_locksmith",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46735,
+      "subject": "Statement from INDUSTRIAL DOOR & WEATHERSTRIP CO INC",
+      "created_at": "2026-05-18T17:17:50Z",
+      "requester": "indwstcoin@aol.com",
+      "company": "Not stated",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "duplicate-or-resubmission",
+        "pending-hold",
+        "gateway-unavailable"
+      ],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Case: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46572,
+      "subject": "Reminder: aedoorsales invited you to join PROJECT REF: 8539-01 on ClickUp",
+      "created_at": "2026-05-17T14:43:21Z",
+      "requester": "team@info.clickup.com",
+      "company": "Team",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46521,
+      "subject": "Reminder: aedoorsales invited you to join PROJECT REF: 8539-01 on ClickUp",
+      "created_at": "2026-05-16T14:43:25Z",
+      "requester": "team@info.clickup.com",
+      "company": "Team",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46482,
+      "subject": "COI - Paradise Kitchens and Floors LLC - Vixxo Corporation",
+      "created_at": "2026-05-15T21:48:04Z",
+      "requester": "p&ccertrequest@cbiz.com",
+      "company": "COI",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46467,
+      "subject": "SR # 16491517272",
+      "created_at": "2026-05-15T20:33:41Z",
+      "requester": "reaganniemann@yahoo.com",
+      "company": "Reagan Niemann",
+      "sp_number_extracted": null,
+      "sr_number": "16491517272",
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46409,
+      "subject": "FW: SR#: 1-6565263552 | WO# 350644278 | Ulta Beauty - Rock Springs/WY - 1689 | Plumbing | Priority: P1 (Onsite within 4 hours, completion within 5 days.)",
+      "created_at": "2026-05-15T18:07:26Z",
+      "requester": "kelly.mitchell@vixxo.com",
+      "company": "FW: SR#: 1-6565263552 | WO# 350644278 | Ulta Beauty",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 46277,
+      "subject": "Business Insurance",
+      "created_at": "2026-05-15T12:52:19Z",
+      "requester": "parnzip@gmail.com",
+      "company": "Patrick Ashley",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 44001,
+      "subject": "RE: [External] WO needed for May Services 13017608",
+      "created_at": "2026-05-04T21:51:58Z",
+      "requester": "callie.riggs@vixxo.com",
+      "company": "Callie Riggs",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "manual-review",
+        "pending-hold",
+        "gateway-unavailable"
+      ],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 40938,
+      "subject": "Re: PORTAL HELP URGENT : Glass Doctor Invoice 343951",
+      "created_at": "2026-04-22T16:02:17Z",
+      "requester": "bwatson@glassdoctordfw.com",
+      "company": "Brittany Watson",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    },
+    {
+      "ticket_id": 33370,
+      "subject": "Vendor Contact Information Is Incorrect",
+      "created_at": "2026-03-26T13:17:11Z",
+      "requester": "rhonda.riggs@vixxo.com",
+      "company": "Rhonda Riggs",
+      "sp_number_extracted": null,
+      "sr_number": null,
+      "cf_sp_current": "Unknown",
+      "tags": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "account-team-needed",
+        "vixxolink-support",
+        "pending-hold",
+        "gateway-unavailable"
+      ],
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "(keep existing)",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "sf_account": null,
+      "errors": [
+        "SF Lead: sf CLI not found"
+      ],
+      "gateway_note": "Gateway MCP unavailable in this run \u2014 SP# path not resolved via API",
+      "dry_run_actions": {
+        "internal_note": "would post",
+        "cf_sp_update": "(keep existing)",
+        "tags": [
+          "sp-vetted"
+        ],
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A"
+      }
+    }
+  ]
+}

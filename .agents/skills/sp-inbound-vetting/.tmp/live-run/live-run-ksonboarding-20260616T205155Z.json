@@ -1,0 +1,416 @@
+{
+  "mode": "live",
+  "queue": "KSOnboarding",
+  "run_at": "2026-06-16T20:51:55.243441+00:00",
+  "total": 32,
+  "notes_posted": 32,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 56532,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56531,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56525,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56502,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54919,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54896,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54727,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Ainsworth)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54635,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "(keep: Alpha Concepts LLC - KS101031)",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54152,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS101347 - KS- Hamilton Lock & Safe",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54103,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54088,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54054,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 53928,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 51923,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "account-team-needed",
+        "gateway-unavailable",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "vixxolink-support"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 51777,
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "FastSigns Virginia Beach - Norfolk - Chesapeake",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000c5vfh2AA \u2014 posted (Task 00TTS00000wVNLt2AO)",
+      "error": null
+    },
+    {
+      "ticket_id": 50346,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50268,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50235,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 49255,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 48741,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 47978,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 47977,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69315 - KS - Texas Premier Locksmith Inc",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46735,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "duplicate-or-resubmission",
+        "gateway-unavailable",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46572,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46521,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46482,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46467,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46409,
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS101178 - KS - Trevena Handyman",
+      "tags": [
+        "known-sp",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 46277,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44001,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 40938,
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Peruna Glass Inc DBA Glass Doctor of North Texas",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZv8M2AS \u2014 posted (Task 00TTS00000wVrEn2AK)",
+      "error": null
+    },
+    {
+      "ticket_id": 33370,
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Unknown)",
+      "tags": [
+        "account-team-needed",
+        "gateway-unavailable",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "vixxolink-support"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}
