@@ -9,8 +9,9 @@ description: >-
   service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
   spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
   voicemails from the same contact into one forward with a unified summary. Use when
-  asks to process SP voicemails, triage the voicemail queue, transcribe
-  voicemails, or route onboarding, billing, COI, or SR callback mail.
+  the user asks to process SP voicemails, triage the voicemail queue, transcribe
+  voicemails, or route onboarding, billing, COI, or SR callback mail. For HTTP
+  webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`.
 ---
 
 # SP Voicemail Triage
@@ -26,6 +27,7 @@ post internal notes, forward, add Salesforce Lead notes, and resolve tickets.
 - "Process SP voicemails" / "run voicemail triage" / "triage the queue"
 - "Transcribe voicemails in KSOnboarding and my inbox"
 - Single voicemail: attach audio, paste transcript, or point at a ticket/message
+- **Webhook + WAV:** use **`sp-voicemail-triage-webhook`** (not this skill)
 
 ## Operating modes
 
