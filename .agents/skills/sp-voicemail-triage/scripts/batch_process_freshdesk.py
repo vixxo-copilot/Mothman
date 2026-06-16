@@ -90,14 +90,18 @@ def http_json(method: str, path: str, api_key: str, body: dict | None = None) ->
 
 
 def search_tickets(api_key: str) -> list[dict]:
-    url = (
-        f"https://{DOMAIN}/api/v2/search/tickets?"
-        + urllib.parse.urlencode({"query": f'"{QUERY}"'})
-    )
-    req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        data = json.loads(resp.read().decode())
-    return data.get("results") or []
+    results: list[dict] = []
+    for page in range(1, 11):
+        params = {"query": f'"{QUERY}"', "page": str(page)}
+        url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
+        req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            data = json.loads(resp.read().decode())
+        page_results = data.get("results") or []
+        results.extend(page_results)
+        if len(page_results) < 30:
+            break
+    return results
 
 
 def strip_html(html: str) -> str:
@@ -339,7 +343,11 @@ def process_ticket(api_key: str, ticket_summary: dict, dry_run: bool = False) ->
             "PUT",
             f"/api/v2/tickets/{tid}",
             api_key,
-            {"status": 5, "type": "KSOnboarding"},
+            {
+                "status": 5,
+                "type": "KSOnboarding",
+                "custom_fields": {"cf_sp": "Unknown"},
+            },
         )
         result.resolve = "closed"
     except urllib.error.HTTPError as exc:
