@@ -231,9 +231,20 @@ def callback_decision(transcript: str) -> tuple[str, str]:
 
 
 def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urgency: str,
-                    route: str, transcript: str, sr: str) -> str:
+                    route: str, transcript: str, sr: str, *, no_email: bool = False) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
+    if no_email:
+        routing_action = (
+            f"- **Recommended forward to:** {route}\n"
+            f"- **Email forward sent:** No (no-email skill)\n"
+            f"- **Disposition:** Resolve after internal note"
+        )
+    else:
+        routing_action = (
+            f"- **Forward to:** {route}\n"
+            f"- **Disposition:** Resolve after forward"
+        )
     return f"""**SP Voicemail Triage — Freshdesk #{ticket_id}**
 
 **Processed:** {now}
@@ -266,8 +277,7 @@ def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urge
 
 **Routing action**
 
-- **Forward to:** {route}
-- **Disposition:** Resolve after forward
+{routing_action}
 
 ---
 
@@ -296,6 +306,7 @@ def process_ticket(
     ticket_summary: dict,
     dry_run: bool = False,
     reroute_correction: bool = False,
+    no_email: bool = False,
 ) -> Result:
     tid = int(ticket_summary["id"])
     if not is_voicemail_ticket(ticket_summary):
@@ -320,7 +331,9 @@ def process_ticket(
     else:
         forward_subject = None
 
-    note_body = internal_note(tid, meta, category, callback, urgency, route, transcript, sr)
+    note_body = internal_note(
+        tid, meta, category, callback, urgency, route, transcript, sr, no_email=no_email
+    )
     result = Result(
         ticket_id=tid,
         caller=str(meta["caller"]),
@@ -346,37 +359,40 @@ def process_ticket(
         result.note = f"failed:{exc.code}"
         result.error = f"note:{exc.reason}"
 
-    forward_body = (
-        f"SP Voicemail triage — Freshdesk #{tid}\n\n"
-        f"Category: {category}\n"
-        f"Caller: {meta['caller']}\n"
-        f"Callback: {meta['phone']}\n"
-        f"Callback required: {callback}\n\n"
-        f"{transcript}\n\n"
-        f"— Automated triage (sp-voicemail-triage). Please listen to the attached "
-        f"voicemail for full message content."
-    )
-    if reroute_correction:
-        forward_body += (
-            "\nNote: Prior misroute to AP (keyword false match) — corrected forward to SPM."
+    if no_email:
+        result.forward = "not-sent:no-email"
+    else:
+        forward_body = (
+            f"SP Voicemail triage — Freshdesk #{tid}\n\n"
+            f"Category: {category}\n"
+            f"Caller: {meta['caller']}\n"
+            f"Callback: {meta['phone']}\n"
+            f"Callback required: {callback}\n\n"
+            f"{transcript}\n\n"
+            f"— Automated triage (sp-voicemail-triage). Please listen to the attached "
+            f"voicemail for full message content."
         )
-    fwd_payload: dict[str, Any] = {
-        "body": forward_body,
-        "to_emails": [route] if "@" in route else [],
-    }
-    if forward_subject:
-        fwd_payload["subject"] = forward_subject
+        if reroute_correction:
+            forward_body += (
+                "\nNote: Prior misroute to AP (keyword false match) — corrected forward to SPM."
+            )
+        fwd_payload: dict[str, Any] = {
+            "body": forward_body,
+            "to_emails": [route] if "@" in route else [],
+        }
+        if forward_subject:
+            fwd_payload["subject"] = forward_subject
 
-    try:
-        if fwd_payload.get("to_emails"):
-            http_json("POST", f"/api/v2/tickets/{tid}/forward", api_key, fwd_payload)
-            result.forward = route
-        else:
-            result.forward = "skipped"
-    except urllib.error.HTTPError as exc:
-        result.forward = f"failed:{exc.code}"
-        if not result.error:
-            result.error = f"forward:{exc.reason}"
+        try:
+            if fwd_payload.get("to_emails"):
+                http_json("POST", f"/api/v2/tickets/{tid}/forward", api_key, fwd_payload)
+                result.forward = route
+            else:
+                result.forward = "skipped"
+        except urllib.error.HTTPError as exc:
+            result.forward = f"failed:{exc.code}"
+            if not result.error:
+                result.error = f"forward:{exc.reason}"
 
     try:
         http_json(
@@ -401,6 +417,7 @@ def process_ticket(
 def main() -> int:
     dry_run = "--dry-run" in sys.argv
     reroute_correction = "--reroute-spm" in sys.argv
+    no_email = "--no-email" in sys.argv
     api_key = load_credentials()
     tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -414,6 +431,7 @@ def main() -> int:
                     t,
                     dry_run=dry_run,
                     reroute_correction=reroute_correction,
+                    no_email=no_email,
                 )
             )
         except Exception as exc:  # noqa: BLE001
@@ -434,7 +452,12 @@ def main() -> int:
         "skipped_non_voicemail": len(skipped),
         "skipped_ids": [int(t["id"]) for t in skipped],
         "dry_run": dry_run,
-        "routed": sum(1 for r in results if r.forward and not r.forward.startswith("failed")),
+        "routed": sum(
+            1
+            for r in results
+            if r.forward and not str(r.forward).startswith("failed") and r.forward != "not-sent:no-email"
+        ),
+        "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
         "failed": [r.ticket_id for r in results if r.error or str(r.note).startswith("failed")],
         "results": [r.__dict__ for r in results],
