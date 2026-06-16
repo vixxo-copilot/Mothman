@@ -17,7 +17,7 @@ from html import unescape
 from pathlib import Path
 from typing import Any
 
-from transcribe_voicemail import transcribe_ticket
+from transcribe_voicemail import TRANSCRIPT_SOURCE, transcribe_ticket
 
 DEFAULT_DOMAIN = "vixxo-helpdesk.freshdesk.com"
 QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
@@ -182,7 +182,7 @@ def extract_metadata(ticket: dict) -> dict[str, str | None]:
 def format_stt_transcript(stt: dict[str, Any], meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
     lines = [
-        f"Transcript source: {stt.get('source', 'openai-whisper')}",
+        f"Transcript source: {stt.get('source', TRANSCRIPT_SOURCE)}",
         f"Subject: {subject}",
         f"Attachment: {stt.get('attachment_name', 'voicemail.wav')}",
         f"Caller ID: {meta['caller']}",
@@ -301,7 +301,7 @@ def internal_note(
 
     callback_rationale = (
         "Voicemail left on KS onboarding line; spoken content transcribed from audio attachment."
-        if transcript_source == "openai-whisper"
+        if transcript_source == TRANSCRIPT_SOURCE
         else "Voicemail left on KS onboarding line; no audio transcript available."
     )
 
@@ -384,7 +384,7 @@ def process_ticket(
         stt = transcribe_ticket(ticket, api_key)
         if stt.get("ok"):
             transcript = format_stt_transcript(stt, meta, ticket)
-            transcript_source = str(stt.get("source") or "openai-whisper")
+            transcript_source = str(stt.get("source") or TRANSCRIPT_SOURCE)
             transcription_ok = True
         else:
             stt_error = str(stt.get("error") or "transcription failed")
@@ -440,7 +440,7 @@ def process_ticket(
         category=category,
         route=route,
         callback=callback,
-        transcribed="yes" if transcript_source == "openai-whisper" else "no",
+        transcribed="yes" if transcript_source == TRANSCRIPT_SOURCE else "no",
         transcript_source=transcript_source,
     )
 
@@ -522,8 +522,13 @@ def main() -> int:
     skip_vetting = "--skip-vetting" in sys.argv
     transcribe = "--no-transcribe" not in sys.argv
     api_key = load_credentials()
-    if transcribe and not os.environ.get("OPENAI_API_KEY", "").strip():
-        raise SystemExit("ERROR: OPENAI_API_KEY required — transcription is mandatory for batch triage")
+    if transcribe:
+        from transcribe_voicemail import get_whisper_model  # noqa: PLC0415
+
+        try:
+            get_whisper_model()
+        except RuntimeError as exc:
+            raise SystemExit(f"ERROR: {exc}") from exc
     tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -2,12 +2,12 @@
 name: sp-voicemail-triage-fast
 description: >-
   Fast SP voicemail triage for scheduled automation. Downloads audio attachments
-  (.wav or .mp3),
-  transcribes via OpenAI Whisper, classifies, posts Freshdesk internal notes,
-  forwards to SPM/AP/COI/recruitment, and resolves KSOnboarding tickets — without
-  Gateway, Salesforce, Siebel, or JDE vetting. Use for cron jobs, batch REST runs,
-  or when speed matters more than company lookup. For full vetting use parent
-  sp-voicemail-triage; for no email use sp-voicemail-triage-no-email.
+  (.wav or .mp3), transcribes locally with faster-whisper, classifies, posts
+  Freshdesk internal notes, forwards to SPM/AP/COI/recruitment, and resolves
+  KSOnboarding tickets — without Gateway, Salesforce, Siebel, or JDE vetting.
+  Use for cron jobs, batch REST runs, or when speed matters more than company
+  lookup. For full vetting use parent sp-voicemail-triage; for no email use
+  sp-voicemail-triage-no-email.
 ---
 
 # SP Voicemail Triage — Fast
@@ -29,17 +29,22 @@ or Salesforce Lead notes are required.
 
 ## Prerequisites
 
-| Variable | Required |
+| Requirement | Details |
 | --- | --- |
-| `FRESHDESK_API_KEY` | Yes |
+| `FRESHDESK_API_KEY` | Yes — `.env` or `~/.vixxo/freshdesk_token` |
 | `FRESHDESK_DOMAIN` | Optional (default `vixxo-helpdesk.freshdesk.com`) |
-| `OPENAI_API_KEY` | **Yes — mandatory**; script exits if missing |
+| **faster-whisper** | `pip install -r ../sp-voicemail-triage/scripts/requirements.txt` |
+| **ffmpeg** | On `PATH` |
 
-Load from repo `.env` or `~/.vixxo/freshdesk_token`.
+Optional: `WHISPER_MODEL` (default `small`), `WHISPER_DEVICE` (`cpu`), `WHISPER_COMPUTE_TYPE` (`int8`).
 
-**OpenAI:** key must reach the Whisper API; automation host needs egress to
-`api.openai.com`. See
-[../sp-voicemail-triage/reference/automation-setup.md](../sp-voicemail-triage/reference/automation-setup.md).
+Verify:
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load-model
+```
+
+See [../sp-voicemail-triage/reference/automation-setup.md](../sp-voicemail-triage/reference/automation-setup.md).
 
 ## Batch command (default path)
 
@@ -65,7 +70,7 @@ content must come from transcribing the attachment.
 1. Search open KSOnboarding tickets (paginated REST)
 2. Filter voicemail subjects
 3. Download **audio attachment** (`.wav` or `.mp3`, required)
-4. Transcribe with **OpenAI Whisper** (`whisper-1`) — **required**
+4. Transcribe with **faster-whisper** (local) — **required**
 5. **On transcription success only:** classify, internal note, forward, resolve
 6. **On transcription failure:** skip ticket — no Freshdesk updates
 

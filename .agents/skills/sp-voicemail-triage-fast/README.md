@@ -3,7 +3,7 @@
 Sibling of **`sp-voicemail-triage`** for **scheduled Cursor Automations** and other
 hands-off batch runs.
 
-- **Audio + Whisper transcription** (`.wav` or `.mp3`; requires `OPENAI_API_KEY`)
+- **Local faster-whisper transcription** (`.wav` or `.mp3`; requires pip + ffmpeg)
 - **No external vetting** (Gateway, Salesforce, Siebel, JDE)
 - **Freshdesk REST only** — no Outlook MCP in the batch path
 

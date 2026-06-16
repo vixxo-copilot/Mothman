@@ -1,12 +1,12 @@
 name: sp-voicemail-triage-fast
 title: "SP Voicemail Triage (Fast)"
-description: "Scheduled-automation variant — audio attachment download (.wav/.mp3), OpenAI Whisper transcription, classify, forward, and resolve Freshdesk KSOnboarding voicemails without Gateway, Salesforce, Siebel, or JDE vetting."
+description: "Scheduled-automation variant — local faster-whisper transcription (.wav/.mp3), classify, forward, and resolve Freshdesk KSOnboarding voicemails without Gateway, Salesforce, Siebel, or JDE vetting."
 category: operations
 agents:
   - cursor
   - claude-code
 author: "{{employee_name}}"
-version: "1.0.3"
+version: "1.1.0"
 tags: [voicemail, transcription, service-provider, triage, callback, freshdesk, ksonboarding, automation, fast, vixxo]
 status: approved
 requires_mcp: [freshdesk]

@@ -80,10 +80,10 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
 
 **Batch REST script (Freshdesk-only):** When running
 `scripts/batch_process_freshdesk.py`, the script downloads the ticket **audio
-attachment** (`.wav` or `.mp3`) and transcribes via **OpenAI Whisper**
-(`OPENAI_API_KEY`). Transcription **must succeed** before any note, forward, or
-resolve — failed STT leaves the ticket open. For scheduled automation without
-external vetting, use sibling **`sp-voicemail-triage-fast`**. See
+attachment** (`.wav` or `.mp3`) and transcribes via **local faster-whisper**
+(no API key). Transcription **must succeed** before any note, forward, or resolve —
+failed STT leaves the ticket open. For scheduled automation without external vetting,
+use sibling **`sp-voicemail-triage-fast`**. See
 [reference/automation-setup.md](reference/automation-setup.md).
 
 ### 2. Outlook — {{employee_name}}'s inbox
@@ -217,8 +217,8 @@ Whisper or agent STT.
 
 1. Pick the first `.wav` or `.mp3` attachment on the ticket (prefers `.wav` when both exist).
 2. Download via Freshdesk attachment URL (authenticated).
-3. Transcribe via **OpenAI Whisper** (`OPENAI_API_KEY`, model `whisper-1`).
-4. Note `Transcript source: openai-whisper`.
+3. Transcribe via **faster-whisper** (local; `pip install -r scripts/requirements.txt`, ffmpeg on PATH).
+4. Note `Transcript source: faster-whisper`.
 5. Only then run classify, vetting (if applicable), and Phase 2 writes.
 
 **Single-item exception:** {{employee_name}} may paste a transcript or attach audio

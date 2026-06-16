@@ -1,24 +1,64 @@
 #!/usr/bin/env python3
-"""Download Freshdesk voicemail audio attachments and transcribe via OpenAI Whisper.
+"""Download Freshdesk voicemail audio attachments and transcribe via faster-whisper.
 
 Voicemail notification emails/tickets include metadata in the body (caller, phone,
 duration) but NOT the spoken message — transcription must use the attached audio
-file (.wav or .mp3).
+file (.wav or .mp3). Local inference; no OpenAI API key required.
 """
 
 from __future__ import annotations
 
 import os
 import re
-import uuid
+import shutil
+import tempfile
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 AUDIO_EXT_RE = re.compile(r"\.(wav|mp3)$", re.I)
 MAX_AUDIO_BYTES = 25 * 1024 * 1024
-WHISPER_URL = "https://api.openai.com/v1/audio/transcriptions"
 TIMEOUT = 120
+TRANSCRIPT_SOURCE = "faster-whisper"
+
+_WHISPER_MODEL = None
+
+
+def whisper_settings() -> tuple[str, str, str]:
+    model = (os.environ.get("WHISPER_MODEL") or "small").strip() or "small"
+    device = (os.environ.get("WHISPER_DEVICE") or "cpu").strip() or "cpu"
+    compute = (os.environ.get("WHISPER_COMPUTE_TYPE") or "int8").strip() or "int8"
+    return model, device, compute
+
+
+def _audio_backend_ready() -> bool:
+    if shutil.which("ffmpeg"):
+        return True
+    try:
+        import av  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def get_whisper_model():
+    global _WHISPER_MODEL
+    if _WHISPER_MODEL is None:
+        try:
+            from faster_whisper import WhisperModel
+        except ImportError as exc:
+            raise RuntimeError(
+                "faster-whisper not installed — run: pip install -r "
+                ".agents/skills/sp-voicemail-triage/scripts/requirements.txt"
+            ) from exc
+        if not _audio_backend_ready():
+            raise RuntimeError(
+                "No audio decoder available — install ffmpeg on PATH or reinstall "
+                "faster-whisper (includes PyAV)"
+            )
+        model_size, device, compute_type = whisper_settings()
+        _WHISPER_MODEL = WhisperModel(model_size, device=device, compute_type=compute_type)
+    return _WHISPER_MODEL
 
 
 def _attachment_kind(att: dict) -> str | None:
@@ -89,60 +129,32 @@ def _validate_audio_bytes(data: bytes, filename: str) -> None:
     raise ValueError("Attachment is not a recognized audio file (.wav or .mp3)")
 
 
-def _audio_content_type(filename: str) -> str:
-    if filename.lower().endswith(".mp3"):
-        return "audio/mpeg"
-    return "audio/wav"
+def _suffix_for_filename(filename: str) -> str:
+    lower = filename.lower()
+    if lower.endswith(".mp3"):
+        return ".mp3"
+    if lower.endswith(".wav"):
+        return ".wav"
+    return ".wav"
 
 
 def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") -> str:
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY not configured")
-
     _validate_audio_bytes(audio_bytes, filename)
-    content_type = _audio_content_type(filename)
-
-    boundary = uuid.uuid4().hex
-    body = bytearray()
-    parts: list[tuple[str, bytes, str | None]] = [
-        ("file", audio_bytes, filename),
-        ("model", b"whisper-1", None),
-        ("response_format", b"text", None),
-    ]
-    for name, payload, fname in parts:
-        body.extend(f"--{boundary}\r\n".encode())
-        if fname:
-            body.extend(
-                f'Content-Disposition: form-data; name="{name}"; filename="{fname}"\r\n'.encode()
-            )
-            body.extend(f"Content-Type: {content_type}\r\n\r\n".encode())
-        else:
-            body.extend(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode())
-        body.extend(payload)
-        body.extend(b"\r\n")
-    body.extend(f"--{boundary}--\r\n".encode())
-
-    req = Request(
-        WHISPER_URL,
-        data=bytes(body),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
-        },
-        method="POST",
-    )
+    model = get_whisper_model()
+    suffix = _suffix_for_filename(filename)
+    tmp_path = ""
     try:
-        with urlopen(req, timeout=TIMEOUT) as resp:
-            text = resp.read().decode("utf-8").strip()
-    except HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:500]
-        raise RuntimeError(f"Whisper HTTP {exc.code}: {detail}") from exc
-    except URLError as exc:
-        raise RuntimeError(f"Whisper request failed: {exc.reason}") from exc
-
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(audio_bytes)
+            tmp_path = tmp.name
+        segments, _info = model.transcribe(tmp_path, language="en")
+        parts = [segment.text.strip() for segment in segments if segment.text.strip()]
+        text = " ".join(parts).strip()
+    finally:
+        if tmp_path and os.path.isfile(tmp_path):
+            os.unlink(tmp_path)
     if not text:
-        raise RuntimeError("Whisper returned empty transcript")
+        raise RuntimeError("faster-whisper returned empty transcript")
     return text
 
 
@@ -161,6 +173,7 @@ def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
         return {"ok": False, "error": "missing_attachment_url", "transcript": ""}
 
     filename = att.get("name") or "voicemail.wav"
+    model_size, device, compute_type = whisper_settings()
     try:
         audio = download_attachment(url, api_key)
         text = transcribe_audio_bytes(audio, filename)
@@ -169,7 +182,10 @@ def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
             "transcript": text,
             "attachment_name": att.get("name"),
             "bytes": len(audio),
-            "source": "openai-whisper",
+            "source": TRANSCRIPT_SOURCE,
+            "model": model_size,
+            "device": device,
+            "compute_type": compute_type,
         }
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": str(exc), "transcript": ""}

@@ -1,0 +1,2 @@
+# Local speech-to-text for sp-voicemail-triage batch transcription.
+faster-whisper>=1.1.0
