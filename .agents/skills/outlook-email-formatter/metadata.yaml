@@ -10,3 +10,4 @@ version: "1.0.0"
 tags: [email, outlook, teams, formatting, html]
 status: approved
 requires_mcp: []
+source: vixxo

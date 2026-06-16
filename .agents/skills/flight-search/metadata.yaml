@@ -1,0 +1,13 @@
+name: flight-search
+title: "Flight Search"
+description: "Search flights with the fli (Google Flights) MCP, applying each user's saved travel preferences (home airport, preferred airline, non-stop, red-eye tolerance, layover, cabin, bags, passengers). Runs a short first-run interview to capture preferences, then reuses them."
+category: productivity
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "1.0.0"
+tags: [travel, flights, booking, fli, google-flights, airfare]
+status: approved
+requires_mcp: [fli]
+source: vixxo

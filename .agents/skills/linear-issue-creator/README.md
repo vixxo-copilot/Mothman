@@ -13,6 +13,10 @@ It handles four modes:
 - **Update / triage** — status, priority, label, and promotion changes (with
   audit comments) for issues it created.
 
+It can also optionally seed BMAD swarm execution by writing a local
+`sprint-status.yaml` mirror row for swarm-bound issues. The mirror contract lives
+in `reference/sprint-status-mirror.md`; Linear remains the system of record.
+
 The skill enforces, for every issue it creates:
 
 - Business Owner required before creation.

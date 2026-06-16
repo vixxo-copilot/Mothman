@@ -110,7 +110,10 @@ Never create a Linear issue unless all gates pass. These apply to every mode
    include them in the draft and require explicit create-anyway confirmation.
    See `reference/duplicate-check.md`.
 9. **Draft confirmed.** Show the draft and create only after explicit user
-   confirmation. Silence or ambiguous approval is not permission.
+   confirmation. Silence or ambiguous approval is not permission. Exception:
+   when invoked by `vixxo-bmad-swarm` with an explicit autonomous swarm-create request,
+   all gates resolve deterministically, and no duplicates are found, the swarm
+   invocation is the create confirmation for that one issue.
 
 ## Modes
 
@@ -209,7 +212,8 @@ Follow `reference/workflow.md` for the full per-mode procedure. At a minimum, fo
 any creation: load and validate the profile, parse the request, resolve Business
 Owner and Work Type, resolve epic hierarchy, apply assignee policy, satisfy the
 readiness bar, inspect Linear MCP tool schemas and verify required metadata, run
-the duplicate check, present a draft, and create only after confirmation.
+the duplicate check, present a draft, and create only after confirmation. For
+swarm-bound issues, also follow `reference/sprint-status-mirror.md`.
 
 ## Updates and Audit Comments
 
@@ -268,6 +272,7 @@ follow along.
 - `README.md` — install, customization, and upgrade guidance.
 - `reference/onboarding.md` — first-run configuration interview that writes `local/profile.yaml`.
 - `reference/workflow.md` — full per-mode creation flow (single, bulk, decomposition, update).
+- `reference/sprint-status-mirror.md` — optional BMAD swarm mirror row contract.
 - `reference/validation.md` — profile and gate validation rules.
 - `reference/intake-readiness.md` — the `intake-audit:v1` readiness bar and description templates.
 - `reference/routing-maps.md` — Vixxo team / project / label routing maps and IDs.

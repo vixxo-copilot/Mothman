@@ -105,6 +105,21 @@ Create through Linear MCP only after confirmation. Return identifier, URL,
 parent epic relationship, Business Owner and Work Type applied, and any overridden
 duplicate warning. For Vixxo items, pair the Linear URL with the Bridge URL.
 
+### 12. Optional BMAD swarm mirror
+
+If the issue is swarm-bound, follow `reference/sprint-status-mirror.md` after
+creation:
+
+1. Resolve `story_key` per `reference/sprint-status-mirror.md` Story Key Mapping
+   (prefer an existing `{N}-{M}-*` row over a title-derived slug).
+2. Write or update the corresponding `development_status` row in
+   `{implementation_artifacts}/sprint-status.yaml`.
+3. Include `linear_id`, `linear_url`, and `last_updated`. Set `status: backlog` and
+   `context_source: linear-issue` only for a new mirror row; when updating an
+   existing BMAD-planned row, preserve its `status` and `context_source`.
+4. Do not add dated journal/comment blocks.
+5. Report the mirror path and story key in the final output.
+
 ## Bulk Mode
 
 1. Parse each list item into its own envelope (title, description, routing hints).
@@ -124,7 +139,9 @@ duplicate warning. For Vixxo items, pair the Linear URL with the Bridge URL.
    explicitly accepted before creation.
 7. Create sequentially, reporting each identifier. If one fails, report it and
    continue with the rest.
-8. Present a final summary table with identifiers and links.
+8. For each swarm-bound issue, write the optional BMAD sprint-status mirror row
+   per `reference/sprint-status-mirror.md`.
+9. Present a final summary table with identifiers and links.
 
 ## Business Request Decomposition Mode
 
@@ -171,7 +188,9 @@ user can confirm there is no collision.
 4. Create the Business Request item (`save_issue`, `relatedTo` = epic).
 5. Add an audit comment on the Business Request item summarizing the project,
    epic, and story count.
-6. Present a final summary with all identifiers and Bridge + Linear links.
+6. For any swarm-bound execution stories, write optional BMAD sprint-status
+   mirror rows per `reference/sprint-status-mirror.md`.
+7. Present a final summary with all identifiers and Bridge + Linear links.
 
 ## Update / Triage Mode
 

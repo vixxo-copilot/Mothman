@@ -89,16 +89,21 @@ writes or bypass operator approval.
 
 Apply them after the hard exclusions and pre-screens (manual-review recipient
 exclusion, QSI AP overlay, phishing/BEC, onboarding, SAP, vendor-hold, and
-Signs & Lighting) and before Rules 1–7. If an overlay strongly matches, use the
-mapped bucket below; if another normal rule also strongly matches, set the
-`ambiguity_flag`.
+Signs & Lighting) and before Rules 1–7. **Evaluate overlay rows top-down in the
+table** — B13 (SR Requiring Updates) and B12 (supplemental invoice) before B11
+(incorrect totals) before B10 (manual entry / delinquent) before the generic
+manual-intake row. If an overlay strongly matches, use the mapped bucket below;
+if another normal rule also strongly matches, set the `ambiguity_flag`.
 
 | Overlay | Strong signals | Bucket / route |
 |---|---|---|
 | Payment follow-up / statement | `statement`, `statement of account`, `past due`, `overdue`, `aging`, `balance notice`, `outstanding invoice`, `unpaid invoice`, `payment status`, `payment date`, "when will this be paid", AR spreadsheet, account statement, or multi-invoice payment list | Bucket 3 if a Gateway-backed payment answer is possible. If bulk/high-dollar, mixed paid/rejected/accepted rows, ACH/remit content, or no single SR/invoice anchor, keep Open and route to AP/Accounting manual review. |
-| Manual-entry invoice request / VINT route | Ticket explicitly states that the requester is looking for, asking for, or needs `manual entry` / `manual-entry` / `manually entered` handling for an invoice. Examples: "looking for manual entry of this invoice", "please manually enter the invoice", "needs manual invoice entry", "submit for manual entry". | **B10-manual-entry-vint overlay on Bucket 4.** Process using the normal bucket 4 invoice-submission writes — Gateway research when an SR is present, AP-intake `/forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal note, and close — and additionally change `group_id` from SPM to VINT (`159000486559`) with tags `manual-entry-invoice` + `vint-routed` in the status update. |
-| Manual invoice intake | `invoice attached`, `please process attached invoice`, `please attach this invoice to SR`, `can you please invoice this`, `documents are not uploaded`, QuickBooks/Payzerware invoice body, invoice-looking PDF, or SR present with Gateway status `Invoice Required for SR` | Bucket 4 when SR + invoice attachment are clean and Gateway has no blocking anomaly. If missing SR, attachment-only, inline image, or unreadable data, Bucket 7/manual AP attachment review. |
-| Gateway / AP review exception | Gateway status or ticket text shows `UnderARInvestigation`, `ReviewByAP`, `VisualAudit`, `Invoice Review`, `PaidOnlyPending`, `Invoice Creation Pending`, `RejectedDoNotProcess`, `Delinquent SC Invoice`, duplicate travel, recall review, SP NTE exceeded, billed-rate mismatch, or missing line items | Bucket 6 / Pending-hold owner routing, not close. Route to AP, Accounting, billing specialist, or Account Team based on blocker; do not promise payment. |
+| Manual-entry invoice request / VINT route | Ticket explicitly states that the requester is looking for, asking for, or needs `manual entry` / `manual-entry` / `manually entered` handling for an invoice. Examples: "looking for manual entry of this invoice", "please manually enter the invoice", "needs manual invoice entry", "submit for manual entry". **Also:** subject/body `Delinquent Invoice`, `Delinquent SC Invoice`, or Gateway SR/invoice status `Delinquent SC Invoice` (even when an attachment is present). | **B10-manual-entry-vint overlay on Bucket 4.** Process using the normal bucket 4 invoice-submission writes — Gateway research when an SR is present, AP-intake `/forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal note, and close — and additionally change `group_id` from SPM to VINT (`159000486559`) with tags `manual-entry-invoice` + `vint-routed` + `delinquent-invoice` (when delinquent) in the status update. **Do not leave delinquent tickets in SPM** — misroutes like ticket #46617 stayed in SPM when they needed VINT. |
+| Incorrect invoice totals / billing mismatch | Subject/body/category `Incorrect invoice totals`, `incorrect total`, `wrong total`, `invoice total is wrong`, `billed amount`, `doesn't match`, `billing mismatch`, `over-bill`, `short pay` (when the ask is correction/manual entry, not a simple payment-status question), or Gateway shows invoice total ≠ quote-approved total with no clean bucket-4 intake path. | **B11-incorrect-invoice-totals-vint.** Gateway research when SR present. Move `group_id` to VINT (`159000486559`), tags `incorrect-invoice-totals` + `vint-routed` + `manual-entry-invoice`. Internal note naming the delta. **Leave Open (`status=2`) or Pending (`status=3`) — do NOT close.** Ticket #45514 was incorrectly auto-closed; these need VINT manual entry, not bucket-4 close. **Never auto-fire close.** |
+| Already billed / accepted — supplemental invoice needed | Gateway invoice status is `Accepted`, `Billed`, or `Paid` (or equivalent) **and** ticket text asks for additional billing, omitted balance, remaining balance, under-billed amount, or a second/supplemental invoice. Examples: "already billed and accepted", "submit a 2nd invoice", "second invoice with the omitted balance". | **B12-supplemental-invoice-needed.** Gateway research. **Leave Open (`status=2`).** Internal note: first invoice already accepted/billed; SP must submit a **second invoice** for the omitted balance (coordinate with SP ops / invoice support — ticket #47896). Tags `supplemental-invoice-needed`, `accepted-invoice-balance-gap`. **Do NOT** route to VINT, **do NOT** bucket-4 forward+close, **do NOT** promise payment on the first invoice. Optional brief SP-facing reply only after operator approval. |
+| SR Requiring Updates / Corp AP deposit verification | Freshdesk category or subject `SR Requiring Updates`, body about SR updates, deposit verification, bank deposit success, or Corp AP review of SR payment/deposit status. Managed by Lisa / Melissa (Corp AP). | **B13-sr-requiring-updates-corp-ap.** Gateway research when SR present. Set `type: "Invoice Support"`, `group_id: 159000486566` (Corp AP), `custom_fields.cf_type_of_request: "Follow up on an Unpaid Invoice"`, tags `sr-requiring-updates`, `corp-ap-routed`. **Pending (`status=3`)** preferred so Corp AP queue filters surface the ticket (ticket #48269 failed because `cf_type_of_request` was null). Internal note for Lisa/Melissa to confirm deposit with the bank. **Before any outbound email:** verify recipient spelling — `Lisa` must not be misspelled (e.g. `Liza`), or Corp AP will not receive the provider thread. **Do NOT close from AP auto-pilot.** |
+| Manual invoice intake | `invoice attached`, `please process attached invoice`, `please attach this invoice to SR`, `can you please invoice this`, `documents are not uploaded`, QuickBooks/Payzerware invoice body, invoice-looking PDF, or SR present with Gateway status `Invoice Required for SR` | Bucket 4 when SR + invoice attachment are clean and Gateway has no blocking anomaly. **Exclude** delinquent invoices (→ B10), incorrect-totals correction (→ B11), and already-accepted supplemental-balance cases (→ B12). If missing SR, attachment-only, inline image, or unreadable data, Bucket 7/manual AP attachment review. |
+| Gateway / AP review exception | Gateway status or ticket text shows `UnderARInvestigation`, `ReviewByAP`, `VisualAudit`, `Invoice Review`, `PaidOnlyPending`, `Invoice Creation Pending`, `RejectedDoNotProcess`, duplicate travel, recall review, SP NTE exceeded, or missing line items (when not already mapped to B10/B11/B12/B13 above) | Bucket 6 / Pending-hold owner routing, not close. Route to AP, Accounting, billing specialist, or Account Team based on blocker; do not promise payment. **`Delinquent SC Invoice` → B10, not bucket 6.** **`billed-rate mismatch` / incorrect totals → B11, not bucket 6 close.** |
 | Account Team / VixxoLink blocker | Portal cannot submit because travel/rate/NTE/product fields are missing, PO is not generating, only `Build Quote` is available, description/dropdown is blank, old/new portal confusion, login/access issue, provider setup, customer/SAP/PO, NTE, rate, or portal-visibility blocker | Bucket 6 / Account Team or VixxoLink support route. Leave Open/Pending; do not treat as normal AP payment follow-up. |
 | Duplicate / resubmission cluster | Same provider/requester repeats same subject, invoice number, SR, account statement, amount, or attachment name/size; repeated QuickBooks/payment-link reminders from same provider for same invoice/batch | Bucket 6 or 7 until confirmed. If confirmed, tag `duplicate-or-resubmission` and keep best working ticket open; propose duplicate close only after operator review. |
 | Payment-link / remittance risk | External `view and pay`, `complete payment`, Intuit/SendGrid/payment portal links, ACH/wire/routing/account instructions, new remit-to details, "verify banking", or statement with payment instructions/BEC warning | Rule 0/security if BEC/phishing indicators fire. Otherwise Bucket 7/manual with `payment-link-caution`; do not click links or forward remit details to AP intake as if verified. |
@@ -121,7 +126,7 @@ mapped bucket below; if another normal rule also strongly matches, set the
    c. Check the QSI AP source tag overlay. If the ticket came from or was forwarded from `qsiap@vixxo.com`, mark `qsiap-source` as a tag to merge into the ticket's write phase and surface the match in the report.
    d. Apply the SPM invoice-concern category overlays, then classify against the decision tree (below), top-down, first-match wins.
    e. If a later rule also strongly matches, surface the secondary match as an `ambiguity` flag so the operator can sanity-check the routing.
-   f. If the bucket is 2, 3, 4, or B10-manual-entry-vint: extract the SR number from ticket content, then pull Gateway context in order — service request → invoice + line items → quote + line items. **Skip Gateway entirely for buckets 0, 1-close, 1-follow-up, 5, 6, 7, and `manual-review-recipient-exclusion`** (Gateway data doesn't inform those decisions; pulling it would waste API budget and, for bucket 0, could lend credibility to a fake SR # fabricated by an attacker).
+   f. If the bucket is 2, 3, 4, B10-manual-entry-vint, B11-incorrect-invoice-totals-vint, B12-supplemental-invoice-needed, or B13-sr-requiring-updates-corp-ap: extract the SR number from ticket content, then pull Gateway context in order — service request → invoice + line items → quote + line items. **Skip Gateway entirely for buckets 0, 1-close, 1-follow-up, 5, 6, 7, and `manual-review-recipient-exclusion`** (Gateway data doesn't inform those decisions; pulling it would waste API budget and, for bucket 0, could lend credibility to a fake SR # fabricated by an attacker).
    g. Cache SR lookups within the run. It's common for multiple tickets to reference the same SR (or for an operator to request deep-dive on a ticket already pulled in this page's triage); don't hit Gateway twice for the same SR.
 
 4. **Produce the triage report.** Format is a markdown table grouped by bucket, with columns: `ticket_id`, `subject`, `requester`, `bucket`, `ambiguity_flag`, `gateway_findings_summary`, `recommended_action`. Render inline AND save a timestamped copy in the working folder with the page number in the filename, e.g. `triage-page-03-2026-04-16T1422.md`. The saved copy exists so the operator can go back to it after a deep-dive without re-running the triage.
@@ -145,7 +150,11 @@ mapped bucket below; if another normal rule also strongly matches, set the
 
 3. **Check the manual-review recipient exclusion.** If the ticket was sent to `ksonboarding@vixxo.com` or `service.providermanagement@vixxo.com`, stop the deep-dive and report that the ticket is excluded from this skill's rule flow. Do not pull Gateway, draft, tag, note, close, or forward it unless the operator explicitly overrides the exclusion for that ticket.
 
-4. **Check the manual-entry / VINT route overlay.** If the ticket explicitly states that the requester is looking for manual entry of an invoice, classify as B10-manual-entry-vint and continue the normal bucket 4 research/write path. The final recommendation should include the bucket 4 forward/reply/note/close writes plus `group_id:159000486559` and tags `manual-entry-invoice` + `vint-routed`.
+4. **Check routing overlays (in order — first match wins):**
+   - **B13-sr-requiring-updates-corp-ap** if category/subject/body indicates SR Requiring Updates or Corp AP deposit verification.
+   - **B12-supplemental-invoice-needed** if Gateway shows accepted/billed/paid and the thread needs a second invoice for an omitted balance.
+   - **B11-incorrect-invoice-totals-vint** if the ticket is about wrong invoice totals / billing mismatch (do not close).
+   - **B10-manual-entry-vint** if manual entry is requested **or** the ticket is a delinquent-invoice case — continue the bucket 4 research/write path when closing is appropriate; final recommendation includes `group_id:159000486559` and tags `manual-entry-invoice` + `vint-routed` (plus `delinquent-invoice` when applicable).
 
 5. **Extract the SR number.** Look in subject, body, and conversation replies. Providers are inconsistent about where they put it. If multiple SR numbers appear, prefer the one in the subject or the one referenced most frequently in the thread — and flag the others.
 
@@ -179,6 +188,29 @@ From ticket #28864: invoice line items where the product name is prefixed `SBUX-
 
 Present this as a *high-confidence hypothesis* in the findings ("Lines 3, 7, 12 are likely Starbucks consignment parts based on SBUX- prefix + $0 ORMB price — this explains the short-pay.") and let the operator confirm before the reply goes out. Don't silently assume it in the draft without calling it out.
 
+### BYD01 (Boyd LLD) and SVP01 (Southern Veterinary Partners) — matched customer intake (added 2026-06-03, v1.17)
+
+**Operator shorthand:** "Boyd LLD" = Gateway customer code **`BYD01`** (The Boyd Group / Gerber). **SVP01** = **`Southern Veterinary Partners, LLC`**. These two customer codes follow the **same AP invoice-intake path** — treat SVP01 exactly like BYD01.
+
+**Identification:**
+- Gateway SR lookup returns `customerNumber` **`BYD01`** or **`SVP01`**
+- If Gateway customerNumber is unavailable, ticket text names **`Gerber`**, **`Boyd`**, **`Boyd Group`**, **`Southern Veterinary`**, **`Southern Vet`**, or customer codes **`BYD01`** / **`SVP01`**
+- **Gateway wins:** if Gateway SR lookup returns a different `customerNumber`, do **not** apply this matched customer intake from loose ticket text; surface the mismatch for manual review instead.
+
+**Does not change:** B10 (manual entry / delinquent → VINT), B11 (incorrect totals → VINT, keep open), B12 (supplemental balance), B13 (Corp AP), phishing, onboarding, SAP, or vendor-hold pre-screens still win when they fire.
+
+**When bucket 4 applies (SR-referenced invoice submission with attachment or invoice body):**
+1. **Same canonical bucket-4 writes as BYD01:** `POST /forward` to `invoices@vixxo.com` (attachments), SP acknowledgment reply (no BCC), internal note to Account Team, then close (`status=5`).
+2. **cf_customer on close, based on the authoritative matched customer code:**
+   - `BYD01` → `The Boyd Group`
+   - `SVP01` → `Southern Veterinary Partners` (if Freshdesk close validation rejects this spelling, read the whitelist from the 400 response and pick the closest match, or fall back to `Other`)
+3. **cf_type_of_request:** `Submit an Invoice for manual entry`
+4. **Tags to merge:** `byd01-invoice` for BYD01; `svp01-invoice` for SVP01 (plus any bucket/QSI/source tags already planned)
+5. **SP-NTE-only rule** still applies in all SP-facing text and forward headers.
+6. **Auto-pilot:** same bucket-4 auto-fire eligibility as other BYD01/Gerber invoice submissions — including trip-charge / fee-line invoices. Gateway anomalies (SR in `Quote Required`, NTE breach, etc.) still escalate per the standard bucket-4 exception list unless the operator explicitly overrides.
+
+**Mode A report column:** when Gateway shows `BYD01` or `SVP01`, note `customer overlay: BYD01 Boyd LLD` or `customer overlay: SVP01 Southern Veterinary` in `gateway_findings_summary` so the operator can confirm the matched intake path.
+
 ---
 
 ## Decision Tree (used in both modes)
@@ -195,7 +227,7 @@ Present this as a *high-confidence hypothesis* in the findings ("Lines 3, 7, 12 
 3. **Rule 0c** (SAP screen, added v1.7) — evaluated after Rule 0b; if it fires, short-circuits rules 0d, 0e, and 1–7. SAP tickets need ERP-side reconciliation and must not be closed or BCC'd from AP.
 4. **Rule 0d** (vendor-hold notification screen, added v1.8) — evaluated after Rule 0c; if it fires, short-circuits rules 0e and 1–7. Internal `knowledgesync@vixxo.com` automation generates "Vendor on Hold / WDOnHold / Do Not Use Vendor assigned to Open Ticket" notifications that are SPM-ops work items, not SP-facing AP work — they must stay Open and route to Account Team for vendor-status reconciliation.
 5. **Rule 0e** (Signs & Lighting internal-sender screen, added v1.10) — evaluated after Rule 0d; if it fires, short-circuits rules 1–7. Emails from internal `@vixxo.com` parties where the ticket contains **both** `\bsigns?\b` AND `\blighting\b` (AND semantics, not OR) get an immediate AP-side confirmation reply and split into two sub-buckets: invoice content → forward original message (with attachments) to `invoices@vixxo.com` + ack reply + Close (corrected from BCC pattern in v1.11); SP-update content → tag for Vendor Maintenance and leave Open.
-6. **SPM invoice-concern category overlays** — payment statements, manual-entry invoice requests, manual invoice intake, Gateway/AP exceptions, VixxoLink blockers, duplicates, payment-link/remit risk, missing identifiers, and credit-card/internal-process tickets are mapped to the safest bucket before the generic keyword rules. These overlays prevent broad statements from becoming one-off payment replies, portal blockers from becoming AP closes, manual-entry requests from staying in SPM, and payment-link/remittance tickets from entering normal invoice intake.
+6. **SPM invoice-concern category overlays** — payment statements, VINT routes (manual entry, delinquent, incorrect totals), supplemental-invoice-after-accepted cases, SR Requiring Updates / Corp AP deposit verification, manual invoice intake, Gateway/AP exceptions, VixxoLink blockers, duplicates, payment-link/remit risk, missing identifiers, and credit-card/internal-process tickets are mapped to the safest bucket before the generic keyword rules. These overlays prevent incorrect totals from being auto-closed (#45514), delinquent tickets from staying in SPM (#46617), accepted invoices with omitted balances from bucket-4 close (#47896), and Corp AP tickets from missing `cf_type_of_request` (#48269).
 7. **Rules 1–7** — normal decision tree; first rule that matches wins.
 
 > **v1.11 changelog (2026-05-01) — AP-intake forward must carry attachments.**
@@ -446,7 +478,7 @@ Route to **B9-signs-sp-update** if any of:
 | 1-follow-up | SP update chase / no-attachment status request | A reply that may include "thanks" or polite language but is actually asking for movement, e.g. "any update?", "following up again", "still waiting", "haven't heard back", "please advise", "need an update", "second request", "why has this not been approved/paid?", "what else is needed?", "we have been waiting", or similar. This bucket includes SP/provider payment, invoice, NTE-approval, rejection, or SR-status questions when **no invoice/supporting attachment is present**. Tone signals include frustration, urgency, repeated outreach, concern that the SP has been ignored, or pressure caused by delayed payment / unresolved work. | Keep ticket Open. Gateway context may be pulled to enrich the internal note, but it must not convert the ticket into a close. Route to the AP Team with tags `ap-team-routed` and `sp-update-request`, and add a private note summarizing the SP ask, SR/invoice refs, Gateway findings if checked, and the specific AP next action. Draft a warm SP-facing reassurance reply only if the operator approves. Do not close after replying. |
 | 2 | Rejected invoice (*from Vixxo → SP*) | Subject or body language like "Reject", "Rejected Invoice", "Notice of Rejected Invoices" — these are Vixxo notifying an SP that their invoice was rejected, or an SP asking *why* their invoice was rejected. | Gateway research. Draft customer reply with rejection reason and corrective path. If reason is unclear from Gateway, escalate to Account Team with a drafted internal note. **Exception:** if the body/description contains "Please reject this invoice" or variants ("please reject invoice #…", "can you reject the invoice I submitted", "we need this invoice rejected because we made a mistake"), this is an SP or Ops asking Vixxo *to* reject an invoice the SP themselves submitted in error. Route to **bucket 6** (account maintenance / exception) instead of bucket 2. |
 | 3 | Payment follow-up / aging | "Payment reminder", "Payment status", "Outstanding invoices", "Statement", "Past due", "Aging", "Overdue" | Gateway research. Draft customer reply with payment status (paid / pending / on hold / rejected) and any reason codes. **Exception:** if the ticket is an SP/provider asking for an update or asking why an SR/invoice/NTE approval has not moved forward and there are no attachments to process, classify as **1-follow-up** instead. That work needs AP Team ownership, an open ticket, and routing tags; closing with a note does not move it forward. |
-| 4 | SR# only / SR# + attachment / invoice submission | SR number alone, "Submitting Invoices", "Invoice attached", "Delinquent SC Invoice", or a short body + an invoice-looking attachment (PDF with line items, amounts, invoice #). | Gateway research. Three outputs, all gated behind a single operator approval, fired in this canonical order: **(a) `POST /api/v2/tickets/{id}/forward` to `to_emails: ["invoices@vixxo.com"]`** with a brief AP-focused header (SR / customer / SP / **SP NTE only** / completion-date / invoice # if extractable). The `/forward` endpoint defaults `include_original_attachments: true`, which carries the SP's invoice PDF (and any other attachments) to the AP intake mailbox — this is what AP actually needs to process the invoice. **(b)** brief customer acknowledgment reply addressed to the SP/requester via `POST /reply` (or `conversations_manage create_reply`); **no BCC** to `invoices@vixxo.com` on this reply (the forward in (a) already handled AP intake — adding a BCC duplicates the notification with a payload-less copy). **(c)** internal private note to Account Team with SR context. **NEVER include customer NTE in either the SP-facing reply body OR the forward header** (see SP-NTE-only rule in v1.7 — customer NTE is internal-audit data that goes in the internal note only; invoices@ looks up customer NTE by SR from Gateway when needed). No CC on the customer reply. Operator must explicitly approve all three writes together; no silent forwards. **Implementation note (v1.11, 2026-05-01):** the prior v1.0–v1.10 implementation used `create_reply` with `bcc_emails: ["invoices@vixxo.com"]` as a stand-in for forward, on the assumption that the BCC carried the same content. Operator audit on 2026-05-01 (WERCS batch) confirmed this assumption was wrong — Freshdesk's `/reply` endpoint sends only the reply body to BCC recipients; the **original attachments are not carried**. AP was receiving acknowledgments without the actual invoice PDFs and could not process them. The fix is to use `POST /api/v2/tickets/{id}/forward` (REST API direct, since the MCP does not expose a forward action) for the AP intake leg. The MCP `conversations_manage create_reply` is still the right tool for the SP-facing ack. See "v1.11 — AP-intake forward must carry attachments" changelog below for the remediation history. |
+| 4 | SR# only / SR# + attachment / invoice submission | SR number alone, "Submitting Invoices", "Invoice attached", or a short body + an invoice-looking attachment (PDF with line items, amounts, invoice #). **Not** `Delinquent Invoice` / `Delinquent SC Invoice` (→ B10), incorrect-totals correction (→ B11), or already-accepted supplemental balance (→ B12). | Gateway research. Three outputs, all gated behind a single operator approval, fired in this canonical order: **(a) `POST /api/v2/tickets/{id}/forward` to `to_emails: ["invoices@vixxo.com"]`** with a brief AP-focused header (SR / customer / SP / **SP NTE only** / completion-date / invoice # if extractable). The `/forward` endpoint defaults `include_original_attachments: true`, which carries the SP's invoice PDF (and any other attachments) to the AP intake mailbox — this is what AP actually needs to process the invoice. **(b)** brief customer acknowledgment reply addressed to the SP/requester via `POST /reply` (or `conversations_manage create_reply`); **no BCC** to `invoices@vixxo.com` on this reply (the forward in (a) already handled AP intake — adding a BCC duplicates the notification with a payload-less copy). **(c)** internal private note to Account Team with SR context. **NEVER include customer NTE in either the SP-facing reply body OR the forward header** (see SP-NTE-only rule in v1.7 — customer NTE is internal-audit data that goes in the internal note only; invoices@ looks up customer NTE by SR from Gateway when needed). No CC on the customer reply. Operator must explicitly approve all three writes together; no silent forwards. **Implementation note (v1.11, 2026-05-01):** the prior v1.0–v1.10 implementation used `create_reply` with `bcc_emails: ["invoices@vixxo.com"]` as a stand-in for forward, on the assumption that the BCC carried the same content. Operator audit on 2026-05-01 (WERCS batch) confirmed this assumption was wrong — Freshdesk's `/reply` endpoint sends only the reply body to BCC recipients; the **original attachments are not carried**. AP was receiving acknowledgments without the actual invoice PDFs and could not process them. The fix is to use `POST /api/v2/tickets/{id}/forward` (REST API direct, since the MCP does not expose a forward action) for the AP intake leg. The MCP `conversations_manage create_reply` is still the right tool for the SP-facing ack. See "v1.11 — AP-intake forward must carry attachments" changelog below for the remediation history. |
 | 5 | Remittance | "Remittance" | Draft the VixxoLink canned reply (see Canned Replies below). If this ticket has already been responded-to with VixxoLink and the provider is still stuck, route to Accounting. |
 | 6 | Account maintenance / exception | "change", "update", "missing", "error", "duplicate", "help", "question"; also any SP-initiated "please reject this invoice" request per bucket 2's exception. | Flag for manual human handling. No draft. No Gateway. **Do not use bucket 6 to close SP/provider status requests.** If the requester is asking AP for movement on payment, rejection, NTE approval, SR approval, or "what else is needed" and no attachment is present, route as **1-follow-up** with AP Team tags and leave Open. |
 | 7 | None of the above | — | Flag for manual triage. No draft. No Gateway. |
@@ -470,7 +502,10 @@ Route to **B9-signs-sp-update** if any of:
 | 5 | VixxoLink canned redirect (verbatim below) | Warm, self-service oriented |
 | 6 | None | — |
 | 7 | None | — |
-| B10-manual-entry-vint | Same as bucket 4: AP-intake `/forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal private note, and close. Add the VINT routing change in the final update: `group_id:159000486559` plus tags `manual-entry-invoice` + `vint-routed`. | Brief, professional |
+| B10-manual-entry-vint | Same as bucket 4: AP-intake `/forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal private note, and close. Add the VINT routing change in the final update: `group_id:159000486559` plus tags `manual-entry-invoice` + `vint-routed` (+ `delinquent-invoice` when applicable). | Brief, professional |
+| B11-incorrect-invoice-totals-vint | Internal note with Gateway quote vs invoice delta; change group to VINT; tags `incorrect-invoice-totals`, `vint-routed`, `manual-entry-invoice`. **Leave Open or Pending — no close, no bucket-4 forward+close auto-fire.** | None unless operator approves a brief status ack |
+| B12-supplemental-invoice-needed | Internal note: first invoice accepted/billed — SP must submit second invoice for omitted balance; tags `supplemental-invoice-needed`, `accepted-invoice-balance-gap`. **Leave Open.** Optional SP-facing reply after approval. | Brief, factual — no payment promise |
+| B13-sr-requiring-updates-corp-ap | Set `type: Invoice Support`, `group_id: 159000486566`, `cf_type_of_request: Follow up on an Unpaid Invoice`, Pending preferred; internal note for Lisa/Melissa (Corp AP) re deposit/bank verification; tags `sr-requiring-updates`, `corp-ap-routed`. Verify `Lisa` / `Melissa` spelling in any CC before send. | None unless operator approves |
 | B9-signs-invoice | **Three writes (v1.11):** (1) `POST /forward` to `invoices@vixxo.com` (REST API) — carries original message + invoice attachments to AP intake. Body is a brief AP-focused header (SR / SP / SP-NTE-only / invoice # if extractable). (2) AP-side confirmation reply to the internal `@vixxo.com` sender (Appendix C-1) via `create_reply` — **no BCC**. (3) Internal private note for the audit trail. **Customer NTE forbidden** in both (1) and (2) per SP-NTE-only rule. All three writes in one approval batch; close after. | Brief, professional, internal-collegial |
 | B9-signs-sp-update | AP-side confirmation reply to the internal `@vixxo.com` sender (Appendix C-2). Body: brief receipt + statement that the SP-update content has been routed to Vendor Maintenance for review. **No BCC.** Internal private note. Tags only — leave Open. | Brief, professional, internal-collegial |
 
@@ -574,10 +609,25 @@ QSI AP source tag overlay: add `qsiap-source` to any non-excluded ticket that ca
 
 ... (and so on through buckets 3–7)
 
-## Bucket B10-manual-entry-vint — Manual-entry invoice request (move to VINT)
+## Bucket B10-manual-entry-vint — Manual-entry / delinquent invoice (move to VINT, close)
 | Ticket | Subject | Requester | Source tags | Ambiguity | Findings | Recommended action |
 |---|---|---|---|---|---|---|
-| #### | ... | ... | qsiap-source / — | — | Ticket explicitly requests manual invoice entry | Follow bucket 4: Gateway if SR present; forward original message + attachments to `invoices@vixxo.com`; send requester ack if replyable; add internal note; change group to VINT (`group_id:159000486559`); tag `manual-entry-invoice` + `vint-routed`; close |
+| #### | ... | ... | qsiap-source / — | — | Manual entry requested and/or Delinquent Invoice / Delinquent SC Invoice | Follow bucket 4: Gateway if SR present; forward to `invoices@vixxo.com`; requester ack if replyable; internal note; `group_id:159000486559`; tags `manual-entry-invoice` + `vint-routed` (+ `delinquent-invoice` if delinquent); close |
+
+## Bucket B11-incorrect-invoice-totals-vint — Wrong invoice totals (VINT, keep open)
+| Ticket | Subject | Requester | Source tags | Ambiguity | Findings | Recommended action |
+|---|---|---|---|---|---|---|
+| #### | ... | ... | qsiap-source / — | — | Incorrect invoice totals / billing mismatch | Gateway if SR present; internal note with delta; move to VINT; tags `incorrect-invoice-totals` + `vint-routed`; **stay Open/Pending — do not close** (audit: #45514 was wrongly closed) |
+
+## Bucket B12-supplemental-invoice-needed — Accepted invoice, omitted balance (keep open)
+| Ticket | Subject | Requester | Source tags | Ambiguity | Findings | Recommended action |
+|---|---|---|---|---|---|---|
+| #### | ... | ... | qsiap-source / — | — | Gateway Accepted/Billed/Paid + omitted balance / 2nd invoice ask | Internal note for SP to submit second invoice; tags `supplemental-invoice-needed`; **stay Open** (audit: #47896) |
+
+## Bucket B13-sr-requiring-updates-corp-ap — Corp AP / deposit verification (pending)
+| Ticket | Subject | Requester | Source tags | Ambiguity | Findings | Recommended action |
+|---|---|---|---|---|---|---|
+| #### | ... | ... | qsiap-source / — | — | SR Requiring Updates; Corp AP queue | Set `type` + `cf_type_of_request`; `group_id:159000486566`; Pending; tags `sr-requiring-updates` + `corp-ap-routed`; note for Lisa/Melissa; verify Lisa CC spelling (audit: #48269) |
 
 ## Counts
 - Bucket 0 (🚩 phishing): N
@@ -586,6 +636,9 @@ QSI AP source tag overlay: add `qsiap-source` to any non-excluded ticket that ca
 - Bucket 2 (rejected): N
 ...
 - Bucket B10-manual-entry-vint (move to VINT): N
+- Bucket B11-incorrect-invoice-totals-vint (VINT, keep open): N
+- Bucket B12-supplemental-invoice-needed (keep open): N
+- Bucket B13-sr-requiring-updates-corp-ap (Corp AP pending): N
 - Manual-review recipient exclusions: N
 - QSI AP source matches: N
 - Skipped Gateway (manual-review-recipient-exclusion/0/1-close/1-follow-up/5/6/7): N tickets
@@ -634,7 +687,7 @@ Then ask: "Continue to next page, or deep-dive a specific ticket?"
 After the operator reviews a draft and confirms, the skill may:
 - Post the reply to the ticket (`conversations_manage create_reply`)
 - Post an internal private note (`conversations_manage create_note` with `private: true`)
-- Change ticket group ownership with `tickets_manage update` when routing requires it, including B10-manual-entry-vint (`group_id:159000486559`) as part of the normal bucket 4 close update.
+- Change ticket group ownership with `tickets_manage update` when routing requires it: B10-manual-entry-vint (`group_id:159000486559` on close), B11-incorrect-invoice-totals-vint (`group_id:159000486559`, stay Open/Pending), B13-sr-requiring-updates-corp-ap (`group_id:159000486566`, Pending + `cf_type_of_request`).
 - **Forward to `invoices@vixxo.com`** (bucket 4 and B9-signs-invoice) via `POST /api/v2/tickets/{id}/forward` (REST API, since the MCP does not expose a forward action) with `to_emails: ["invoices@vixxo.com"]` and `include_original_attachments: true` (default). The forward carries the original SP message and invoice PDF attachments — that is what AP needs to actually process the invoice. Body of the forward is a brief AP-focused header (SR / customer / SP / **SP-NTE-only** / completion-date / invoice # if extractable). **Customer NTE is never included in the forward body or the SP-facing reply body** (SP-NTE-only rule, v1.7). The SP-facing acknowledgment reply (`create_reply`) is a separate write with **no BCC** — the forward already handled AP intake; adding a BCC would just duplicate the notification without the PDF. No CC on the SP-facing reply. See Per-Bucket Drafting Behavior. (v1.11 — superseded the v1.0–v1.10 "BCC IS the forward" pattern after operator audit confirmed BCC does not carry attachments.)
 
 **Never execute these silently.** Present the draft, name the specific writes you're about to make (e.g., "I'll forward the original message and attachments to `invoices@vixxo.com`, post this reply, add an internal note to the Account Team, and set status=Pending" for a bucket 4; "I'll post this reassurance reply, add the Account Team escalation note, tag `account-team-routed`, and leave the ticket Open" for a bucket 1-follow-up; "I'll forward the original message and attachments to `invoices@vixxo.com`, post the requester acknowledgment, add an internal note, tag `manual-entry-invoice` + `vint-routed`, change the group to VINT, and close" for B10-manual-entry-vint; or "I'll post this reply, post the AP-team note, and close (status=5)" for a bucket 2/3), and wait for an explicit approval. If the operator says "send it" or "looks good, go", proceed. If they edit the draft inline, re-confirm before sending. Status / tag / assignment mutations normally go through the Freshdesk MCP `tickets_manage update`; use direct REST only for endpoints the MCP still does not expose, such as `/forward` and `/spam`, or as a fallback if the MCP regresses.
@@ -701,6 +754,9 @@ Use Pending (not Closed) for these exception patterns:
 | Bucket 3 aging where dollar > $10k and Accounting needs to reconcile before replying | Accounting | AP desk isn't authorized to commit to a resolution path at that $ level |
 | Bucket 5 remittance access issues (locked VixxoLink, wrong CC, etc.) that need VixxoLink Support or IT | VixxoLink Support / IT | SP is blocked on a system fix, not an AP action |
 | Bucket 6 relationship / tone complaints that need Account Team human outreach | Account Team / CRM | A canned close would escalate the relationship damage |
+| B11-incorrect-invoice-totals-vint | VINT (manual entry for billing correction) | Closing orphans the correction — VINT needs an Open/Pending working ticket (#45514) |
+| B12-supplemental-invoice-needed | Invoice Support / SP ops coordination | First invoice already accepted — SP must file a second invoice; close hides the omitted balance (#47896) |
+| B13-sr-requiring-updates-corp-ap | Corp AP (Lisa / Melissa) | Corp AP queue filters on `cf_type_of_request` — null field hides the ticket (#48269) |
 
 Combine the Pending status with a priority bump (`priority: 2` medium or `priority: 3` high) and a descriptive internal note naming the hold owner + action requested. Do NOT close these — the Pending state is the handoff.
 
@@ -714,6 +770,57 @@ Combine the Pending status with a priority bump (`priority: 2` medium or `priori
   "tags": ["<owner-tag>", "pending-hold"]
 }
 ```
+
+**B13 Corp AP pending-hold body (required for queue visibility):** when routing SR Requiring Updates tickets, include `group_id: 159000486566` and the full close-fieldset shape even on Pending — Corp AP's view depends on `cf_type_of_request`:
+
+```json
+{
+  "status": 3,
+  "priority": 2,
+  "type": "Invoice Support",
+  "group_id": 159000486566,
+  "tags": ["sr-requiring-updates", "corp-ap-routed", "pending-hold"],
+  "custom_fields": {
+    "cf_sp": "<from Gateway or ticket>",
+    "cf_sr": "<SR#>",
+    "cf_amount": "<$ or N/A>",
+    "cf_sr_required": "Yes",
+    "cf_customer": "<whitelist value>",
+    "cf_type_of_request": "Follow up on an Unpaid Invoice"
+  }
+}
+```
+
+### B11-incorrect-invoice-totals-vint — keep-open VINT handoff (added 2026-05-29)
+
+**Trigger:** overlay table row "Incorrect invoice totals / billing mismatch."
+
+**Required action (never auto-close):**
+
+1. `conversations_manage create_note` (private) — quote vs invoice delta, SR/invoice refs, and explicit line: `Bucket B11 — incorrect invoice totals routed to VINT for manual entry. Do NOT close from AP automation. Reopen if previously closed in error (audit #45514).`
+2. `tickets_manage update` — `group_id: 159000486559`, tags `incorrect-invoice-totals`, `vint-routed`, `manual-entry-invoice`, **`status: 2` (Open) or `status: 3` (Pending)**. Populate `type: Invoice Support` and `cf_type_of_request: Submit an Invoice for manual entry` when moving to Pending so fields are not null.
+3. **No bucket-4 `/forward` + close** unless the operator explicitly approves a hybrid path.
+
+### B12-supplemental-invoice-needed — keep-open SP second invoice (added 2026-05-29)
+
+**Trigger:** Gateway invoice already `Accepted` / `Billed` / `Paid` and ticket asks for omitted balance / 2nd invoice.
+
+**Required action:**
+
+1. `create_note` — first invoice accepted; SP must submit **second invoice** for omitted balance; reference SR/invoice # (audit #47896).
+2. `tickets_manage update` — tags `supplemental-invoice-needed`, `accepted-invoice-balance-gap`, **`status: 2` (Open)**. Stay in SPM unless operator directs otherwise.
+3. **Do NOT** move to VINT, **do NOT** bucket-4 close.
+
+### B13-sr-requiring-updates-corp-ap — Corp AP deposit verification (added 2026-05-29)
+
+**Trigger:** category/subject `SR Requiring Updates` or deposit/bank-confirmation language for Corp AP (Lisa / Melissa).
+
+**Required action:**
+
+1. `create_note` — deposit/SR update ask; routed to Corp AP; confirm bank deposit if needed (audit #48269).
+2. `tickets_manage update` — use the **B13 Corp AP pending-hold body** above. **`cf_type_of_request` is mandatory** — without it the ticket will not appear in the Corp AP queue.
+3. **Email/CC spell-check:** before any reply or forward, verify recipients named `Lisa` are spelled exactly `Lisa` (not `Liza` / `Lissa`) so Corp AP receives provider threads.
+4. **Do NOT close** from AP auto-pilot.
 
 ### BEC / banking-change-unverified pattern (X-bec-banking, added 2026-04-25, Batch 13)
 
@@ -873,7 +980,7 @@ Recipient-excluded tickets sent to `ksonboarding@vixxo.com` or `service.provider
 | 1 | Thank-you / auto-reply with NO attachment | Close only. No reply, no note. |
 | 2 | Rejected-invoice bounceback where Gateway shows a clear rejection reason **and** the reason is something the SP can self-correct (wrong remit, missing PO, wrong line item) | Ack reply with the reason + corrective path, internal note for AP, Close. |
 | 3 | Aging / payment-follow-up where Gateway shows a definitive status (paid on date X / pending with reason Y / rejected for Z) **and the ticket is not a no-attachment SP update chase** | Ack reply with the status, internal note, Close. If past-due-but-not-yet-due (proactive reminder from SP), internal note for AP only (no customer reply), Close. **Do not auto-close SP/provider questions asking why an SR/invoice/NTE/rejection has not moved forward when no attachment is present; those are bucket 1-follow-up AP-team handoffs.** |
-| 4 | Clean SR-referenced invoice submission: SR number parses, Gateway SR found, no anomalies (see below) | **(v1.11) Three writes in this order:** (1) `POST /forward` to `invoices@vixxo.com` (REST API) carrying original SP message + invoice PDF attachments, with a brief AP-focused header (SR / customer / SP / **SP-NTE-only** / completion-date / invoice # if extractable); (2) ack reply to SP/requester with same SR / customer / SP / **SP-NTE-only** / completion summary, **no BCC**; (3) internal note for Account Team with full customer + SP NTE context. Then Close. **Never include customer NTE in either the forward header or the SP-facing reply body.** |
+| 4 | Clean SR-referenced invoice submission: SR number parses, Gateway SR found, no anomalies (see below). **Exclude:** delinquent invoices (→ B10), incorrect totals (→ B11), accepted/billed + supplemental balance (→ B12), SR Requiring Updates (→ B13). | **(v1.11) Three writes in this order:** (1) `POST /forward` to `invoices@vixxo.com` (REST API) carrying original SP message + invoice PDF attachments, with a brief AP-focused header (SR / customer / SP / **SP-NTE-only** / completion-date / invoice # if extractable); (2) ack reply to SP/requester with same SR / customer / SP / **SP-NTE-only** / completion summary, **no BCC**; (3) internal note for Account Team with full customer + SP NTE context. Then Close. For BYD01/SVP01 matched customer intake, apply the v1.17 close overlay from the authoritative customer code, including `cf_customer`, `cf_type_of_request`, and merged tag `byd01-invoice` or `svp01-invoice`. **Never include customer NTE in either the forward header or the SP-facing reply body.** |
 | 6 | Internal-source CC payment confirmations, SR-completion notifications, and other Vixxo-internal informational notices | Internal note summarizing, Close. No customer reply. **External SP/provider update requests are excluded even if the text contains "update", "question", or "what else is needed"; route those as bucket 1-follow-up, tag AP Team, and leave Open.** |
 | 7a | Spam / marketing / cold outreach with zero ticket relevance | Mark spam (before close), then Close. No reply, no note. |
 | 7b | QuickBooks auto-resend that is a confirmed duplicate of another ticket processed in the same or a recent batch | Internal note linking to the original ticket, Close as duplicate. |
@@ -886,7 +993,7 @@ Recipient-excluded tickets sent to `ksonboarding@vixxo.com` or `service.provider
 | B6-onboarding | New SP / vendor setup / SAP onboarding inquiry. Triggers in Rule 0b (subject/body keywords: `onboarding`, `new vendor`, `vendor setup`, `new supplier`, `supplier setup`, `new provider`, `provider setup`, `SAP onboarding`, etc.). **Onboarding screen wins over B4-invoice and B5-remittance even when those keywords also appear** — see Rule 0b tie-breakers. | Internal note + apply tags `sp-onboarding`, `account-team-routed`. **Leave status=2 (Open). Do NOT close. Do NOT reply. Do NOT BCC `invoices@vixxo.com`.** SP Onboarding / Account Team picks up by tag. (added v1.6, 2026-04-27) |
 | B7-sap | Any SAP-related ticket: SP invoice referencing a SAP PO, customer-side SAP onboarding not caught by Rule 0b, internal Vixxo ERP-integration messages. Triggers in Rule 0c (subject/body/attachment-name contains whole-word `SAP`). **SAP screen wins over B4-invoice, B5-remittance, and most other buckets** — see Rule 0c tie-breakers. | Internal note + apply tags `sap-ticket`, `account-team-routed`, and `erp-ops` if SAP-PO / ERP-interface referenced. **Leave status=2 (Open). Do NOT close. Do NOT reply. Do NOT BCC `invoices@vixxo.com`.** Account Team / ERP-Ops picks up by tag. (added v1.7, 2026-04-28) |
 | B8-vendor-hold | Internal KnowledgeSync automation notification — Vixxo SPM auto-assigned a work order to a vendor with Workday status `On Hold`, `WDOnHold`, or `Do Not Use`. Triggers in Rule 0d (`requester_email` is `knowledgesync@vixxo.com` AND subject matches the vendor-hold notification template). The work order needs to be reassigned by SPM Ops or the vendor's Workday status reconciled by Account Team — neither of which is an AP function. | Internal note + apply tags `vendor-hold-notify`, `account-team-routed`. **Leave status=2 (Open). Do NOT close. Do NOT reply. Do NOT BCC `invoices@vixxo.com`.** Account Team / SPM Ops picks up by tag. (added v1.8, 2026-04-29) |
-| B10-manual-entry-vint | Ticket explicitly states that the requester is looking for, asking for, or needs manual entry / manual-entry / manually entered handling for an invoice. This overlay adds VINT ownership to the normal bucket 4 invoice submission workflow. | **Follow bucket 4 canonical writes:** `POST /forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal note, then close (`status=5`). In the close update, also change group to VINT (`group_id:159000486559`) and merge tags `manual-entry-invoice`, `vint-routed`. (added 2026-05-18) |
+| B10-manual-entry-vint | Manual-entry language **or** `Delinquent Invoice` / `Delinquent SC Invoice` (subject, body, or Gateway status). Reassign from SPM to VINT. | **Follow bucket 4 canonical writes:** `POST /forward` to `invoices@vixxo.com`, requester acknowledgment when replyable, internal note, then close (`status=5`). In the close update, change group to VINT (`group_id:159000486559`) and merge tags `manual-entry-invoice`, `vint-routed`, and `delinquent-invoice` when delinquent. (added 2026-05-18; delinquent routing clarified 2026-05-29, audit #46617) |
 | B9-signs-invoice | Internal `@vixxo.com` sender + ticket contains **both** `\bsigns?\b` AND `\blighting\b` (AND, not OR) + invoice content (invoice attachment, invoice #, payment ask, billing language). Triggers in Rule 0e. **Sub-bucket tie-breaker: when both invoice and SP-update indicators are present, B9-signs-invoice wins** — see Rule 0e tie-breakers. | **(v1.11) Three writes:** (1) `POST /forward` to `invoices@vixxo.com` (REST API) carrying original message + invoice attachments, brief AP-focused header. (2) AP-side confirmation reply to the internal sender (Appendix C-1), **no BCC**. (3) Internal note. Then Close (status=5). Tags: `signs-lighting`, `vixxo-signs-internal`, `invoices-forward` (renamed from `invoices-bcc` in v1.11). cf_customer = `Other`, cf_type_of_request = `Submit an Invoice for manual entry`. (added v1.10, 2026-04-30; AP-intake leg corrected to `/forward` in v1.11, 2026-05-01) |
 | B9-signs-sp-update | Internal `@vixxo.com` sender + ticket contains **both** `\bsigns?\b` AND `\blighting\b` (AND, not OR) + SP-update content (SP info / coverage / roster / performance / rate / labor-type change for the Signs program). Triggers in Rule 0e. **Default route when content is ambiguous between invoice and SP-update** — see Rule 0e tie-breakers. | AP-side confirmation reply to the internal sender (Appendix C-2), internal note + apply tags `signs-lighting`, `vixxo-signs-internal`, `vendor-maintenance`, `signs-lighting-sp-update`. **Leave status=2 (Open). Do NOT close. Do NOT BCC `invoices@vixxo.com`.** Vendor Maintenance picks up by tag. (added v1.10, 2026-04-30) |
 
@@ -895,15 +1002,18 @@ Recipient-excluded tickets sent to `ksonboarding@vixxo.com` or `service.provider
 Any of these means **stop auto-firing and surface in the exception list** for per-ticket operator review:
 
 1. **Manual-review recipient exclusion:** any ticket sent to `ksonboarding@vixxo.com` or `service.providermanagement@vixxo.com`. Report it, but do not classify, draft, tag, note, forward, close, or otherwise mutate it.
-2. **Gateway anomaly on a bucket 4 ticket:** NTE breach (invoice > customer NTE by >20%, or > SP NTE by >20%), SR status in `Quote Required` / `New ETA Required` / `Cancelled` when the SP is invoicing, invoice submitted when a BRN already exists at >$0 on the same SR (likely real duplicate, not QB resend), customer NTE = $0 when SP is billing.
-3. **Ambiguous classification:** more than one rule scores strongly, subject and body suggest different buckets, or the content is genuinely unclear.
-4. **Bucket 6 that needs a human next action:** mystery payment reconciliation, credit/adjustment requests post-payment, SP asking questions Vixxo AP can't answer from Gateway alone.
-5. **No-attachment SP/provider update chase:** requester asks why payment, invoice approval, NTE approval, rejection correction, or SR movement has not happened and no attachment is present. Route to AP Team, tag `ap-team-routed` + `sp-update-request`, leave Open. Do not close as Bucket 3 or Bucket 6 even when Gateway reveals the likely root cause.
-6. **Bucket 7 no-SR:** no SR number anywhere in subject/body/attachments, can't auto-route to Account Team, needs a human to open the attachment and identify the customer.
-7. **Phishing soft-indicators only (no strong indicator):** 2+ soft indicators but nothing conclusive — operator reviews before spam/close.
-8. **Any ticket where the customer-facing reply would contain a dollar amount > $10,000 or would be the first touch on an SP Vixxo has flagged for quality issues** (e.g., current WERCS pattern). Auto-generated replies on high-$ or flagged-SP tickets are reputational risk.
-9. **Tickets older than 14 days:** the aging-bias rule — very old tickets often have context the skill can't see. Surface for review.
-10. **X-bec-banking cluster:** 3+ BEC/banking-change attempts targeting the same vendor name or bank account within a rolling 7-day window. Stop auto-firing and escalate to AP Risk + verified vendor contact before closing any more of that cluster. (Individual BEC attempts still auto-fire per the X-bec-banking pattern above; the escalation is for the *cluster*.)
+2. **Gateway anomaly on a bucket 4 ticket:** NTE breach (invoice > customer NTE by >20%, or > SP NTE by >20%), SR status in `Quote Required` / `New ETA Required` / `Cancelled` when the SP is invoicing, invoice submitted when a BRN already exists at >$0 on the same SR (likely real duplicate, not QB resend), customer NTE = $0 when SP is billing. **Also escalate** delinquent invoice left in SPM (should have been B10 → VINT).
+3. **B11-incorrect-invoice-totals-vint:** always escalate — never auto-close (audit #45514). Route to VINT; keep Open/Pending.
+4. **B12-supplemental-invoice-needed:** always escalate — never bucket-4 close (audit #47896). Keep Open; SP submits second invoice for omitted balance.
+5. **B13-sr-requiring-updates-corp-ap:** always escalate — must populate `type`, `cf_type_of_request`, and Corp AP `group_id` before Pending (audit #48269). Verify `Lisa` / `Melissa` CC spelling.
+6. **Ambiguous classification:** more than one rule scores strongly, subject and body suggest different buckets, or the content is genuinely unclear.
+7. **Bucket 6 that needs a human next action:** mystery payment reconciliation, credit/adjustment requests post-payment, SP asking questions Vixxo AP can't answer from Gateway alone.
+8. **No-attachment SP/provider update chase:** requester asks why payment, invoice approval, NTE approval, rejection correction, or SR movement has not happened and no attachment is present. Route to AP Team, tag `ap-team-routed` + `sp-update-request`, leave Open. Do not close as Bucket 3 or Bucket 6 even when Gateway reveals the likely root cause.
+9. **Bucket 7 no-SR:** no SR number anywhere in subject/body/attachments, can't auto-route to Account Team, needs a human to open the attachment and identify the customer.
+10. **Phishing soft-indicators only (no strong indicator):** 2+ soft indicators but nothing conclusive — operator reviews before spam/close.
+11. **Any ticket where the customer-facing reply would contain a dollar amount > $10,000 or would be the first touch on an SP Vixxo has flagged for quality issues** (e.g., current WERCS pattern). Auto-generated replies on high-$ or flagged-SP tickets are reputational risk.
+12. **Tickets older than 14 days:** the aging-bias rule — very old tickets often have context the skill can't see. Surface for review.
+13. **X-bec-banking cluster:** 3+ BEC/banking-change attempts targeting the same vendor name or bank account within a rolling 7-day window. Stop auto-firing and escalate to AP Risk + verified vendor contact before closing any more of that cluster. (Individual BEC attempts still auto-fire per the X-bec-banking pattern above; the escalation is for the *cluster*.)
 
 ### Auto-pilot execution protocol
 
@@ -952,7 +1062,8 @@ After the batch completes, surface for the operator:
 
 | Gateway customer | Freshdesk cf_customer value |
 |---|---|
-| Boyd Group / Boyd Collision / Boyd Autobody | `The Boyd Group` |
+| Boyd Group / Boyd Collision / Boyd Autobody / **BYD01** (Boyd LLD / Gerber) | `The Boyd Group` |
+| **SVP01** / Southern Veterinary Partners, LLC | `Southern Veterinary Partners` |
 | PetSmart / PetSmart-SMS Assist | `Petsmart` |
 | Ulta / Ulta Beauty | `Ulta Beauty` |
 | Circle K / 7-Eleven Circle K | `Circle K` |
@@ -991,6 +1102,9 @@ If the Gateway customer name doesn't match any of the above, check the full whit
 | 5 (CC/VCC payment / remittance access) | `Follow up on an Unpaid Invoice` |
 | 6 (internal info / routing / SR-dispatch noise) | `Submit an Invoice for manual entry` (fallback — the dropdown has no generic value) |
 | 7 (sign-shop / manual intake / general no-SR) | `Submit an Invoice for manual entry` |
+| B11-incorrect-invoice-totals-vint | `Submit an Invoice for manual entry` |
+| B12-supplemental-invoice-needed | `Follow up on an Unpaid Invoice` (balance still owed on accepted SR) |
+| B13-sr-requiring-updates-corp-ap | `Follow up on an Unpaid Invoice` (deposit / unpaid-balance verification — **required for Corp AP queue**) |
 | 0 (phishing / security-review / non-due noise) | `Follow up on an Unpaid Invoice` (closest semantic; no phishing value exists) |
 
 **Customer whitelist gotcha:** Customers with apostrophes (e.g. `David's Bridal`) are NOT always on the tenant whitelist exactly as spelled — the Freshdesk tenant whitelist omits some names our Gateway data uses. When a close fails on `cf_customer`, re-read the whitelist verbatim from the 400 response body and pick the closest match, or fall back to `Other` to unblock the close. Known gaps: `David's Bridal`.
@@ -1039,11 +1153,14 @@ If a close still fails after filling all seven fields, the likely causes are:
   as AP/Accounting review unless each line has a clear Gateway-backed answer.
 - **A single ticket sometimes references multiple SRs.** In Mode B, surface all of them and let the operator point to the one they want the deep-dive on.
 - **Duplicate tickets are common** — the same provider may have filed the same concern twice. In Mode A's triage report, call this out as an ambiguity note when two rows on the same page have the same SR or obviously duplicate subjects.
+- **Operator audit (2026-05-29)** — four misroutes corrected in policy: **#45514** Incorrect invoice totals (wrongly closed → B11 VINT, keep open); **#46617** Delinquent Invoice (stayed in SPM → B10 VINT); **#47896** already billed/accepted with omitted balance (→ B12, SP second invoice, keep open); **#48269** SR Requiring Updates (missing `cf_type_of_request` + Corp AP group → B13; verify `Lisa` spelling in CC).
 
 ---
 
 ## Version history
 
+- **v1.17 (2026-06-03)** — **BYD01 (Boyd LLD) / SVP01 (Southern Veterinary Partners) matched customer intake.** Operator confirmed Boyd LLD = `BYD01`. SVP01 now follows the identical bucket-4 AP intake path: forward to `invoices@vixxo.com`, SP ack, internal note, close; `cf_customer` mapping for both codes; tags `byd01-invoice` / `svp01-invoice`. B10–B13 and pre-screens unchanged.
+- **v1.16 (2026-05-29)** — Routing corrections from operator feedback (tickets #45514, #46617, #47896, #48269). **B11-incorrect-invoice-totals-vint:** VINT assignment, keep Open/Pending, never auto-close. **B10:** extended to `Delinquent Invoice` / `Delinquent SC Invoice` (removed from bucket 4 triggers). **B12-supplemental-invoice-needed:** accepted/billed invoice with omitted balance — keep Open, SP submits second invoice. **B13-sr-requiring-updates-corp-ap:** `type` + `cf_type_of_request` + Corp AP `group_id` on Pending; Lisa/Melissa CC spell-check. Auto-pilot exceptions added for B11–B13; pending-hold and `cf_type_of_request` mapping updated.
 - **v1.15 (2026-05-18)** — Added SPM invoice-concern category overlays from the live queue review: payment follow-up/statements, manual invoice intake, Gateway/AP review exceptions, Account Team/VixxoLink blockers, duplicate/resubmission clusters, payment-link/remittance risk, missing identifiers/no-SR, and credit-card/internal-process notices. These overlays run after pre-screens and before generic Rules 1–7 so broad statements do not become one-off replies, portal blockers do not become AP closes, and payment-link/remit tickets do not enter normal invoice intake without security/manual review.
 - **v1.14 (2026-05-18)** — Added QSI AP source tag overlay. Tickets that came from or were forwarded from `qsiap@vixxo.com` now get `qsiap-source` merged into the normal write-phase tags without changing bucket classification, Gateway lookup rules, drafting behavior, or close/keep-open decisions.
 - **v1.13 (2026-05-12)** — Retired AIA-489 workaround after `tickets_manage update { ticket_id: 999999999, status: 5 }` returned Freshdesk `NOT_FOUND` instead of MCP `Validation failed`, confirming the update wrapper now dispatches payloads. Normal status / tag / priority / assignment mutations should use MCP `tickets_manage update`; direct REST remains only for unexposed endpoints (`/forward`, `/spam`, `/restore`) or emergency fallback.

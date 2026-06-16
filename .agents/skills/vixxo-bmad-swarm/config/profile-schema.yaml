@@ -1,0 +1,68 @@
+schema_name: vixxo-bmad-swarm-profile
+profile_schema_version: 1
+# The swarm profile holds ONLY swarm-specific settings. Linear identity
+# (team, project, business owner, assignee) is read from the
+# linear-issue-creator profile when present (linear.identity_source), so the
+# two skills never drift. Capabilities are toggles so the skill degrades
+# gracefully in repos that lack Linear, changelogs, or repo rules.
+required:
+  - profile_schema_version
+  - profile_name
+  - linear_integration
+  - bmad.config_path
+  - branch.single_template
+  - branch.epic_template
+  - pr.base_branch
+allowed_values:
+  linear_integration:
+    - enabled
+    - disabled
+  linear.identity_source:
+    - linear-issue-creator
+    - inline
+  review.run_bmad_adversarial_review:
+    - true
+    - false
+  review.bugbot_enabled:
+    - true
+    - false
+  workspace_dirs:
+    type: list
+    description: >-
+      List of workspace directory names (relative to PROJECT_ROOT) containing
+      package.json with test/build/lint scripts. The swarm runs convention-based
+      commands (npm test, npm run build or npm run typecheck, npm run lint) in
+      each listed directory for the epic-end full test suite. Auto-detected
+      during onboarding. If left empty, the epic-end gate auto-detects
+      package.json+test directories at runtime; if none are found it STOPS and
+      reports rather than silently skipping verification.
+    default: []
+notes:
+  - When linear_integration is `disabled`, the swarm skips Phase 0.25 (Linear
+    kickoff), Phase 4c (PR-opened Linear sync), the linear-issue-creator seam,
+    and the linear_id requirement, running as a pure-BMAD pipeline.
+  - When linear.identity_source is `linear-issue-creator`, the swarm reads
+    team/project/business-owner/assignee from
+    .agents/skills/linear-issue-creator/local/profile.yaml. Use `inline` only
+    when that skill is not installed, and then populate linear.inline_identity.
+  - bmad.config_path and bmad.skills_dir are auto-detected during onboarding;
+    skills_dir defaults to `.agents/skills`.
+  - Epic mode uses one shared epic branch and one PR at the end. A true per-story
+    epic PR strategy would require per-story branches and is intentionally not
+    part of this profile version.
+  - changelog.enabled false => skip changelog-fragment generation entirely.
+  - review.bugbot_enabled controls the committed-diff pre-push Bugbot gate.
+  - review.security_trigger_globs lists path globs that force a security-review
+    pass in the pre-push gate; content heuristics (auth, SQL, secrets, etc.) are
+    a separate trigger lane. An empty list disables only the glob-based lane.
+  - workspace_dirs lists directories with package.json; the swarm runs npm test,
+    npm run build (or npm run typecheck), and npm run lint in each for the
+    epic-end full test suite. Auto-detected during onboarding from directories
+    containing package.json with a test script.
+  - linear_tooling.update_cli is an optional repo-local fallback script used
+    only when the Linear MCP is unavailable; omit it when there is no fallback.
+  - rule_refs entries are optional; if a referenced rule file is absent the
+    swarm proceeds without it rather than failing.
+  - The active repo profile is stored at
+    .agents/skills/vixxo-bmad-swarm/local/profile.yaml (gitignored) and is
+    re-created by reference/onboarding.md if removed by a skills update.

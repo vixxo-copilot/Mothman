@@ -1,0 +1,15 @@
+name: vixxo-bmad-swarm
+title: "Vixxo BMAD Swarm"
+description: "Full autonomous BMAD v6.8 development pipeline. Takes a story from backlog to merged PR with zero user interaction using parallel subagents. Repo-portable via a local profile + detection-first onboarding; reuses the linear-issue-creator profile for Linear identity. Supports single story, next-in-backlog, and full-epic modes with automatic branch creation, code review, and changelog fragments."
+category: development
+agents:
+  - cursor
+  - claude-code
+author: bobby
+version: "3.0.0"
+tags: [bmad, automation, pipeline, subagents, pr, epic, profile, shareable, v6.8]
+status: approved
+requires_mcp: []
+source: community
+maintained_by: vixxo
+upstream_repo: bmad-code-org/BMAD-METHOD

@@ -1,0 +1,16 @@
+name: starbucks-completed-sr-report
+title: "Starbucks Completed SR Report"
+description: "Builds a regional report of completed Starbucks Service Requests from VixxoLink with time in, time out, job complete, and within-SLA from SEP time events. Groups by B&G Tech region across customers 811, 811C, 811F, 811F-C."
+category: operations
+agents: ["cursor", "claude-code"]
+author: "Rachitha Shivakumar"
+version: "1.1.0"
+tags: ["starbucks", "service-requests", "completed", "regional-report", "vixxolink", "operations", "811", "sep", "sla", "time-in", "time-out", "job-complete"]
+status: approved
+requires_mcp: ["vixxolink"]
+source: vixxo
+provenance: user
+created_by: "rshivakumar"
+created_at: "2026-06-08T00:00:00.000Z"
+last_updated_by: "Rachitha234"
+last_updated_at: "2026-06-09T19:06:29.100Z"

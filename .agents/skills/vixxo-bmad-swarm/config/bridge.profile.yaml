@@ -1,0 +1,56 @@
+# Bridge example profile. Copy to local/profile.yaml in the Bridge repo
+# (or let onboarding generate it). Captures Bridge's current swarm conventions
+# so the shareable skill is behavior-preserving for Bridge.
+profile_schema_version: 1
+profile_name: bridge
+profile_kind: template
+
+linear_integration: enabled
+
+linear:
+  identity_source: linear-issue-creator
+
+bmad:
+  config_path: "_bmad/bmm/config.yaml"
+  skills_dir: ".agents/skills"
+
+branch:
+  single_template: "story/{STORY_KEY}"
+  epic_template: "epic-{EPIC_NUM}/{epic-slug}"
+
+commit:
+  message_format: "feat(epic-{EPIC_NUM}): {story_title} ({LINEAR_ID} / Story {STORY_KEY})"
+  co_authored_by: "Claude <noreply@anthropic.com>"
+
+changelog:
+  enabled: true
+  dir: ".changelog"
+  rule_ref: ".cursor/rules/changelog-fragments.mdc"
+
+pr:
+  base_branch: "main"
+  tool: "gh"
+  epic_strategy: single-pr-at-end
+
+review:
+  run_bmad_adversarial_review: true
+  bugbot_enabled: true
+  security_trigger_globs:
+    - "**/auth/**"
+    - "**/*secret*"
+    - "**/*.env*"
+    - "**/migrations/**"
+    - "**/routes/**"
+    - "**/mcp/**"
+
+workspace_dirs:
+  - "backend"
+  - "frontend"
+
+linear_tooling:
+  mcp: true
+  update_cli: "update-linear-issue.js"
+
+rule_refs:
+  kickoff: ".cursor/rules/vixxo-bmad-swarm-linear-kickoff.mdc"
+  lifecycle: ".cursor/rules/linear-lifecycle.mdc"

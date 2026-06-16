@@ -10,4 +10,6 @@ version: "1.0.0"
 tags: [bmad, development, implementation, tests, workflow]
 status: approved
 requires_mcp: []
-source: vixxo
+source: community
+maintained_by: vixxo
+upstream_repo: bmad-code-org/BMAD-METHOD

@@ -1,0 +1,61 @@
+# Copy this file into the consuming repo and customize it:
+# .agents/skills/vixxo-bmad-swarm/local/profile.yaml
+#
+# This example is a template, not an active profile.
+profile_schema_version: 1
+profile_name: example-team
+profile_kind: template
+
+# Master switch for the Linear lane. `disabled` => pure-BMAD pipeline.
+linear_integration: enabled
+
+linear:
+  # Where Linear identity (team/project/owner/assignee) comes from.
+  # Prefer reusing the linear-issue-creator profile so the two never drift.
+  identity_source: linear-issue-creator
+  # Only used when identity_source is `inline` (creator skill not installed):
+  inline_identity:
+    team: "<Linear team key>"
+    project: "<Linear project name>"
+    id_prefix: "<e.g. VIX or BRG>"
+
+bmad:
+  config_path: "_bmad/bmm/config.yaml"
+  skills_dir: ".agents/skills"
+
+branch:
+  single_template: "story/{STORY_KEY}"
+  epic_template: "epic-{EPIC_NUM}/{epic-slug}"
+
+commit:
+  # {EPIC_NUM}, {story_title}, {LINEAR_ID}, {STORY_KEY} are substituted.
+  message_format: "feat(epic-{EPIC_NUM}): {story_title} ({LINEAR_ID} / Story {STORY_KEY})"
+  co_authored_by: ""   # e.g. "Claude <noreply@anthropic.com>"; empty to omit
+
+changelog:
+  enabled: false
+  dir: ".changelog"
+  rule_ref: ""         # e.g. ".cursor/rules/changelog-fragments.mdc"
+
+pr:
+  base_branch: "main"
+  tool: "gh"
+  epic_strategy: single-pr-at-end
+
+review:
+  run_bmad_adversarial_review: true
+  bugbot_enabled: true
+  security_trigger_globs:
+    - "**/auth/**"
+    - "**/*secret*"
+    - "**/*.env*"
+    - "**/migrations/**"
+    - "**/routes/**"
+
+linear_tooling:
+  mcp: true
+  update_cli: ""       # optional repo-local fallback, e.g. "update-linear-issue.js"
+
+rule_refs:
+  kickoff: ""          # optional, e.g. ".cursor/rules/vixxo-bmad-swarm-linear-kickoff.mdc"
+  lifecycle: ""        # optional, e.g. ".cursor/rules/linear-lifecycle.mdc"

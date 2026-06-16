@@ -21,8 +21,11 @@
       }
     },
     "freshservice": {
-      "command": "/Users/smural/Documents/Dev/assistant-sakshimural7651-vixxo/bin/run-freshservice-mcp.sh",
-      "args": [],
+      "args": [
+        "/c",
+        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshservice-mcp.cmd"
+      ],
+      "command": "C:\\Windows\\System32\\cmd.exe",
       "env": {
         "FRESHSERVICE_DOMAIN": "vixxo.freshservice.com"
       }
@@ -31,8 +34,11 @@
       "url": "https://vixxonow.com/mcp/gateway"
     },
     "github": {
-      "command": "/Users/smural/Documents/Dev/assistant-sakshimural7651-vixxo/bin/run-github-mcp.sh",
-      "args": []
+      "args": [
+        "/c",
+        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-github-mcp.cmd"
+      ],
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "gong": {
       "args": [
@@ -45,7 +51,7 @@
       "url": "https://transact.vixxo.com/mcp/gong"
     },
     "hubspot": {
-      "url": "https://vixxonow.com/mcp/hubspot"
+      "url": "https://mcp.hubspot.com"
     },
     "linear": {
       "url": "https://mcp.linear.app/mcp"
@@ -59,11 +65,10 @@
     },
     "ms365": {
       "args": [
-        "-y",
-        "@softeria/ms-365-mcp-server",
-        "--org-mode"
+        "/c",
+        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-ms365-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "powerbi-prod": {
       "url": "https://vixxonow.com/mcp/powerbi"
@@ -80,16 +85,17 @@
       "command": "npx"
     },
     "skills": {
-      "command": "node",
       "args": [
-        "/Users/smural/Documents/Dev/agent-skills/mcp/src/index.mjs"
-      ]
+        "-y",
+        "@vixxo-copilot/skills-mcp"
+      ],
+      "command": "npx"
     },
     "smartsheet": {
-      "command": "bash",
       "args": [
         ".cursor/bin/smartsheet-mcp-stdio.sh"
-      ]
+      ],
+      "command": "bash"
     },
     "vixxolink": {
       "url": "https://vixxonow.com/mcp/vixxolink"

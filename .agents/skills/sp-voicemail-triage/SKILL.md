@@ -1,0 +1,218 @@
+---
+name: sp-voicemail-triage
+description: >-
+  Auto-transcribes and triages service-provider voicemails from the Freshdesk
+  KSOnboarding queue and the user's Outlook inbox. Vets company names against
+  Siebel, Gateway, JDE, and Salesforce; classifies the call reason; determines
+  callback need; posts Freshdesk internal notes; resolves tickets; adds
+  Salesforce Lead notes; and automatically forwards to
+  service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
+  spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
+  voicemails from the same contact into one forward with a unified summary. Use when
+  asks to process SP voicemails, triage the voicemail queue, transcribe
+  voicemails, or route onboarding, billing, COI, or SR callback mail.
+---
+
+# SP Voicemail Triage
+
+Work-only workflow for **service provider (SP) voicemails**. Default run:
+**auto-transcribe and triage all voicemails** in the Freshdesk **KSOnboarding**
+queue and {{employee_name}}'s **Outlook inbox**, vet the company across Vixxo
+systems, classify the reason, decide callback need, then **automatically**
+post internal notes, forward, add Salesforce Lead notes, and resolve tickets.
+
+## When to use
+
+- "Process SP voicemails" / "run voicemail triage" / "triage the queue"
+- "Transcribe voicemails in KSOnboarding and my inbox"
+- Single voicemail: attach audio, paste transcript, or point at a ticket/message
+
+## Operating modes
+
+| Mode | Trigger | Behavior |
+| --- | --- | --- |
+| **Batch (default)** | "Process voicemails" without a single item | Scan both sources; full pipeline on every candidate |
+| **Single** | One ticket, message, or attachment | Full pipeline on one item |
+| **Dry-run (opt-in)** | User says "dry-run" / "preview only" | Triage + vet only; no writes |
+
+**Phase 1 — Triage (automatic):** transcribe, classify, vet company, decide
+callback.
+
+**Phase 2 — Route (automatic):** post Freshdesk internal notes, forward
+mail/tickets, add Salesforce Lead notes, resolve Freshdesk. No separate approval
+step — {{employee_name}} has pre-authorized these actions for this skill.
+
+**Write order (every item):** internal note → forward → Salesforce Lead note (if
+applicable) → resolve Freshdesk.
+
+## Default batch sources
+
+Process **both** on every batch run unless the user narrows scope:
+
+### 1. Freshdesk — KSOnboarding queue
+
+```
+group_id:159000485013 AND status:2 AND type:'KSOnboarding'
+```
+
+- SPM group `159000485013`; ticket type `KSOnboarding` (see
+  `vixxo-freshdesk-invoice-review` Freshdesk type enum).
+- Use `search_tickets`; paginate until the result set is exhausted or the user
+  cap is hit (default **20** tickets per run).
+- For each ticket: `get_ticket`, conversations, attachments; transcribe audio
+  or use body text.
+
+### 2. Outlook — {{employee_name}}'s inbox
+
+1. `verify-login` on Microsoft 365 MCP.
+2. `list-mail-folder-messages` — `mailFolderId: inbox`.
+3. Candidate filter (run sequential passes if needed — do not combine
+   `$search` and `$filter` on one Graph call):
+   - Subject contains: `Voice Mail`, `Voicemail`, `New Voice Message`, `VM from`
+   - Or `hasAttachments eq true` combined with voicemail subject patterns
+   - Default window: **last 7 days**, unread first; user may override
+4. Prefer body auto-transcript; else `download-bytes` on audio attachment.
+
+Dedupe: if the same voicemail exists in Freshdesk and Outlook, triage once and
+link both IDs in the packet.
+
+**Same-contact combine:** When multiple voicemails share a contact (same callback
+number, same company name, or same Freshdesk requester) within the batch
+window, **merge into one triage item** before routing. Produce:
+
+- One combined **summary** covering all messages (newest escalation first)
+- Per-message **transcript blocks** with date, duration, and caller name
+- One **forward** (or one Freshdesk note + forward) referencing every voicemail
+- **Callback / urgency** based on the highest signal across the thread (repeat
+  calls elevate urgency)
+
+Do not send separate forwards to the same routing address for the same contact
+in one batch run.
+
+## Output format
+
+### Batch summary (top of every batch run)
+
+```markdown
+# SP Voicemail batch — {date}
+
+| # | Source | ID | Company | Category | Callback | Entity | Route to | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | FD #12345 | … | Apex Mechanical | Payment | Yes | Known SP | aphelp@vixxo.com | routed |
+
+**Counts:** {n} triaged | {n} callback Yes | {n} routed | {n} failed
+```
+
+Then one **triage packet** per item (see below).
+
+### Triage packet (per voicemail)
+
+```markdown
+## Voicemail triage — {label}
+
+| Field | Value |
+| --- | --- |
+| **Source** | Freshdesk #{id} / Outlook message {id} |
+| **Callback required** | Yes / No / Recommended |
+| **Urgency** | Critical / High / Normal / Low |
+| **Category** | {primary category} |
+| **Sub-reason** | {plain English} |
+| **Caller name** | {name or Not stated} |
+| **Company** | {company or Not stated} |
+| **Callback number** | {number or Not stated} |
+| **Reference IDs** | {SR, invoice, SF Lead, …} |
+| **Entity posture** | {from company vetting} |
+| **Route to** | {email list} |
+| **Freshdesk disposition** | {Resolve + forward / note only / …} |
+| **Confidence** | High / Medium / Low |
+
+### Company vetting
+{table from reference/company-vetting.md}
+
+### Transcript
+{verbatim}
+
+### Summary / callback rationale / open questions
+…
+
+### Actions taken
+- **Internal note:** {posted | failed + reason}
+- **Forward:** {recipients + subject | skipped + reason}
+- **Salesforce Lead note:** {Lead Id + posted | N/A | failed}
+- **Resolved:** {yes/no + type}
+```
+
+## Workflow (per voicemail)
+
+1. **Acquire content** — audio, body transcript, or pasted text ([Step 2](#2-acquire-and-transcribe)).
+2. **Transcribe** verbatim; capture name, company, callback #, SR/invoice IDs.
+3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
+4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
+5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
+   (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce Lead).
+6. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
+   - VixxoLink, Technical, General → `service.providermanagement@vixxo.com`
+   - Billing / Invoice / Payment → `aphelp@vixxo.com`
+   - Insurance / COI → `COI@vixxo.com`
+   - Onboarding → Salesforce Lead branch → Lead note + resolve FD, or forward
+     `spm-recruitment@vixxo.com`
+   - SR assistance → Gateway PM + Support emails; subject `{SR#}, Need Assistance`
+7. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
+8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
+9. **Salesforce Lead note** — onboarding branch when Lead found.
+10. **Resolve Freshdesk** — `status: 5` with valid `type`.
+
+## Acquire and transcribe
+
+**Prefer existing text.** Exchange/Teams voicemail emails often include a body
+transcript — use it; note `Transcript source: email body`.
+
+**Audio only:**
+
+1. Download attachment (`download-bytes` for M365; Freshdesk attachment path).
+2. Transcribe verbatim; mark `[inaudible]` where needed.
+3. Note `Transcript source: audio transcription`.
+
+Do not invent content.
+
+## Routing checklist (automatic)
+
+Track per item during Phase 2:
+
+```
+Route progress — {ticket/message id}:
+- [ ] Internal note posted (create_ticket_note, private)
+- [ ] Forward sent (forward_ticket or forward-mail-message)
+- [ ] Salesforce Lead note added (if onboarding + Lead found)
+- [ ] Freshdesk resolved (update_ticket status 5)
+```
+
+For **onboarding + Lead found**: resolve Freshdesk after SF note is recorded (or
+document SF write failure in the internal note before resolve).
+
+For **SR branch**: confirm PM/support emails from Gateway before forward; subject
+must be `{SR_NUMBER}, Need Assistance`.
+
+If any write fails, continue the pipeline where safe, record the failure in the
+batch summary **Status** column, and do not re-attempt without user direction.
+
+## Guardrails
+
+- Work context only — Vixxo SP operations.
+- Facts from recording/transcript and MCP responses; mark assumptions.
+- Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
+  automatically when this skill is invoked — except in explicit **dry-run** mode.
+- Never invent recipient emails — resolve via Gateway SR payload or `list-users`.
+- Redact full phone numbers in shared-channel summaries; keep full numbers in
+  internal notes for {{employee_name}}.
+
+## Additional resources
+
+| File | Purpose |
+| --- | --- |
+| [reference/categories.md](reference/categories.md) | Category taxonomy |
+| [reference/callback-rules.md](reference/callback-rules.md) | Callback decision |
+| [reference/company-vetting.md](reference/company-vetting.md) | Siebel, Gateway, JDE, SF |
+| [reference/routing-actions.md](reference/routing-actions.md) | Forwards + resolve rules |
+| [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
+| [reference/examples.md](reference/examples.md) | Sample outputs |
