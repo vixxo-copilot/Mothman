@@ -96,17 +96,21 @@ def pick_wav_attachment(ticket: dict) -> dict | None:
 def download_attachment(url: str, api_key: str) -> bytes:
     import base64
 
-    token = base64.b64encode(f"{api_key}:X".encode()).decode()
-    req = Request(
-        url,
-        headers={
-            "Authorization": f"Basic {token}",
-            "User-Agent": "sp-voicemail-triage/1.0",
-        },
-        method="GET",
-    )
-    with urlopen(req, timeout=TIMEOUT) as resp:
-        data = resp.read()
+    def read_with_headers(headers: dict[str, str]) -> bytes:
+        req = Request(url, headers=headers, method="GET")
+        with urlopen(req, timeout=TIMEOUT) as resp:
+            return resp.read()
+
+    headers = {"User-Agent": "sp-voicemail-triage/1.0"}
+    try:
+        # Freshdesk attachment URLs are signed CDN/S3 links; adding Basic Auth
+        # can cause S3 to reject otherwise valid audio downloads with HTTP 400.
+        data = read_with_headers(headers)
+    except HTTPError as exc:
+        if exc.code not in (401, 403):
+            raise
+        token = base64.b64encode(f"{api_key}:X".encode()).decode()
+        data = read_with_headers({**headers, "Authorization": f"Basic {token}"})
     if len(data) > MAX_AUDIO_BYTES:
         raise ValueError(f"Audio file exceeds {MAX_AUDIO_BYTES} bytes")
     return data
