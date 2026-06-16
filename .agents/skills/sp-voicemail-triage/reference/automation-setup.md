@@ -8,6 +8,10 @@ voicemail processing.
 Every in-scope voicemail ticket **must** be transcribed from its **`.wav`
 attachment** before any Freshdesk write (internal note, forward, or resolve).
 
+**The notification email body does not contain the spoken message.** It only has
+8x8 metadata (caller name, callback number, duration). Triage content comes
+exclusively from the attached `.wav` file via Whisper.
+
 If Whisper transcription fails — missing WAV, download error, or API failure —
 the batch script **leaves the ticket unchanged** (open, no note, no forward).
 
@@ -38,8 +42,8 @@ The batch script loads `.env` automatically and **exits immediately** if
 
 - API key must read open KSOnboarding tickets and **download attachments**.
 - Each voicemail notification ticket includes a **`.wav`** file — the script picks
-  the first WAV on the ticket and transcribes it. No email-body transcript is used
-  for classification in the batch path.
+  the first WAV on the ticket and transcribes it.
+- **Email/ticket body is not used for transcription** — it has no spoken content.
 
 ### 4. Cursor Automation configuration
 

@@ -55,7 +55,9 @@ Same as parent — subject must **include** `New voicemail`:
 
 [../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md](../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md)
 
-Each ticket includes a **`.wav`** attachment from the voicemail email.
+Each ticket includes a **`.wav`** attachment from the voicemail email. The email
+body is notification metadata only — **not a transcript**. Spoken content must
+come from transcribing the WAV.
 
 ## Pipeline
 

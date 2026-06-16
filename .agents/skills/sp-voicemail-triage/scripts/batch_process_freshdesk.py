@@ -198,7 +198,7 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
     att_names = [a.get("name") for a in ticket.get("attachments") or [] if a.get("name")]
     lines = [
-        f"[Voicemail notification — audio attachment only; no email body transcript]",
+        f"[Voicemail notification — .wav attachment required; email body has no spoken content]",
         f"Subject: {subject}",
         f"Caller ID: {meta['caller']}",
         f"Callback number: {meta['phone']}",
@@ -207,8 +207,7 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     if att_names:
         lines.append(f"Attachments: {', '.join(att_names)}")
     lines.append(
-        "[Note: Full message content is in the WAV attachment; triage based on "
-        "caller metadata pending audio transcription. Callback Recommended.]"
+        "[Note: Spoken content is only in the .wav attachment. Transcribe WAV before triage.]"
     )
     return "\n".join(lines)
 

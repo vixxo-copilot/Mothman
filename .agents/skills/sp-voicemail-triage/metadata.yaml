@@ -6,7 +6,7 @@ agents:
   - cursor
   - claude-code
 author: "{{employee_name}}"
-version: "2.5.1"
+version: "2.5.2"
 tags: [voicemail, transcription, service-provider, triage, callback, freshdesk, ksonboarding, salesforce, gateway, vixxo]
 status: approved
 requires_mcp: [microsoft-365, freshdesk, gateway, vixxolink, salesforce]

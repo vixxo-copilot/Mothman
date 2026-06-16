@@ -73,8 +73,9 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
 
 - SPM group `159000485013`; ticket type `KSOnboarding`.
 - Use `search_tickets`; paginate all pages; apply voicemail filter.
-- For each in-scope ticket: `get_ticket`, conversations, attachments; transcribe
-  audio or use body text.
+- For each in-scope ticket: `get_ticket`, conversations, attachments; download and
+  transcribe the **`.wav` attachment** (required). The notification **email body does
+  not contain the spoken message** — only caller metadata and routing boilerplate.
 
 **Batch REST script (Freshdesk-only):** When running
 `scripts/batch_process_freshdesk.py`, the script downloads the ticket **`.wav`**
@@ -93,7 +94,9 @@ open. For scheduled automation without external vetting, use sibling
    - Do **not** include messages that only mention voicemail, ACH, or payment in
      the body or quoted thread with a different subject
    - Default window: **last 7 days**, unread first; user may override
-4. Prefer body auto-transcript; else `download-bytes` on audio attachment.
+4. `download-bytes` on the **`.wav` (or audio) attachment**; transcribe via Whisper.
+   The email body is notification metadata only — **not a transcript** and not used
+   for classification.
 
 Dedupe: if the same voicemail exists in Freshdesk and Outlook, triage once and
 link both IDs in the packet.
@@ -166,7 +169,9 @@ Then one **triage packet** per item (see below).
 
 ## Workflow (per voicemail)
 
-1. **Acquire content** — audio, body transcript, or pasted text ([Step 2](#2-acquire-and-transcribe)).
+1. **Acquire content** — download and transcribe the **`.wav` attachment** (required
+   for Freshdesk/Outlook intake); or user-pasted transcript / attached audio in
+   single-item mode ([Acquire and transcribe](#acquire-and-transcribe)).
 2. **Transcribe** verbatim; capture name, company, callback #, SR/invoice IDs.
 3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
@@ -187,17 +192,22 @@ Then one **triage packet** per item (see below).
 
 ## Acquire and transcribe
 
-**Transcription is required.** Do not post Freshdesk internal notes, forwards, or
-resolves until a verbatim transcript exists. If WAV download or STT fails, **leave
-the ticket/message unchanged** and report the failure.
+**Transcription source: `.wav` attachment only.** Voicemail notification emails
+(Freshdesk tickets and Outlook messages) carry caller ID, duration, and callback
+metadata in the **body** — they do **not** include the spoken message. All triage
+content must come from transcribing the attached **`.wav` file**.
 
-**Freshdesk KSOnboarding voicemails:** Each notification ticket includes a **`.wav`
-attachment** (from the voicemail email). Download and transcribe that file — do not
-classify from the notification email body or thread text.
+Do not post Freshdesk internal notes, forwards, or resolves until that verbatim
+transcript exists. If WAV download or STT fails, **leave the ticket/message
+unchanged** and report the failure.
 
-**Outlook voicemails:** Download the audio attachment (`download-bytes` on M365);
-transcribe via Whisper or agent STT. Use an email body transcript only when the
-message explicitly includes a spoken-word transcript in the body (rare).
+**Freshdesk KSOnboarding voicemails:** Each ticket includes a **`.wav`** attachment
+(from the 8x8 voicemail email). Download and transcribe that file. Do not read,
+parse, or classify from the ticket description, email body, or conversation thread.
+
+**Outlook voicemails:** Same rule — body is notification metadata only. Download
+the **`.wav` (or audio) attachment** (`download-bytes` on M365) and transcribe via
+Whisper or agent STT.
 
 **Batch REST script steps:**
 
@@ -206,6 +216,9 @@ message explicitly includes a spoken-word transcript in the body (rare).
 3. Transcribe via **OpenAI Whisper** (`OPENAI_API_KEY`, model `whisper-1`).
 4. Note `Transcript source: openai-whisper`.
 5. Only then run classify, vetting (if applicable), and Phase 2 writes.
+
+**Single-item exception:** {{employee_name}} may paste a transcript or attach audio
+directly in chat — that is user-provided input, not email body text.
 
 Mark `[inaudible]` where needed. Do not use metadata-only placeholders for routing
 in production runs.
@@ -235,7 +248,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 
 - Work context only — Vixxo SP operations.
 - Facts from recording/transcript and MCP responses; mark assumptions.
-- **Transcription required** before any Freshdesk write — failed WAV/STT → skip ticket.
+- **Transcription required** from **`.wav` attachment** — email body has no spoken
+  content; failed WAV/STT → skip ticket.
 - Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
   automatically when this skill is invoked — except in explicit **dry-run** mode.
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.

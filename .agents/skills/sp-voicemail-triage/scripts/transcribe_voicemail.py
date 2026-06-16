@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Download Freshdesk voicemail WAV attachments and transcribe via OpenAI Whisper."""
+"""Download Freshdesk voicemail .wav attachments and transcribe via OpenAI Whisper.
+
+Voicemail notification emails/tickets include metadata in the body (caller, phone,
+duration) but NOT the spoken message — transcription must use the .wav attachment.
+"""
 
 from __future__ import annotations
 

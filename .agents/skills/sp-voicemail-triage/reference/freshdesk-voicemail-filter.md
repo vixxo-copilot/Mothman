@@ -50,12 +50,19 @@ Same rule: **subject must include** `New voicemail` (case-insensitive).
 Do not include messages that only mention voicemail, ACH, or payment in the
 body or quoted thread while the subject lacks `New voicemail`.
 
-Optional secondary signal after subject match: audio attachment (`.wav`) from
-8x8/Teams — never use body keywords alone to include a message.
+Optional secondary signal after subject match: **`.wav` audio attachment** from
+8x8/Teams — required for transcription. The email body does not contain the spoken
+message; never use body keywords alone to include a message or to classify.
+
+## Transcription source
+
+**`.wav` attachment only.** 8x8 voicemail notifications include caller name, phone,
+and duration in the email/ticket body — **not** the spoken voicemail. Download the
+`.wav` and transcribe before triage. Missing WAV or failed STT → skip ticket (no
+Freshdesk writes).
 
 ## Classification guardrail
 
-After intake, classify from **transcript / audio content only** — not from
-incidental `ACH` or `voicemail` tokens in email footers, quoted threads, or HTML
-boilerplate. Audio-only 8x8 notifications with no spoken transcript default to
-**General Inquiry** → `service.providermanagement@vixxo.com`.
+After intake, classify from **WAV transcript only** — not from email body, ticket
+description, conversation thread, or incidental `ACH` / `voicemail` tokens in HTML
+boilerplate. Failed transcription → do not classify or route; leave ticket open.
