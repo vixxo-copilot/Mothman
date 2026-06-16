@@ -785,7 +785,10 @@ def main() -> int:
         "routed": sum(
             1
             for r in results
-            if r.forward and not str(r.forward).startswith("failed") and r.forward != "not-sent:no-email"
+            if r.forward
+            and "@" in str(r.forward)
+            and not str(r.forward).startswith(("failed", "skipped"))
+            and r.forward != "not-sent:no-email"
         ),
         "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
