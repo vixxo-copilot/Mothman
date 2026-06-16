@@ -10,11 +10,8 @@
       "url": "https://vixxonow.com/mcp/dynamics365"
     },
     "freshdesk": {
-      "args": [
-        "-y",
-        "freshdesk-mcp"
-      ],
-      "command": "npx",
+      "args": [],
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshdesk-mcp.cmd",
       "env": {
         "FRESHDESK_DOMAIN": "vixxo-helpdesk.freshdesk.com",
         "NODE_ENV": "production"
