@@ -5,15 +5,15 @@ voicemail processing.
 
 ## Transcription is mandatory
 
-Every in-scope voicemail ticket **must** be transcribed from its **`.wav`
-attachment** before any Freshdesk write (internal note, forward, or resolve).
+Every in-scope voicemail ticket **must** be transcribed from its **audio attachment**
+(`.wav` or `.mp3`) before any Freshdesk write (internal note, forward, or resolve).
 
 **The notification email body does not contain the spoken message.** It only has
 8x8 metadata (caller name, callback number, duration). Triage content comes
-exclusively from the attached `.wav` file via Whisper.
+exclusively from the attached audio file via Whisper.
 
-If Whisper transcription fails — missing WAV, download error, or API failure —
-the batch script **leaves the ticket unchanged** (open, no note, no forward).
+If Whisper transcription fails — missing audio attachment, download error, or API
+failure — the batch script **leaves the ticket unchanged** (open, no note, no forward).
 
 Do **not** pass `--no-transcribe` in automation.
 
@@ -23,7 +23,7 @@ Do **not** pass `--no-transcribe` in automation.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `FRESHDESK_API_KEY` | **Yes** | Search tickets, download WAV attachments, write on success |
+| `FRESHDESK_API_KEY` | **Yes** | Search tickets, download audio attachments, write on success |
 | `OPENAI_API_KEY` | **Yes** | OpenAI Whisper (`whisper-1`) transcription |
 | `FRESHDESK_DOMAIN` | No | Default `vixxo-helpdesk.freshdesk.com` |
 
@@ -36,13 +36,13 @@ The batch script loads `.env` automatically and **exits immediately** if
 
 - Key must have access to the **Audio / Whisper** API (`/v1/audio/transcriptions`).
 - Automation runner needs **network egress** to `api.openai.com`.
-- WAV files must be under OpenAI's **25 MB** limit (voicemail WAVs normally are).
+- Audio files must be under OpenAI's **25 MB** limit (voicemail attachments normally are).
 
 ### 3. Freshdesk attachment access
 
 - API key must read open KSOnboarding tickets and **download attachments**.
-- Each voicemail notification ticket includes a **`.wav`** file — the script picks
-  the first WAV on the ticket and transcribes it.
+- Each voicemail notification ticket includes an **audio attachment** (`.wav` or
+  `.mp3`) — the script picks the first match (prefers `.wav` when both exist).
 - **Email/ticket body is not used for transcription** — it has no spoken content.
 
 ### 4. Cursor Automation configuration
@@ -68,7 +68,7 @@ vetting is skipped by design.
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 ```
 
-WAV download + Whisper + classify + forward + resolve — **no external vetting**.
+Audio download + Whisper + classify + forward + resolve — **no external vetting**.
 
 ### Prompt template
 
@@ -89,7 +89,7 @@ If transcription_failed > 0, list those ticket IDs; tickets were left open uncha
 
 1. Search open KSOnboarding tickets (paginated REST)
 2. Keep subjects that **include** `New voicemail`
-3. Download **`.wav`** attachment from each ticket
+3. Download **audio attachment** (`.wav` or `.mp3`) from each ticket
 4. Transcribe via **OpenAI Whisper** (`whisper-1`) — **required**
 5. On success only: classify, internal note, forward (unless `--no-email`), resolve
 6. On transcription failure: **skip ticket** — no Freshdesk updates
@@ -113,8 +113,8 @@ returns `processed: 0` and performs no triage writes.
 | Symptom | Cause / fix |
 | --- | --- |
 | Script exits immediately | `OPENAI_API_KEY` missing from `.env` |
-| `transcription_failed` > 0 | WAV missing, download failed, or Whisper error — tickets left open |
-| `no_wav_attachment` | Ticket has no `.wav` on attachments — fix upstream email intake |
+| `transcription_failed` > 0 | Audio missing, download failed, or Whisper error — tickets left open |
+| `no_audio_attachment` | Ticket has no `.wav` or `.mp3` on attachments — fix upstream email intake |
 | `processed: 0` | No open tickets with `New voicemail` in subject |
 | Close fails (when transcribed) | Tenant requires `custom_fields.cf_sp` — script sets `Unknown` |
 

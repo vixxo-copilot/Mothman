@@ -18,7 +18,7 @@ Internal notes record **vetting skipped** and **entity posture: Unknown**.
 ## Still performed
 
 - Freshdesk KSOnboarding search + voicemail subject filter
-- **`.wav` download** from ticket attachments (required — body has no spoken content)
+- **Audio download** (`.wav` or `.mp3`) from ticket attachments (required — body has no spoken content)
 - **OpenAI Whisper** transcription (`OPENAI_API_KEY`) — **required before any write**
 - On success: keyword classification, callback decision, internal note, forward, resolve
 - On transcription failure: **no Freshdesk updates** — ticket stays open

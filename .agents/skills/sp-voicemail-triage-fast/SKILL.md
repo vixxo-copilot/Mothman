@@ -1,7 +1,8 @@
 ---
 name: sp-voicemail-triage-fast
 description: >-
-  Fast SP voicemail triage for scheduled automation. Downloads WAV attachments,
+  Fast SP voicemail triage for scheduled automation. Downloads audio attachments
+  (.wav or .mp3),
   transcribes via OpenAI Whisper, classifies, posts Freshdesk internal notes,
   forwards to SPM/AP/COI/recruitment, and resolves KSOnboarding tickets — without
   Gateway, Salesforce, Siebel, or JDE vetting. Use for cron jobs, batch REST runs,
@@ -55,15 +56,15 @@ Same as parent — subject must **include** `New voicemail`:
 
 [../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md](../sp-voicemail-triage/reference/freshdesk-voicemail-filter.md)
 
-Each ticket includes a **`.wav`** attachment from the voicemail email. The email
-body is notification metadata only — **not a transcript**. Spoken content must
-come from transcribing the WAV.
+Each ticket includes an **audio attachment** (`.wav` or `.mp3`) from the voicemail
+email. The email body is notification metadata only — **not a transcript**. Spoken
+content must come from transcribing the attachment.
 
 ## Pipeline
 
 1. Search open KSOnboarding tickets (paginated REST)
 2. Filter voicemail subjects
-3. Download **`.wav`** attachment (required)
+3. Download **audio attachment** (`.wav` or `.mp3`, required)
 4. Transcribe with **OpenAI Whisper** (`whisper-1`) — **required**
 5. **On transcription success only:** classify, internal note, forward, resolve
 6. **On transcription failure:** skip ticket — no Freshdesk updates

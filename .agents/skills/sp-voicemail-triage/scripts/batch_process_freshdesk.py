@@ -198,7 +198,7 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
     att_names = [a.get("name") for a in ticket.get("attachments") or [] if a.get("name")]
     lines = [
-        f"[Voicemail notification — .wav attachment required; email body has no spoken content]",
+        f"[Voicemail notification — audio attachment (.wav or .mp3) required; email body has no spoken content]",
         f"Subject: {subject}",
         f"Caller ID: {meta['caller']}",
         f"Callback number: {meta['phone']}",
@@ -207,7 +207,7 @@ def build_transcript(meta: dict, ticket: dict) -> str:
     if att_names:
         lines.append(f"Attachments: {', '.join(att_names)}")
     lines.append(
-        "[Note: Spoken content is only in the .wav attachment. Transcribe WAV before triage.]"
+        "[Note: Spoken content is only in the audio attachment (.wav or .mp3). Transcribe before triage.]"
     )
     return "\n".join(lines)
 
@@ -300,7 +300,7 @@ def internal_note(
         stt_line += f"\n**Transcription error:** {stt_error}"
 
     callback_rationale = (
-        "Voicemail left on KS onboarding line; spoken content transcribed from WAV."
+        "Voicemail left on KS onboarding line; spoken content transcribed from audio attachment."
         if transcript_source == "openai-whisper"
         else "Voicemail left on KS onboarding line; no audio transcript available."
     )

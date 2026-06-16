@@ -74,15 +74,17 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
 - SPM group `159000485013`; ticket type `KSOnboarding`.
 - Use `search_tickets`; paginate all pages; apply voicemail filter.
 - For each in-scope ticket: `get_ticket`, conversations, attachments; download and
-  transcribe the **`.wav` attachment** (required). The notification **email body does
-  not contain the spoken message** — only caller metadata and routing boilerplate.
+  transcribe the **audio attachment** (`.wav` or `.mp3`, required). The notification
+  **email body does not contain the spoken message** — only caller metadata and
+  routing boilerplate.
 
 **Batch REST script (Freshdesk-only):** When running
-`scripts/batch_process_freshdesk.py`, the script downloads the ticket **`.wav`**
-attachment and transcribes via **OpenAI Whisper** (`OPENAI_API_KEY`). Transcription
-**must succeed** before any note, forward, or resolve — failed STT leaves the ticket
-open. For scheduled automation without external vetting, use sibling
-**`sp-voicemail-triage-fast`**. See [reference/automation-setup.md](reference/automation-setup.md).
+`scripts/batch_process_freshdesk.py`, the script downloads the ticket **audio
+attachment** (`.wav` or `.mp3`) and transcribes via **OpenAI Whisper**
+(`OPENAI_API_KEY`). Transcription **must succeed** before any note, forward, or
+resolve — failed STT leaves the ticket open. For scheduled automation without
+external vetting, use sibling **`sp-voicemail-triage-fast`**. See
+[reference/automation-setup.md](reference/automation-setup.md).
 
 ### 2. Outlook — {{employee_name}}'s inbox
 
@@ -94,9 +96,9 @@ open. For scheduled automation without external vetting, use sibling
    - Do **not** include messages that only mention voicemail, ACH, or payment in
      the body or quoted thread with a different subject
    - Default window: **last 7 days**, unread first; user may override
-4. `download-bytes` on the **`.wav` (or audio) attachment**; transcribe via Whisper.
-   The email body is notification metadata only — **not a transcript** and not used
-   for classification.
+4. `download-bytes` on the **audio attachment** (`.wav` or `.mp3`); transcribe via
+   Whisper. The email body is notification metadata only — **not a transcript** and
+   not used for classification.
 
 Dedupe: if the same voicemail exists in Freshdesk and Outlook, triage once and
 link both IDs in the packet.
@@ -169,9 +171,9 @@ Then one **triage packet** per item (see below).
 
 ## Workflow (per voicemail)
 
-1. **Acquire content** — download and transcribe the **`.wav` attachment** (required
-   for Freshdesk/Outlook intake); or user-pasted transcript / attached audio in
-   single-item mode ([Acquire and transcribe](#acquire-and-transcribe)).
+1. **Acquire content** — download and transcribe the **audio attachment** (`.wav`
+   or `.mp3`, required for Freshdesk/Outlook intake); or user-pasted transcript /
+   attached audio in single-item mode ([Acquire and transcribe](#acquire-and-transcribe)).
 2. **Transcribe** verbatim; capture name, company, callback #, SR/invoice IDs.
 3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
@@ -192,26 +194,28 @@ Then one **triage packet** per item (see below).
 
 ## Acquire and transcribe
 
-**Transcription source: `.wav` attachment only.** Voicemail notification emails
-(Freshdesk tickets and Outlook messages) carry caller ID, duration, and callback
-metadata in the **body** — they do **not** include the spoken message. All triage
-content must come from transcribing the attached **`.wav` file**.
+**Transcription source: audio attachment (`.wav` or `.mp3`) only.** Voicemail
+notification emails (Freshdesk tickets and Outlook messages) carry caller ID,
+duration, and callback metadata in the **body** — they do **not** include the
+spoken message. All triage content must come from transcribing the attached audio
+file.
 
 Do not post Freshdesk internal notes, forwards, or resolves until that verbatim
-transcript exists. If WAV download or STT fails, **leave the ticket/message
+transcript exists. If audio download or STT fails, **leave the ticket/message
 unchanged** and report the failure.
 
-**Freshdesk KSOnboarding voicemails:** Each ticket includes a **`.wav`** attachment
-(from the 8x8 voicemail email). Download and transcribe that file. Do not read,
-parse, or classify from the ticket description, email body, or conversation thread.
+**Freshdesk KSOnboarding voicemails:** Each ticket includes an audio attachment
+(typically **`.wav`**, sometimes **`.mp3`**) from the 8x8 voicemail email.
+Download and transcribe that file. Do not read, parse, or classify from the ticket
+description, email body, or conversation thread.
 
 **Outlook voicemails:** Same rule — body is notification metadata only. Download
-the **`.wav` (or audio) attachment** (`download-bytes` on M365) and transcribe via
+the **`.wav` or `.mp3` attachment** (`download-bytes` on M365) and transcribe via
 Whisper or agent STT.
 
 **Batch REST script steps:**
 
-1. Pick the first `.wav` attachment on the ticket.
+1. Pick the first `.wav` or `.mp3` attachment on the ticket (prefers `.wav` when both exist).
 2. Download via Freshdesk attachment URL (authenticated).
 3. Transcribe via **OpenAI Whisper** (`OPENAI_API_KEY`, model `whisper-1`).
 4. Note `Transcript source: openai-whisper`.
@@ -248,8 +252,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 
 - Work context only — Vixxo SP operations.
 - Facts from recording/transcript and MCP responses; mark assumptions.
-- **Transcription required** from **`.wav` attachment** — email body has no spoken
-  content; failed WAV/STT → skip ticket.
+- **Transcription required** from **audio attachment** (`.wav` or `.mp3`) — email
+  body has no spoken content; failed download/STT → skip ticket.
 - Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
   automatically when this skill is invoked — except in explicit **dry-run** mode.
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.
