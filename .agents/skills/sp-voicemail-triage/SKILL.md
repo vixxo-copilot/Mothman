@@ -10,9 +10,11 @@ description: >-
   spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
   voicemails from the same contact into one forward with a unified summary. Use when
   the user asks to process SP voicemails, triage the voicemail queue, transcribe
-  voicemails, or route onboarding, billing, COI, or SR callback mail. For triage
+  voicemails,   or route onboarding, billing, COI, or SR callback mail. For triage
   without outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
-  webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`.
+  webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`. For
+  scheduled automation with Whisper transcription and no external vetting, use
+  sibling skill `sp-voicemail-triage-fast`.
 ---
 
 # SP Voicemail Triage
@@ -30,6 +32,7 @@ post internal notes, forward, add Salesforce Lead notes, and resolve tickets.
 - Single voicemail: attach audio, paste transcript, or point at a ticket/message
 - **Webhook + WAV:** use **`sp-voicemail-triage-webhook`** (not this skill)
 - **No outbound email:** use **`sp-voicemail-triage-no-email`**
+- **Scheduled automation / fast batch:** use **`sp-voicemail-triage-fast`**
 
 ## Operating modes
 
@@ -72,6 +75,13 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
 - Use `search_tickets`; paginate all pages; apply voicemail filter.
 - For each in-scope ticket: `get_ticket`, conversations, attachments; transcribe
   audio or use body text.
+
+**Batch REST script (Freshdesk-only):** When running
+`scripts/batch_process_freshdesk.py`, the script downloads `.wav` attachments and
+transcribes via **OpenAI Whisper** (`OPENAI_API_KEY`). Use
+`--no-transcribe` for metadata-only fallback. For scheduled automation without
+external vetting, prefer sibling **`sp-voicemail-triage-fast`**.
+See [reference/automation-setup.md](reference/automation-setup.md).
 
 ### 2. Outlook — {{employee_name}}'s inbox
 
@@ -182,9 +192,9 @@ transcript — use it; note `Transcript source: email body`.
 
 **Audio only:**
 
-1. Download attachment (`download-bytes` for M365; Freshdesk attachment path).
-2. Transcribe verbatim; mark `[inaudible]` where needed.
-3. Note `Transcript source: audio transcription`.
+1. Download attachment (`download-bytes` for M365; Freshdesk attachment URL for REST batch).
+2. Transcribe verbatim via Whisper API (batch script) or agent STT; mark `[inaudible]` where needed.
+3. Note `Transcript source: audio transcription` or `openai-whisper`.
 
 Do not use email body or thread text for intake or keyword classification —
 only subject prefix (intake) and spoken transcript / audio (classification).
@@ -231,6 +241,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | Voicemail-only queue filter |
 | [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
+| [reference/automation-setup.md](reference/automation-setup.md) | Scheduled cron + batch script |
 
 Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
-**`sp-voicemail-triage-webhook`** (WAV webhook intake).
+**`sp-voicemail-triage-webhook`** (WAV webhook intake),
+**`sp-voicemail-triage-fast`** (Whisper + no vetting, for automation).

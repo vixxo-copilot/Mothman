@@ -17,7 +17,9 @@ from html import unescape
 from pathlib import Path
 from typing import Any
 
-DOMAIN = "vixxo-helpdesk.freshdesk.com"
+from transcribe_voicemail import transcribe_ticket
+
+DEFAULT_DOMAIN = "vixxo-helpdesk.freshdesk.com"
 QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
 OUT_DIR = Path(__file__).resolve().parent.parent / ".tmp" / "batch-run"
 TIMEOUT = 90
@@ -42,6 +44,10 @@ CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("Coverage / Onboarding", ["onboard", "onboarding", "coverage", "enrollment", "new provider", "rate card", "activation"], "ONBOARDING_BRANCH"),
     ("Technical / Trade Support", ["warranty", "parts", "technical", "how to fix"], "service.providermanagement@vixxo.com"),
 ]
+
+
+def freshdesk_domain() -> str:
+    return (os.environ.get("FRESHDESK_DOMAIN") or DEFAULT_DOMAIN).strip() or DEFAULT_DOMAIN
 
 
 def load_credentials() -> str:
@@ -77,7 +83,7 @@ def auth_headers(api_key: str) -> dict[str, str]:
 
 
 def http_json(method: str, path: str, api_key: str, body: dict | None = None) -> Any:
-    url = f"https://{DOMAIN}{path}"
+    url = f"https://{freshdesk_domain()}{path}"
     data = None
     headers = auth_headers(api_key)
     if body is not None:
@@ -94,7 +100,7 @@ def search_tickets(api_key: str) -> list[dict]:
     results: list[dict] = []
     for page in range(1, 11):
         params = {"query": f'"{QUERY}"', "page": str(page)}
-        url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
+        url = f"https://{freshdesk_domain()}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
         req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
             data = json.loads(resp.read().decode())
@@ -173,6 +179,21 @@ def extract_metadata(ticket: dict) -> dict[str, str | None]:
     }
 
 
+def format_stt_transcript(stt: dict[str, Any], meta: dict, ticket: dict) -> str:
+    subject = ticket.get("subject") or ""
+    lines = [
+        f"Transcript source: {stt.get('source', 'openai-whisper')}",
+        f"Subject: {subject}",
+        f"Attachment: {stt.get('attachment_name', 'voicemail.wav')}",
+        f"Caller ID: {meta['caller']}",
+        f"Callback number: {meta['phone']}",
+        f"Duration: {meta['duration']}",
+        "",
+        stt["transcript"],
+    ]
+    return "\n".join(lines)
+
+
 def build_transcript(meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
     att_names = [a.get("name") for a in ticket.get("attachments") or [] if a.get("name")]
@@ -230,8 +251,21 @@ def callback_decision(transcript: str) -> tuple[str, str]:
     return "Recommended", "Normal"
 
 
-def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urgency: str,
-                    route: str, transcript: str, sr: str, *, no_email: bool = False) -> str:
+def internal_note(
+    ticket_id: int,
+    meta: dict,
+    category: str,
+    callback: str,
+    urgency: str,
+    route: str,
+    transcript: str,
+    sr: str,
+    *,
+    no_email: bool = False,
+    skip_vetting: bool = False,
+    transcript_source: str = "metadata-only",
+    stt_error: str = "",
+) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
     if no_email:
@@ -245,18 +279,13 @@ def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urge
             f"- **Forward to:** {route}\n"
             f"- **Disposition:** Resolve after forward"
         )
-    return f"""**SP Voicemail Triage — Freshdesk #{ticket_id}**
-
-**Processed:** {now}
-**Category:** {category}
-**Callback required:** {callback} ({urgency})
-**Caller:** {meta['caller']} | **Company:** {meta['company']}
-**Callback #:** {meta['phone']}
-{sr_line}
-
----
-
-**Company vetting**
+    if skip_vetting:
+        vetting_block = (
+            "**Company vetting:** Skipped (fast skill — no external system lookups)\n\n"
+            "**Entity posture:** Unknown (vetting skipped)"
+        )
+    else:
+        vetting_block = """**Company vetting**
 
 | System | Match | ID |
 | --- | --- | --- |
@@ -265,7 +294,31 @@ def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urge
 | JDE Vendor | Unknown | — |
 | Salesforce Lead/Account | Unknown | — |
 
-**Entity posture:** Unknown (audio-only intake; vetting deferred)
+**Entity posture:** Unknown (batch REST — vetting deferred; run parent skill with MCP for full vetting)"""
+
+    stt_line = f"**Transcript source:** {transcript_source}"
+    if stt_error:
+        stt_line += f"\n**Transcription error:** {stt_error}"
+
+    callback_rationale = (
+        "Voicemail left on KS onboarding line; spoken content transcribed from WAV."
+        if transcript_source == "openai-whisper"
+        else "Voicemail left on KS onboarding line; no audio transcript available."
+    )
+
+    return f"""**SP Voicemail Triage — Freshdesk #{ticket_id}**
+
+**Processed:** {now}
+**Category:** {category}
+**Callback required:** {callback} ({urgency})
+**Caller:** {meta['caller']} | **Company:** {meta['company']}
+**Callback #:** {meta['phone']}
+{sr_line}
+{stt_line}
+
+---
+
+{vetting_block}
 
 ---
 
@@ -283,7 +336,7 @@ def internal_note(ticket_id: int, meta: dict, category: str, callback: str, urge
 
 **Summary:** KSOnboarding voicemail processed by sp-voicemail-triage batch. Audio attachment retained on ticket; recipient should listen and callback if needed.
 
-**Callback rationale:** Voicemail left on KS onboarding line; no text transcript in notification email.
+**Callback rationale:** {callback_rationale}
 """
 
 
@@ -299,6 +352,8 @@ class Result:
     forward: str = ""
     resolve: str = ""
     error: str = ""
+    transcribed: str = "no"
+    transcript_source: str = "metadata-only"
 
 
 def process_ticket(
@@ -307,6 +362,8 @@ def process_ticket(
     dry_run: bool = False,
     reroute_correction: bool = False,
     no_email: bool = False,
+    transcribe: bool = True,
+    skip_vetting: bool = False,
 ) -> Result:
     tid = int(ticket_summary["id"])
     if not is_voicemail_ticket(ticket_summary):
@@ -321,7 +378,18 @@ def process_ticket(
         )
     ticket = http_json("GET", f"/api/v2/tickets/{tid}", api_key)
     meta = extract_metadata(ticket)
-    transcript = build_transcript(meta, ticket)
+    transcript_source = "metadata-only"
+    stt_error = ""
+    if transcribe:
+        stt = transcribe_ticket(ticket, api_key)
+        if stt.get("ok"):
+            transcript = format_stt_transcript(stt, meta, ticket)
+            transcript_source = str(stt.get("source") or "openai-whisper")
+        else:
+            transcript = build_transcript(meta, ticket)
+            stt_error = str(stt.get("error") or "transcription failed")
+    else:
+        transcript = build_transcript(meta, ticket)
     category, route, sr = classify(transcript, meta)
     callback, urgency = callback_decision(transcript)
 
@@ -332,7 +400,18 @@ def process_ticket(
         forward_subject = None
 
     note_body = internal_note(
-        tid, meta, category, callback, urgency, route, transcript, sr, no_email=no_email
+        tid,
+        meta,
+        category,
+        callback,
+        urgency,
+        route,
+        transcript,
+        sr,
+        no_email=no_email,
+        skip_vetting=skip_vetting,
+        transcript_source=transcript_source,
+        stt_error=stt_error,
     )
     result = Result(
         ticket_id=tid,
@@ -341,6 +420,8 @@ def process_ticket(
         category=category,
         route=route,
         callback=callback,
+        transcribed="yes" if transcript_source == "openai-whisper" else "no",
+        transcript_source=transcript_source,
     )
 
     if dry_run:
@@ -418,6 +499,8 @@ def main() -> int:
     dry_run = "--dry-run" in sys.argv
     reroute_correction = "--reroute-spm" in sys.argv
     no_email = "--no-email" in sys.argv
+    skip_vetting = "--skip-vetting" in sys.argv
+    transcribe = "--no-transcribe" not in sys.argv
     api_key = load_credentials()
     tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -432,6 +515,8 @@ def main() -> int:
                     dry_run=dry_run,
                     reroute_correction=reroute_correction,
                     no_email=no_email,
+                    transcribe=transcribe,
+                    skip_vetting=skip_vetting,
                 )
             )
         except Exception as exc:  # noqa: BLE001
@@ -452,6 +537,9 @@ def main() -> int:
         "skipped_non_voicemail": len(skipped),
         "skipped_ids": [int(t["id"]) for t in skipped],
         "dry_run": dry_run,
+        "skip_vetting": skip_vetting,
+        "transcribe": transcribe,
+        "transcribed": sum(1 for r in results if r.transcribed == "yes"),
         "routed": sum(
             1
             for r in results
@@ -464,7 +552,15 @@ def main() -> int:
     }
     out_path = OUT_DIR / f"batch-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
     out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(json.dumps({"summary_path": str(out_path), **{k: summary[k] for k in ('processed','routed','closed','failed')}}, indent=2))
+    print(
+        json.dumps(
+            {
+                "summary_path": str(out_path),
+                **{k: summary[k] for k in ("processed", "transcribed", "routed", "closed", "failed")},
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
