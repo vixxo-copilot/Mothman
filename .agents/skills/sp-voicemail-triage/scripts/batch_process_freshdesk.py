@@ -375,7 +375,7 @@ def process_ticket(
             callback="—",
             note="skipped:non-voicemail",
         )
-    ticket = http_json("GET", f"/api/v2/tickets/{tid}", api_key)
+    ticket = http_json("GET", f"/api/v2/tickets/{tid}?include=conversations", api_key)
     meta = extract_metadata(ticket)
     transcript_source = "metadata-only"
     stt_error = ""
@@ -570,6 +570,16 @@ def main() -> int:
         "transcription_failed": sum(
             1 for r in results if str(r.note).startswith("skipped:transcription-required")
         ),
+        "transcription_failed_ids": [
+            r.ticket_id
+            for r in results
+            if str(r.note).startswith("skipped:transcription-required")
+        ],
+        "transcription_errors": {
+            str(r.ticket_id): r.error
+            for r in results
+            if str(r.note).startswith("skipped:transcription-required") and r.error
+        },
         "routed": sum(
             1
             for r in results

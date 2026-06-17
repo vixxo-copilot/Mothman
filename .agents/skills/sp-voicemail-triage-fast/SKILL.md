@@ -41,10 +41,12 @@ Optional: `WHISPER_MODEL` (default `small`), `WHISPER_DEVICE` (`cpu`), `WHISPER_
 Verify:
 
 ```bash
-python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load-model
+python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
+python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py
 ```
 
-See [../sp-voicemail-triage/reference/automation-setup.md](../sp-voicemail-triage/reference/automation-setup.md).
+The fast batch wrapper runs preflight automatically. See
+[../sp-voicemail-triage/reference/automation-setup.md](../sp-voicemail-triage/reference/automation-setup.md).
 
 ## Batch command (default path)
 

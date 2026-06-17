@@ -48,8 +48,8 @@ def get_whisper_model():
             from faster_whisper import WhisperModel
         except ImportError as exc:
             raise RuntimeError(
-                "faster-whisper not installed — run: pip install -r "
-                ".agents/skills/sp-voicemail-triage/scripts/requirements.txt"
+                "faster-whisper not installed — run: python "
+                ".agents/skills/sp-voicemail-triage/scripts/setup_transcription.py"
             ) from exc
         if not _audio_backend_ready():
             raise RuntimeError(
@@ -62,7 +62,7 @@ def get_whisper_model():
 
 
 def _attachment_kind(att: dict) -> str | None:
-    name = (att.get("name") or "").lower()
+    name = (att.get("name") or att.get("file_name") or "").lower()
     ctype = (att.get("content_type") or "").lower()
     if name.endswith(".wav") or "wav" in ctype or ctype in ("audio/wav", "audio/x-wav"):
         return "wav"
@@ -76,16 +76,40 @@ def _attachment_kind(att: dict) -> str | None:
     return None
 
 
-def pick_audio_attachment(ticket: dict) -> dict | None:
-    wav_att: dict | None = None
-    mp3_att: dict | None = None
+def _attachment_url(att: dict) -> str | None:
+    return att.get("attachment_url") or att.get("content_url")
+
+
+def collect_audio_attachments(ticket: dict) -> list[dict]:
+    """Collect .wav/.mp3 attachments from ticket body and conversation thread."""
+    seen: set[int | str] = set()
+    collected: list[dict] = []
+
+    def add(att: dict, source: str) -> None:
+        att_id = att.get("id")
+        key = att_id if att_id is not None else (_attachment_url(att), att.get("name"))
+        if key in seen:
+            return
+        if not _attachment_kind(att):
+            return
+        seen.add(key)
+        collected.append({**att, "_source": source})
+
     for att in ticket.get("attachments") or []:
-        kind = _attachment_kind(att)
-        if kind == "wav" and wav_att is None:
-            wav_att = att
-        elif kind == "mp3" and mp3_att is None:
-            mp3_att = att
-    return wav_att or mp3_att
+        add(att, "ticket")
+    for conv in ticket.get("conversations") or []:
+        conv_id = conv.get("id")
+        for att in conv.get("attachments") or []:
+            add(att, f"conversation:{conv_id}")
+
+    wav = [a for a in collected if _attachment_kind(a) == "wav"]
+    mp3 = [a for a in collected if _attachment_kind(a) == "mp3"]
+    return wav + mp3
+
+
+def pick_audio_attachment(ticket: dict) -> dict | None:
+    attachments = collect_audio_attachments(ticket)
+    return attachments[0] if attachments else None
 
 
 def pick_wav_attachment(ticket: dict) -> dict | None:
@@ -94,39 +118,29 @@ def pick_wav_attachment(ticket: dict) -> dict | None:
 
 
 def download_attachment(url: str, api_key: str) -> bytes:
-    import base64
+    """Download attachment bytes. Freshdesk attachment_url values are presigned S3 URLs."""
+    headers = {"User-Agent": "sp-voicemail-triage/1.0"}
+    req = Request(url, headers=headers, method="GET")
+    try:
+        with urlopen(req, timeout=TIMEOUT) as resp:
+            data = resp.read()
+    except HTTPError as exc:
+        if exc.code in (401, 403) and api_key:
+            import base64
 
-    token = base64.b64encode(f"{api_key}:X".encode()).decode()
-    req = Request(
-        url,
-        headers={
-            "Authorization": f"Basic {token}",
-            "User-Agent": "sp-voicemail-triage/1.0",
-        },
-        method="GET",
-    )
-    with urlopen(req, timeout=TIMEOUT) as resp:
-        data = resp.read()
+            token = base64.b64encode(f"{api_key}:X".encode()).decode()
+            req_auth = Request(
+                url,
+                headers={**headers, "Authorization": f"Basic {token}"},
+                method="GET",
+            )
+            with urlopen(req_auth, timeout=TIMEOUT) as resp:
+                data = resp.read()
+        else:
+            raise
     if len(data) > MAX_AUDIO_BYTES:
         raise ValueError(f"Audio file exceeds {MAX_AUDIO_BYTES} bytes")
     return data
-
-
-def _validate_audio_bytes(data: bytes, filename: str) -> None:
-    lower = filename.lower()
-    if lower.endswith(".wav"):
-        if not data.startswith(b"RIFF"):
-            raise ValueError("Attachment is not a RIFF/WAV file")
-        return
-    if lower.endswith(".mp3"):
-        if data.startswith(b"ID3") or (len(data) >= 2 and data[0] == 0xFF and (data[1] & 0xE0) == 0xE0):
-            return
-        raise ValueError("Attachment is not a valid MP3 file")
-    if data.startswith(b"RIFF"):
-        return
-    if data.startswith(b"ID3") or (len(data) >= 2 and data[0] == 0xFF and (data[1] & 0xE0) == 0xE0):
-        return
-    raise ValueError("Attachment is not a recognized audio file (.wav or .mp3)")
 
 
 def _suffix_for_filename(filename: str) -> str:
@@ -139,7 +153,9 @@ def _suffix_for_filename(filename: str) -> str:
 
 
 def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") -> str:
-    _validate_audio_bytes(audio_bytes, filename)
+    if not audio_bytes:
+        raise RuntimeError("Downloaded audio file is empty")
+
     model = get_whisper_model()
     suffix = _suffix_for_filename(filename)
     tmp_path = ""
@@ -147,14 +163,22 @@ def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") 
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(audio_bytes)
             tmp_path = tmp.name
-        segments, _info = model.transcribe(tmp_path, language="en")
+        segments, _info = model.transcribe(
+            tmp_path,
+            language="en",
+            vad_filter=False,
+            condition_on_previous_text=False,
+        )
         parts = [segment.text.strip() for segment in segments if segment.text.strip()]
         text = " ".join(parts).strip()
     finally:
         if tmp_path and os.path.isfile(tmp_path):
             os.unlink(tmp_path)
+
     if not text:
-        raise RuntimeError("faster-whisper returned empty transcript")
+        raise RuntimeError(
+            "faster-whisper returned empty transcript (silent or unintelligible audio)"
+        )
     return text
 
 
@@ -168,11 +192,11 @@ def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
     if not att:
         return {"ok": False, "error": "no_audio_attachment", "transcript": ""}
 
-    url = att.get("attachment_url")
+    url = _attachment_url(att)
     if not url:
         return {"ok": False, "error": "missing_attachment_url", "transcript": ""}
 
-    filename = att.get("name") or "voicemail.wav"
+    filename = att.get("name") or att.get("file_name") or "voicemail.wav"
     model_size, device, compute_type = whisper_settings()
     try:
         audio = download_attachment(url, api_key)
@@ -180,7 +204,8 @@ def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
         return {
             "ok": True,
             "transcript": text,
-            "attachment_name": att.get("name"),
+            "attachment_name": filename,
+            "attachment_source": att.get("_source"),
             "bytes": len(audio),
             "source": TRANSCRIPT_SOURCE,
             "model": model_size,

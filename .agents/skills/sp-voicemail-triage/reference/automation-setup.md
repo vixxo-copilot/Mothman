@@ -12,10 +12,24 @@ Every in-scope voicemail ticket **must** be transcribed from its **audio attachm
 comes exclusively from the attached audio file via **local faster-whisper**
 (no OpenAI API key).
 
-If transcription fails — missing audio, download error, missing ffmpeg, or STT
-error — the batch script **leaves the ticket unchanged** (open, no note, no forward).
+If transcription fails — missing audio, download error, or STT error — the batch
+script **leaves the ticket unchanged** (open, no note, no forward).
 
 Do **not** pass `--no-transcribe` in automation.
+
+## One-time bootstrap (required before first cron run)
+
+Run once on the automation host (or after Python upgrades):
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
+```
+
+This:
+
+1. `pip install`s `faster-whisper` from `scripts/requirements.txt`
+2. Verifies PyAV/ffmpeg decoding
+3. Pre-downloads the Whisper model (`small` by default)
 
 ## What must be enabled
 
@@ -28,36 +42,34 @@ Do **not** pass `--no-transcribe` in automation.
 
 Freshdesk fallback: `~/.vixxo/freshdesk_token` or `~/.vixxo/freshdesk_api_key`.
 
-Optional Whisper tuning (defaults shown):
+Optional Whisper tuning:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `WHISPER_MODEL` | `small` | faster-whisper model size (`tiny`, `base`, `small`, `medium`, …) |
+| `WHISPER_MODEL` | `small` | Model size (`tiny`, `base`, `small`, `medium`, …) |
 | `WHISPER_DEVICE` | `cpu` | `cpu` or `cuda` |
 | `WHISPER_COMPUTE_TYPE` | `int8` | `int8`, `float16`, etc. |
 
-### 2. Python dependencies (one-time)
+### 2. Python dependencies
+
+Installed by `setup_transcription.py`:
 
 ```bash
 pip install -r .agents/skills/sp-voicemail-triage/scripts/requirements.txt
 ```
 
-Installs **`faster-whisper`** (local Whisper inference). First transcription run
-downloads model weights (~150MB for `small`).
+First model download ~150MB for `small`. Cached under `~/.cache/huggingface/hub/`.
 
 ### 3. Audio decoding
 
-**ffmpeg** on `PATH` is recommended. If not installed, **PyAV** (installed with
-`faster-whisper` via pip) can decode `.wav` / `.mp3` instead.
-
-- Windows ffmpeg: [https://ffmpeg.org](https://ffmpeg.org) or `winget install ffmpeg`
-- Verify: `python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py`
+**PyAV** (installed with `faster-whisper`) decodes `.wav` / `.mp3`. **ffmpeg** on
+`PATH` also works but is optional when PyAV is present.
 
 ### 4. Freshdesk attachment access
 
-- API key must read open KSOnboarding tickets and **download attachments**.
-- Each voicemail notification ticket includes **`.wav` or `.mp3`** — the script
-  prefers `.wav` when both exist.
+- API key must read tickets **with conversations** (`?include=conversations`).
+- Voicemail `.wav` / `.mp3` files may appear on the **ticket** or the **first
+  email conversation** — the batch script checks both.
 - **Email/ticket body is not used for transcription.**
 
 ### 5. Cursor Automation configuration
@@ -65,15 +77,11 @@ downloads model weights (~150MB for `small`).
 | Setting | Value |
 | --- | --- |
 | **Trigger** | Cron (e.g. weekdays every 15–30 min, or hourly) |
-| **Tools** | Shell / repo access (run Python batch script) |
+| **Tools** | Shell / repo access |
 | **Repo** | This assistant repo on `main` |
-| **MCP** | Freshdesk MCP **not required** — REST batch script handles everything |
 
-The automation host must have **Python 3**, **ffmpeg**, and **faster-whisper**
-installed. No OpenAI API key or outbound access to `api.openai.com` is required
-(after model download).
-
-Do **not** enable Gateway, Salesforce, or other vetting MCPs for the fast skill.
+The automation host needs **Python 3**, **faster-whisper**, and a **cached Whisper
+model**. No OpenAI API key required.
 
 ### 6. Verify setup
 
@@ -82,15 +90,18 @@ python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py
 python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load-model
 ```
 
-First `--load-model` run downloads weights and may take several minutes.
-
-## Recommended: fast skill (scheduled)
+## Recommended automation flow
 
 ```bash
+# First run only (or after env rebuild):
+python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
+
+# Every cron tick:
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 ```
 
-Audio download + local Whisper + classify + forward + resolve — **no external vetting**.
+The fast wrapper runs a **preflight** verify automatically (skip with
+`--skip-preflight`).
 
 ### Prompt template
 
@@ -98,30 +109,33 @@ Audio download + local Whisper + classify + forward + resolve — **no external 
 Run the SP voicemail fast batch for Freshdesk KSOnboarding.
 
 1. Load `.agents/skills/sp-voicemail-triage-fast/SKILL.md`.
-2. Execute:
+2. If first run on this host, execute setup_transcription.py once.
+3. Execute:
    python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
-3. Report JSON summary: processed, transcribed, transcription_failed, routed, closed, failed.
-4. Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP.
+4. Report JSON summary: processed, transcribed, transcription_failed,
+   transcription_failed_ids, transcription_errors, routed, closed, failed.
+5. Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP.
 
-If verify_transcription.py fails, report missing ffmpeg or faster-whisper and stop.
-If transcription_failed > 0, list those ticket IDs; tickets were left open unchanged.
+If preflight or setup fails, report the error and stop.
+If transcription_failed > 0, list ticket IDs and errors; tickets were left open.
 ```
 
 ## What the batch script does
 
 1. Search open KSOnboarding tickets (paginated REST)
-2. Keep subjects that **include** `New voicemail`
-3. Download **audio attachment** (`.wav` or `.mp3`) from each ticket
-4. Transcribe via **faster-whisper** — **required**
-5. On success only: classify, internal note, forward (unless `--no-email`), resolve
-6. On transcription failure: **skip ticket** — no Freshdesk updates
+2. Filter subjects that **include** `New voicemail`
+3. Load ticket + conversations; find **`.wav` or `.mp3`** attachment
+4. Download and transcribe via **faster-whisper** (`vad_filter=False` for short VMs)
+5. On success only: classify, internal note, forward, resolve
+6. On failure: skip ticket — no Freshdesk updates
 
 ## Flags
 
 | Flag | Automation use |
 | --- | --- |
 | `--skip-vetting` | Injected by fast skill wrapper |
-| `--no-email` | Only for manual no-email runs |
+| `--skip-preflight` | Skip verify check (not recommended) |
+| `--no-email` | Manual no-email runs only |
 | `--no-transcribe` | **Never in automation** |
 | `--dry-run` | Preview only; no writes |
 
@@ -129,11 +143,13 @@ If transcription_failed > 0, list those ticket IDs; tickets were left open uncha
 
 | Symptom | Cause / fix |
 | --- | --- |
-| Script exits on startup | `faster-whisper` not installed or `ffmpeg` missing |
-| Slow first run | Model download — normal; subsequent runs reuse cached weights |
-| `transcription_failed` > 0 | Audio missing, download failed, or STT error — tickets left open |
-| `no_audio_attachment` | No `.wav`/`.mp3` on ticket |
-| `processed: 0` | No open tickets with `New voicemail` in subject |
+| Preflight fails | Run `setup_transcription.py` |
+| `no_audio_attachment` | WAV/MP3 on conversation thread — fixed by `include=conversations`; check ticket manually |
+| `missing_attachment_url` | Freshdesk attachment metadata incomplete |
+| Empty transcript | Silent/unintelligible audio — ticket skipped |
+| Slow first run | Model download — normal |
+| `transcription_failed` > 0 | See `transcription_errors` in batch JSON |
+| `processed: 0` | No open voicemail tickets in queue |
 
 ## Full skill batch
 
