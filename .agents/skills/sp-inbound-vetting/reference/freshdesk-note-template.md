@@ -6,7 +6,7 @@ Post via `create_ticket_note` with `"private": true`.
 **SP Inbound Vetting — Freshdesk #{ticket_id}**
 
 **Processed:** {ISO date}
-**Inbox:** {aphelp@vixxo.com | ksonboarding@vixxo.com}
+**Inbox / queue:** {aphelp@vixxo.com | ksonboarding@vixxo.com | spm-invoice-concerns}
 **Requester:** {name} <{email}>
 **Extracted company:** {company or Not stated}
 **Reference IDs:** {SP # / SR / invoice / none}

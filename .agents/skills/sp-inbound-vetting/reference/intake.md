@@ -1,30 +1,55 @@
-# Intake — AP Help and KS Onboarding
+# Intake — AP Help, KS Onboarding, SPM Invoice Concerns
 
-Find items **received at** `aphelp@vixxo.com` or `ksonboarding@vixxo.com`.
+Find items for SP identity vetting across three Freshdesk intake surfaces.
 Primary surface is Freshdesk; Outlook is secondary when the user points at mail
 without a ticket.
 
-## Target mailboxes
+Queue filters and batch keys live in [queues.md](queues.md).
 
-| Mailbox | Typical ticket type | Notes |
+## Target mailboxes and folders
+
+| Surface | Freshdesk mapping | Notes |
 | --- | --- | --- |
-| `aphelp@vixxo.com` | `Invoice Support`, mixed SPM | AP / billing / payment intake |
-| `ksonboarding@vixxo.com` | `KSOnboarding`, mixed SPM | SP onboarding / recruitment intake |
+| `aphelp@vixxo.com` | SPM group + recipient gate | AP / billing / payment intake |
+| `ksonboarding@vixxo.com` | `type:'KSOnboarding'` | SP onboarding / recruitment intake |
+| **SPM - Invoice Concerns** | `type:'Invoice Support'` in SPM group | Invoice/payment concern folder |
 
 ## Freshdesk batch pull
 
-1. Search Open SPM tickets:
+### 1. KS Onboarding
+
+```
+group_id:159000485013 AND status:2 AND type:'KSOnboarding'
+```
+
+### 2. SPM - Invoice Concerns
+
+Open, **untouched** tickets in the Freshdesk sidebar folder **SPM - Invoice
+Concerns**:
+
+```
+group_id:159000485013 AND status:2 AND type:'Invoice Support'
+```
+
+Skip tickets already tagged `sp-vetted`. Tickets tagged
+`spm-invoice-concerns-reviewed` from `vixxo-spm-invoice-concerns` are still
+in scope until `sp-vetted` is applied.
+
+### 3. AP Help (mailbox gate)
 
 ```
 group_id:159000485013 AND status:2
 ```
 
+Then apply the recipient gate below.
+
 Paginate all pages (`search_tickets` or REST `/api/v2/search/tickets`).
 
-2. For each candidate, `get_ticket` + conversations when body is thin.
+For each candidate, `get_ticket` + conversations when body is thin.
 
-3. **Recipient gate (required):** keep only tickets sent to a target mailbox.
-   Match on any of:
+### Recipient gate (aphelp only)
+
+Keep only tickets sent to a target mailbox. Match on any of:
 
 - `to_emails` / support email on the ticket
 - `cc_emails`
@@ -35,19 +60,21 @@ Paginate all pages (`search_tickets` or REST `/api/v2/search/tickets`).
 Target addresses (case-insensitive):
 
 - `aphelp@vixxo.com`
-- `ksonboarding@vixxo.com`
+- `ksonboarding@vixxo.com` (when using the broad SPM search + mailbox filter)
 
-4. **Dedupe:** skip tickets already tagged `sp-vetted` unless the user says
-   `re-vet` or names the ticket id.
+**Invoice Concerns** and **KS Onboarding** type-filtered pulls do **not**
+require the recipient gate.
 
-5. **Sibling-skill exclusions (default):**
+## Dedupe and exclusions
 
 | Condition | Action |
 | --- | --- |
+| Tagged `sp-vetted` | Skip — unless user says `re-vet` or names the ticket id |
 | Subject includes `New voicemail` | Skip — use `sp-voicemail-triage` |
 | User says `include voicemails` | Process anyway |
+| Batch `all` | Dedupe by ticket id across queues |
 
-6. **Ordering:** oldest-first by `created_at` unless the user asks newest-first.
+**Ordering:** oldest-first by `created_at` unless the user asks newest-first.
 
 ## Single-item intake
 
@@ -77,7 +104,7 @@ From subject, body, requester, and attachments metadata extract:
 
 | Field | Priority |
 | --- | --- |
-| SP number | Explicit `SP #`, `SP-`, Siebel-style numbers in body |
+| SP number | Explicit `SP #`, `SP-`, `KS#####`, Siebel-style numbers in body |
 | Company name | Requester org, signature, subject, body |
 | Contact name | Requester display name |
 | Email / phone | Requester + body |

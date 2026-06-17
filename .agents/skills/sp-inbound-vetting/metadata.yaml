@@ -1,13 +1,13 @@
 name: sp-inbound-vetting
-title: "SP Inbound Vetting (AP Help + KS Onboarding)"
-description: "Vets inbound Freshdesk tickets and mail received at aphelp@vixxo.com and ksonboarding@vixxo.com against Gateway SP records and Salesforce Leads/Cases; posts Freshdesk internal notes, updates SP fields, and adds Salesforce notes when matches exist."
+title: "SP Inbound Vetting (AP Help + KS Onboarding + Invoice Concerns)"
+description: "Vets inbound Freshdesk tickets for aphelp@vixxo.com, ksonboarding@vixxo.com, and the SPM - Invoice Concerns folder against Gateway SP records and Salesforce Leads/Cases; posts Freshdesk internal notes, updates SP fields, and adds Salesforce notes when matches exist."
 category: operations
 agents:
   - cursor
   - claude-code
 author: "{{employee_name}}"
-version: "1.0.0"
-tags: [service-provider, vetting, freshdesk, gateway, salesforce, aphelp, ksonboarding, onboarding, sp-intake]
+version: "1.1.0"
+tags: [service-provider, vetting, freshdesk, gateway, salesforce, aphelp, ksonboarding, invoice-concerns, spm-invoice-concerns, onboarding, sp-intake]
 status: approved
 requires_mcp: [freshdesk, gateway, salesforce]
 source: vixxo

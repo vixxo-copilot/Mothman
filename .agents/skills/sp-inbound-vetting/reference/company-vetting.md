@@ -17,11 +17,14 @@ Run after [intake](intake.md) entity extraction. This skill searches **Gateway
 
 ## Search order
 
-1. If an **SP number** is cited, resolve it first via
-   `gateway_swm_get_provider` (or equivalent Gateway SWM read).
+1. If an **SP number** is cited, resolve via `gateway_search_invoices`
+   (`serviceProviderNumber`) or `gateway_swm_get_provider`.
 2. If an **SR number** is cited, pull `gateway_get_service_request` and capture
    the assigned SP number + name from the SR payload.
-3. Run **parallel name searches** when MCP is available.
+3. If a **KS number** appears, use `gateway_search_invoices` with
+   `serviceProviderNumber`.
+4. Run **company name search** via `gateway_search_invoices` (`searchString`)
+   and Salesforce SOQL when MCP is available.
 4. On multiple fuzzy hits, pick the best match; list alternates under **Open
    questions**. Never merge distinct companies.
 
@@ -29,9 +32,10 @@ Run after [intake](intake.md) entity extraction. This skill searches **Gateway
 
 | Step | Tool | Notes |
 | --- | --- | --- |
-| List / filter | `gateway_swm_list_providers` | Scan returned rows for name match |
-| Detail | `gateway_swm_get_provider` | When SP number is known |
-| SR anchor | `gateway_get_service_request` | When SR cited; inherit SP from SR |
+| SP by KS# | `gateway_search_invoices` | Pass `serviceProviderNumber` (e.g. `KS101031`) |
+| SP by name | `gateway_search_invoices` | Pass `searchString` (company name) |
+| SR anchor | `gateway_get_service_request` | When SR cited; inherit SP from SR payload |
+| Legacy detail | `gateway_swm_get_provider` | Fallback when KS lookup returns empty |
 
 Treat a confident Gateway SP hit as **Known SP**. Capture:
 

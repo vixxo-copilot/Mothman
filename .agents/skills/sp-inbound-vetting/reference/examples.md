@@ -9,9 +9,10 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 51234 | ksonboarding | Apex HVAC LLC | Known SP | 1044555 | Lead | Yes | complete |
 | 2 | 51235 | aphelp | NewCo Electric | Prospect | — | Lead | Yes | complete |
-| 3 | 51236 | aphelp | (missing) | Unknown | — | — | No | partial |
+| 3 | 47896 | spm-invoice-concerns | LockPro LLC | Known SP | KS101347 | — | Yes | complete |
+| 4 | 51236 | aphelp | (missing) | Unknown | — | — | No | partial |
 
-**Counts:** 3 vetted | 0 skipped | 1 Known SP | 1 Prospect | 1 Unknown
+**Counts:** 4 vetted | 0 skipped | 2 Known SP | 1 Prospect | 1 Unknown
 ```
 
 ## Single packet — Known SP

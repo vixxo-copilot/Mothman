@@ -1,23 +1,32 @@
 ---
 name: sp-inbound-vetting
 description: >-
-  Vets inbound items received at aphelp@vixxo.com and ksonboarding@vixxo.com
-  by searching Gateway for existing service providers and Salesforce for Leads
-  and Cases. Posts Freshdesk internal notes, updates the ticket SP name/number
-  field when a match is found, and adds Salesforce Task notes on matched Leads
-  or Cases. Use when the user asks to vet AP Help or KS Onboarding intake,
-  confirm whether an SP already exists, enrich Freshdesk with SP # and name, or
-  document inbound mail against Gateway and Salesforce. For voicemail-only
-  KSOnboarding queue work use sp-voicemail-triage. For AP invoice classification
-  and replies use vixxo-freshdesk-invoice-review.
+  Vets inbound Freshdesk items for aphelp@vixxo.com, ksonboarding@vixxo.com,
+  and the SPM - Invoice Concerns folder by searching Gateway for existing
+  service providers and Salesforce for Leads and Cases. Posts Freshdesk internal
+  notes, updates the ticket SP name/number field when a match is found, and
+  adds Salesforce Task notes on matched Leads or Cases. Use when the user asks
+  to vet AP Help, KS Onboarding, or SPM Invoice Concerns intake, confirm whether
+  an SP already exists, enrich Freshdesk with SP # and name, or document inbound
+  mail against Gateway and Salesforce. For voicemail-only KSOnboarding queue
+  work use sp-voicemail-triage. For invoice resolution and provider replies use
+  vixxo-spm-invoice-concerns or vixxo-freshdesk-invoice-review.
 ---
 
-# SP Inbound Vetting (AP Help + KS Onboarding)
+# SP Inbound Vetting (AP Help + KS Onboarding + SPM Invoice Concerns)
 
-Work-only workflow that **vets service-provider identity** on inbound mail
-received at **`aphelp@vixxo.com`** and **`ksonboarding@vixxo.com`**. For each
-item the skill searches **Gateway** (Siebel SP) and **Salesforce** (Lead /
-Case), then **documents findings** in Freshdesk and Salesforce.
+Work-only workflow that **vets service-provider identity** on inbound SPM
+mail and tickets. For each item the skill searches **Gateway** (Siebel SP) and
+**Salesforce** (Lead / Case), then **documents findings** in Freshdesk and
+Salesforce.
+
+**Intake surfaces:**
+
+| Surface | Scope |
+| --- | --- |
+| `aphelp@vixxo.com` | Open SPM tickets sent to AP Help |
+| `ksonboarding@vixxo.com` | KS Onboarding queue (`type:'KSOnboarding'`) |
+| **SPM - Invoice Concerns** | Open `Invoice Support` tickets in the Freshdesk folder of that name |
 
 This skill **enriches and annotates** tickets. It does **not** classify
 invoices, draft provider replies, forward mail, or change ticket status unless
@@ -26,24 +35,32 @@ invoices, draft provider replies, forward mail, or change ticket status unless
 ## When to use
 
 - "Vet AP Help intake" / "vet ksonboarding tickets"
-- "Check if this SP already exists" on an aphelp or ksonboarding item
+- "Vet SPM Invoice Concerns" / "vet open invoice concern tickets"
+- "Vet untouched items in SPM - Invoice Concerns"
+- "Check if this SP already exists" on an aphelp, ksonboarding, or invoice-concerns item
 - "Enrich Freshdesk with SP number and name" for inbound SPM mail
-- Batch: "vet all open aphelp and ksonboarding items"
+- Batch: "vet all open aphelp, ksonboarding, and invoice concerns items"
 - Single ticket: "vet Freshdesk #51234"
 
 **Use `sp-voicemail-triage`** for subject `New voicemail` items.
 
-**Use `vixxo-freshdesk-invoice-review`** for AP invoice triage, bucket
-classification, and provider reply drafting — that skill **excludes**
-ksonboarding recipient tickets; this skill **owns** them.
+**Use `vixxo-spm-invoice-concerns`** for invoice/payment Gateway analysis,
+proposed resolutions, and invoice workflow tags (`spm-invoice-concerns-reviewed`).
+That skill does **not** replace SP identity vetting — run this skill on Invoice
+Concerns items until they carry `sp-vetted`.
+
+**Use `vixxo-freshdesk-invoice-review`** for AP Help Desk No Agent queue,
+bucket classification, and provider reply drafting.
 
 ## Operating modes
 
 | Mode | Trigger | Behavior |
 | --- | --- | --- |
-| **Batch (default)** | No single item named | Pull all in-scope Open Freshdesk tickets |
+| **Batch (default)** | No single item named | Pull all in-scope Open, untouched Freshdesk tickets |
 | **Single** | Ticket id, URL, or one message | Full pipeline on one item |
 | **Dry-run (opt-in)** | User says "dry-run" / "preview only" | Vetting + packet only; no writes |
+
+**Untouched** = ticket is Open and **not** tagged `sp-vetted` (unless `re-vet`).
 
 **Phase 1 — Vet (automatic):** intake, entity extraction, Gateway + Salesforce
 search.
@@ -58,10 +75,17 @@ Task → Salesforce Case Task.
 
 ## Intake
 
-Follow [reference/intake.md](reference/intake.md).
+Follow [reference/intake.md](reference/intake.md) and
+[reference/queues.md](reference/queues.md).
 
-**In scope:** Freshdesk Open SPM tickets (`group_id:159000485013`, `status:2`)
-whose recipient is `aphelp@vixxo.com` or `ksonboarding@vixxo.com`.
+**In scope (batch default — `all`):**
+
+1. Open SPM tickets (`group_id:159000485013`, `status:2`) sent to
+   `aphelp@vixxo.com` or `ksonboarding@vixxo.com` (recipient gate).
+2. Open tickets in the Freshdesk folder **SPM - Invoice Concerns** — filter:
+   `group_id:159000485013 AND status:2 AND type:'Invoice Support'`.
+3. KS Onboarding queue:
+   `group_id:159000485013 AND status:2 AND type:'KSOnboarding'`.
 
 **Out of scope (default):** tickets tagged `sp-vetted` (unless `re-vet`);
 subject includes `New voicemail` (unless user says include voicemails).
@@ -80,7 +104,7 @@ See [reference/examples.md](reference/examples.md).
 | Field | Value |
 | --- | --- |
 | **Source** | Freshdesk #{id} / Outlook {message id} |
-| **Inbox** | aphelp / ksonboarding |
+| **Inbox / queue** | aphelp / ksonboarding / spm-invoice-concerns |
 | **Requester** | {name} <{email}> |
 | **Company** | {extracted or Not stated} |
 | **Reference IDs** | {SP # / SR / invoice / none} |
@@ -110,9 +134,9 @@ See [reference/examples.md](reference/examples.md).
 2. **Extract entities** — company, SP #, SR, contact email/phone
    ([intake.md](reference/intake.md)).
 3. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md):
-   - Gateway: `gateway_swm_list_providers`, `gateway_swm_get_provider`,
-     `gateway_get_service_request` when SR cited.
-   - Salesforce: Lead, Case, Account SOQL ([company-vetting.md](reference/company-vetting.md)).
+   - Gateway: `gateway_search_invoices` (by `serviceProviderNumber` or
+     `searchString`), `gateway_get_service_request` when SR cited.
+   - Salesforce: Lead, Case, Account SOQL.
 4. **Post Freshdesk internal note** —
    [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md)
    via `create_ticket_note` (`"private": true`).
@@ -139,16 +163,27 @@ See [reference/examples.md](reference/examples.md).
 | SF Lead only | Lead `Company` field or best extracted company name |
 | Unknown | `Unknown` — only when field is empty; do not overwrite a human-set value |
 
-Merge tags with existing tags; do not remove unrelated tags.
+Merge tags with existing tags; do not remove unrelated tags (including
+`spm-invoice-concerns-reviewed` from sibling skills).
 
 **Do not** set `status`, `type`, or other custom fields unless {{employee_name}}
 explicitly asks — invoice-review and COI skills own those transitions.
 
 6. **Salesforce notes** — [reference/salesforce-notes.md](reference/salesforce-notes.md):
-   - Task on matched **Lead** (ksonboarding items: always attempt when Lead found).
+   - Task on matched **Lead** when Lead found.
    - Task on matched **Case** when Case search hits.
 7. **Record failures** in the batch summary **Status** column; continue the
    pipeline where safe.
+
+## Batch scripts
+
+| Command | Purpose |
+| --- | --- |
+| `python scripts/dry_run_batch.py --queue invoice-concerns` | Preview Invoice Concerns vetting |
+| `python scripts/live_run_batch.py --queue invoice-concerns` | Live vet + write Invoice Concerns |
+| `python scripts/live_run_batch.py --queue all` | All three intake surfaces |
+
+See [reference/queues.md](reference/queues.md) for queue keys and filters.
 
 ## Document checklist (automatic)
 
@@ -181,10 +216,12 @@ Vetting progress — {ticket id}:
 | File | Purpose |
 | --- | --- |
 | [reference/intake.md](reference/intake.md) | Queue pull + entity extraction |
+| [reference/queues.md](reference/queues.md) | Queue filters incl. SPM Invoice Concerns |
 | [reference/company-vetting.md](reference/company-vetting.md) | Gateway + Salesforce search |
 | [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md) | Internal note body |
 | [reference/salesforce-notes.md](reference/salesforce-notes.md) | Task / Chatter writes |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
 
 Sibling skills: **`sp-voicemail-triage`** (voicemail routing),
-**`vixxo-freshdesk-invoice-review`** (AP invoice triage — excludes ksonboarding).
+**`vixxo-spm-invoice-concerns`** (invoice concern resolution — complements this skill),
+**`vixxo-freshdesk-invoice-review`** (AP Help Desk invoice triage).
