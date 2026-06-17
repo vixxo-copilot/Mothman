@@ -6,7 +6,7 @@ agents:
   - cursor
   - claude-code
 author: "{{employee_name}}"
-version: "1.1.1"
+version: "1.1.2"
 tags: [voicemail, transcription, service-provider, triage, callback, freshdesk, ksonboarding, automation, fast, vixxo]
 status: approved
 requires_mcp: [freshdesk]

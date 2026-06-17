@@ -113,7 +113,8 @@ Run the SP voicemail fast batch for Freshdesk KSOnboarding.
 3. Execute:
    python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 4. Report JSON summary: processed, transcribed, transcription_failed,
-   transcription_failed_ids, transcription_errors, routed, closed, failed.
+   transcription_failed_ids, transcription_errors, foul_language_closed,
+   routed, closed, failed.
 5. Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP.
 
 If preflight or setup fails, report the error and stop.
@@ -126,8 +127,9 @@ If transcription_failed > 0, list ticket IDs and errors; tickets were left open.
 2. Filter subjects that **include** `New voicemail`
 3. Load ticket + conversations; find **`.wav` or `.mp3`** attachment
 4. Download and transcribe via **faster-whisper** (`vad_filter=False` for short VMs)
-5. On success only: classify, internal note, forward, resolve
-6. On failure: skip ticket — no Freshdesk updates
+5. If transcript matches **foul-language** term list → internal note, **no forward**, resolve
+6. On success (no foul language): classify, internal note, forward, resolve
+7. On failure: skip ticket — no Freshdesk updates
 
 ## Flags
 

@@ -35,6 +35,26 @@ CALLER_BODY_RE = re.compile(
 )
 SR_RE = re.compile(r"\b(?:SR|service request|work order)\s*#?\s*(\d{5,10})\b", re.I)
 
+FOUL_LANGUAGE_TERMS = [
+    "fuck",
+    "fucker",
+    "fucking",
+    "fucked",
+    "motherfucker",
+    "shit",
+    "bullshit",
+    "shitty",
+    "bitch",
+    "bastard",
+    "asshole",
+    "cunt",
+    "dickhead",
+    "cock",
+    "whore",
+    "slut",
+    "piss off",
+]
+
 CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("COI / Compliance", ["coi", "certificate of insurance", "insurance", "acord", "additional insured"], "COI@vixxo.com"),
     ("Payment Information", ["payment", "paid", "check", "remittance", "ach", "wire", "when paid", "haven't received payment"], "aphelp@vixxo.com"),
@@ -218,6 +238,12 @@ def _keyword_in_text(keyword: str, text: str) -> bool:
     return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
 
 
+def detect_foul_language(transcript: str) -> tuple[bool, list[str]]:
+    text = transcript.lower()
+    hits = [term for term in FOUL_LANGUAGE_TERMS if _keyword_in_text(term, text)]
+    return bool(hits), hits
+
+
 def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
     text = transcript.lower()
     sr = None
@@ -264,10 +290,18 @@ def internal_note(
     skip_vetting: bool = False,
     transcript_source: str = "metadata-only",
     stt_error: str = "",
+    foul_language: bool = False,
+    foul_terms: list[str] | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
-    if no_email:
+    if foul_language:
+        routing_action = (
+            "- **Forward to:** Skipped (foul language detected in transcript)\n"
+            "- **Email forward sent:** No\n"
+            "- **Disposition:** Resolve without forward"
+        )
+    elif no_email:
         routing_action = (
             f"- **Recommended forward to:** {route}\n"
             f"- **Email forward sent:** No (no-email skill)\n"
@@ -298,11 +332,17 @@ def internal_note(
     stt_line = f"**Transcript source:** {transcript_source}"
     if stt_error:
         stt_line += f"\n**Transcription error:** {stt_error}"
+    if foul_language:
+        stt_line += "\n**Foul language detected:** Yes — forward skipped per policy"
 
     callback_rationale = (
-        "Voicemail left on KS onboarding line; spoken content transcribed from audio attachment."
-        if transcript_source == TRANSCRIPT_SOURCE
-        else "Voicemail left on KS onboarding line; no audio transcript available."
+        "Voicemail contained foul language; ticket closed without forward per policy."
+        if foul_language
+        else (
+            "Voicemail left on KS onboarding line; spoken content transcribed from audio attachment."
+            if transcript_source == TRANSCRIPT_SOURCE
+            else "Voicemail left on KS onboarding line; no audio transcript available."
+        )
     )
 
     return f"""**SP Voicemail Triage — Freshdesk #{ticket_id}**
@@ -411,9 +451,15 @@ def process_ticket(
         return result
 
     category, route, sr = classify(transcript, meta)
+    foul_language, foul_terms = detect_foul_language(transcript)
+    if foul_language:
+        category = "Foul Language / Abusive"
+        route = "—"
     callback, urgency = callback_decision(transcript)
+    if foul_language:
+        callback, urgency = "No", "Normal"
 
-    if category == "Service Request / Dispatch" and sr:
+    if category == "Service Request / Dispatch" and sr and not foul_language:
         route = "service.providermanagement@vixxo.com"
         forward_subject = f"{sr}, Need Assistance"
     else:
@@ -432,6 +478,8 @@ def process_ticket(
         skip_vetting=skip_vetting,
         transcript_source=transcript_source,
         stt_error=stt_error,
+        foul_language=foul_language,
+        foul_terms=foul_terms,
     )
     result = Result(
         ticket_id=tid,
@@ -445,7 +493,7 @@ def process_ticket(
     )
 
     if dry_run:
-        result.note = "dry-run"
+        result.note = "dry-run:foul-language" if foul_language else "dry-run"
         return result
 
     try:
@@ -460,7 +508,9 @@ def process_ticket(
         result.note = f"failed:{exc.code}"
         result.error = f"note:{exc.reason}"
 
-    if no_email:
+    if foul_language:
+        result.forward = "not-sent:foul-language"
+    elif no_email:
         result.forward = "not-sent:no-email"
     else:
         forward_body = (
@@ -583,7 +633,12 @@ def main() -> int:
         "routed": sum(
             1
             for r in results
-            if r.forward and not str(r.forward).startswith("failed") and r.forward != "not-sent:no-email"
+            if r.forward
+            and not str(r.forward).startswith("failed")
+            and not str(r.forward).startswith("not-sent:")
+        ),
+        "foul_language_closed": sum(
+            1 for r in results if str(r.forward) == "not-sent:foul-language" and r.resolve == "closed"
         ),
         "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
@@ -602,6 +657,7 @@ def main() -> int:
                         "processed",
                         "transcribed",
                         "transcription_failed",
+                        "foul_language_closed",
                         "routed",
                         "closed",
                         "failed",

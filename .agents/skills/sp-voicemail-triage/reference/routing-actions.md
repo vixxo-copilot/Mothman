@@ -17,8 +17,24 @@ decision, and [company vetting](company-vetting.md).
 | Coverage / Onboarding | See **Onboarding branch** below | Varies | |
 | Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
 | Wrong Number / Non-SP | None | Internal note only; resolve | No forward |
+| Foul Language / Abusive | **None** | Internal note + resolve | **No forward** — profanity in transcript |
 
 Categories align with [categories.md](categories.md).
+
+## Foul language branch
+
+When the **transcript** (from audio STT) matches a term on the foul-language
+list in `scripts/batch_process_freshdesk.py`:
+
+1. **Do not forward** email — skip forward regardless of what other keywords
+   would have matched.
+2. Post the **private internal note** (category `Foul Language / Abusive`,
+   routing section states skip reason).
+3. **Resolve** the ticket (`status: 5`, `cf_sp: Unknown`).
+4. **Callback:** No; urgency Normal.
+
+This runs **after** successful transcription and **before** forward. It
+overrides classification and SR vetting branches.
 
 ## Onboarding branch (want to join as SP)
 

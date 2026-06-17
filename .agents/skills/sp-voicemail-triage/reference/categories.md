@@ -148,6 +148,19 @@ Not a service provider, wrong number, sales solicitation, personal call.
 
 **Suggested routing:** None — document and archive
 
+---
+
+### Foul Language / Abusive
+
+Transcript contains profanity or abusive language (word-boundary match on the
+foul-language term list in `batch_process_freshdesk.py`).
+
+**Signals:** profanity detected in Whisper transcript after successful STT
+
+**Forward to:** **None** — post private internal note, **resolve without forward**
+
+**Priority:** Overrides all other categories when matched.
+
 ## Multi-topic messages
 
 When the caller mentions multiple topics:
