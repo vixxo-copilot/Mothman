@@ -8,6 +8,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -23,6 +24,7 @@ DEFAULT_DOMAIN = "vixxo-helpdesk.freshdesk.com"
 QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
 OUT_DIR = Path(__file__).resolve().parent.parent / ".tmp" / "batch-run"
 TIMEOUT = 90
+MAX_HTTP_ATTEMPTS = 5
 
 NEW_VOICEMAIL_SUBJECT_RE = re.compile(r"\bnew voicemail\b", re.I)
 PHONE_RE = re.compile(r"\(\+1(\d{10})\)|\+1(\d{10})|(\d{3})[-. ](\d{3})[-. ](\d{4})")
@@ -88,9 +90,22 @@ def http_json(method: str, path: str, api_key: str, body: dict | None = None) ->
     headers = auth_headers(api_key)
     if body is not None:
         data = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        raw = resp.read()
+    raw = b""
+    for attempt in range(1, MAX_HTTP_ATTEMPTS + 1):
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                raw = resp.read()
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (429, 500, 502, 503, 504) or attempt == MAX_HTTP_ATTEMPTS:
+                raise
+            retry_after = exc.headers.get("Retry-After")
+            try:
+                sleep_for = float(retry_after) if retry_after else 2 ** attempt
+            except ValueError:
+                sleep_for = 2 ** attempt
+            time.sleep(min(sleep_for, 60))
     if not raw:
         return None
     return json.loads(raw.decode("utf-8"))

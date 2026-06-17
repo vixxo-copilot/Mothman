@@ -9,7 +9,6 @@ import re
 import subprocess
 import sys
 import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 from html import unescape
 from pathlib import Path
@@ -19,7 +18,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"))
 
-from batch_process_freshdesk import auth_headers, load_credentials, strip_html  # noqa: E402
+from batch_process_freshdesk import http_json, load_credentials, strip_html  # noqa: E402
 from gateway_vetting import gateway_find_sp  # noqa: E402
 from queue_config import VettingQueue, resolve_queues  # noqa: E402
 
@@ -33,10 +32,8 @@ def search_all(api_key: str, query: str) -> list[dict]:
     results: list[dict] = []
     for page in range(1, 11):
         params = {"query": f'"{query}"', "page": str(page)}
-        url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            data = json.loads(resp.read().decode())
+        path = "/api/v2/search/tickets?" + urllib.parse.urlencode(params)
+        data = http_json("GET", path, api_key)
         page_results = data.get("results") or []
         results.extend(page_results)
         if len(page_results) < 30:
@@ -45,10 +42,7 @@ def search_all(api_key: str, query: str) -> list[dict]:
 
 
 def get_ticket(api_key: str, ticket_id: int) -> dict:
-    url = f"https://{DOMAIN}/api/v2/tickets/{ticket_id}?include=requester"
-    req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
-    with urllib.request.urlopen(req, timeout=90) as resp:
-        return json.loads(resp.read().decode())
+    return http_json("GET", f"/api/v2/tickets/{ticket_id}?include=requester", api_key)
 
 
 def ticket_text_blob(ticket: dict) -> str:
