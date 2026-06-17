@@ -8,6 +8,7 @@ Post via `create_ticket_note` with `"private": true`.
 **Processed:** {ISO date}
 **Inbox / queue:** {aphelp@vixxo.com | ksonboarding@vixxo.com | spm-invoice-concerns}
 **Requester:** {name} <{email}>
+**Contact name searched:** {contact name from requester}
 **Extracted company:** {company or Not stated}
 **Reference IDs:** {SP # / SR / invoice / none}
 
@@ -18,6 +19,7 @@ Post via `create_ticket_note` with `"private": true`.
 | System | Match | Identifier |
 | --- | --- | --- |
 | Gateway SP | {Yes/No/Possible} | {SP # — display name} |
+| VixxoLink SP | {Yes/No/Possible} | {SP # — name from SR} |
 | Salesforce Lead | {Yes/No/Possible} | {Lead Id — Status} |
 | Salesforce Case | {Yes/No/Possible} | {Case # — Status} |
 | Salesforce Account | {Yes/No/Possible} | {Account Id} |

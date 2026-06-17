@@ -20,12 +20,10 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"))
 
 from batch_process_freshdesk import auth_headers, load_credentials, strip_html  # noqa: E402
-from mcp_http import mcp_call, mcp_result_text  # noqa: E402
+from gateway_vetting import gateway_find_sp  # noqa: E402
 from queue_config import VettingQueue, resolve_queues  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
-GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
-VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
 VOICEMAIL_RE = re.compile(r"\bnew voicemail\b", re.I)
 KS_RE = re.compile(r"\b(KS\d+)\b", re.I)
 SR_RE = re.compile(r"\b(1-\d{9,10})\b")
@@ -77,6 +75,7 @@ def extract_company(ticket: dict) -> dict:
     desc = ticket.get("description_text") or strip_html(ticket.get("description") or "")
     requester = ticket.get("requester") or {}
     email = requester.get("email") or ""
+    contact_name = (requester.get("name") or "").strip()
     cf = ticket.get("custom_fields") or {}
     cf_sp = cf.get("cf_sp")
 
@@ -111,11 +110,15 @@ def extract_company(ticket: dict) -> dict:
     if not company and "fastsigns.com" in email.lower():
         company = "FastSigns"
 
+    if not company and contact_name and contact_name.lower() not in ("team", "not stated"):
+        company = contact_name
+
     ks = KS_RE.search(f"{subject} {cf_sp or ''}")
     sr = SR_RE.search(f"{subject} {desc}")
 
     return {
         "company": company or "Not stated",
+        "contact_name": contact_name or "Not stated",
         "ks_number": ks.group(1).upper() if ks else None,
         "sr_number": sr.group(1) if sr else None,
         "requester_email": email or "Not stated",
@@ -146,72 +149,11 @@ def sf_query(soql: str) -> list[dict]:
     return [{"_error": "Salesforce CLI unavailable"}]
 
 
-def parse_json_blob(text: str) -> Any:
-    text = text.strip()
-    if not text:
-        return None
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        m = re.search(r"\{.*\}|\[.*\]", text, re.S)
-        if m:
-            try:
-                return json.loads(m.group(0))
-            except json.JSONDecodeError:
-                return None
-    return None
-
-
-def gateway_find_sp(entities: dict) -> dict | None:
-    ks = entities.get("ks_number")
-    sr = entities.get("sr_number")
-    company = entities.get("company") or ""
-
-    if sr:
-        for url, tool in ((GATEWAY_URL, "gateway_get_service_request"),):
-            args = {"service_request_number": sr, "number": sr, "sr_number": sr}
-            resp = mcp_call(url, tool, args)
-            data = parse_json_blob(mcp_result_text(resp))
-            if isinstance(data, dict):
-                rows = data.get("serviceRequestList") or [data]
-                for row in rows:
-                    if not isinstance(row, dict):
-                        continue
-                    sp_num = row.get("siebelServiceProviderNum") or row.get("serviceProviderNumber")
-                    sp_name = row.get("serviceProviderName")
-                    if sp_num or sp_name:
-                        return {"sp_number": sp_num, "name": sp_name, "source": f"{tool}({sr})"}
-
-    if ks:
-        resp = mcp_call(GATEWAY_URL, "gateway_search_invoices", {"serviceProviderNumber": ks})
-        data = parse_json_blob(mcp_result_text(resp))
-        inv_list = (data or {}).get("invoiceList") or ((data or {}).get("data") or {}).get("invoiceList") or []
-        if inv_list:
-            row = inv_list[0]
-            return {
-                "sp_number": row.get("serviceProviderNumber") or ks,
-                "name": row.get("serviceProviderName"),
-                "source": f"gateway_search_invoices({ks})",
-            }
-
-    if company and company != "Not stated":
-        resp = mcp_call(GATEWAY_URL, "gateway_search_invoices", {"searchString": company})
-        data = parse_json_blob(mcp_result_text(resp))
-        inv_list = (data or {}).get("invoiceList") or ((data or {}).get("data") or {}).get("invoiceList") or []
-        if inv_list:
-            row = inv_list[0]
-            return {
-                "sp_number": row.get("serviceProviderNumber"),
-                "name": row.get("serviceProviderName"),
-                "source": f"gateway_search_invoices({company})",
-            }
-    return None
-
-
 def salesforce_search(entities: dict) -> dict:
     out: dict = {"lead": None, "case": None, "errors": []}
     company = entities.get("company") or ""
     email = entities.get("requester_email") or ""
+    contact_name = entities.get("contact_name") or ""
 
     if company != "Not stated":
         esc = company.replace("'", "\\'")
@@ -224,7 +166,16 @@ def salesforce_search(entities: dict) -> dict:
         elif leads and leads[0].get("_error"):
             out["errors"].append(leads[0]["_error"])
 
-    if email not in ("Not stated", "") and not out["lead"]:
+    if contact_name not in ("Not stated", "") and not out.get("lead"):
+        esc = contact_name.replace("'", "\\'")
+        leads = sf_query(
+            "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+            f"WHERE Name LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 3"
+        )
+        if leads and not leads[0].get("_error"):
+            out["lead"] = leads[0]
+
+    if email not in ("Not stated", "") and not out.get("lead"):
         esc = email.replace("'", "\\'")
         leads = sf_query(
             f"SELECT Id, Name, Company, Status, Email FROM Lead WHERE Email = '{esc}' LIMIT 3"
@@ -285,6 +236,7 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
                 "inbox_label": queue.inbox_label,
                 "subject": summary.get("subject"),
                 "company": entities["company"],
+                "contact_name": entities["contact_name"],
                 "ks_number": entities["ks_number"],
                 "sr_number": entities["sr_number"],
                 "requester": entities["requester_email"],

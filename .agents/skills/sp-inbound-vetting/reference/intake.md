@@ -104,11 +104,12 @@ From subject, body, requester, and attachments metadata extract:
 
 | Field | Priority |
 | --- | --- |
+| Contact name | Freshdesk requester `name` (always capture for Gateway name search) |
 | SP number | Explicit `SP #`, `SP-`, `KS#####`, Siebel-style numbers in body |
-| Company name | Requester org, signature, subject, body |
-| Contact name | Requester display name |
-| Email / phone | Requester + body |
-| SR / invoice refs | Use to bootstrap Gateway lookup when company is missing |
+| Company name | Requester org, signature, subject, body, email domain |
+| Email | Requester email (Gateway `createdByUsername` search) |
+| Phone | Requester + body |
+| SR / invoice refs | Use to bootstrap Gateway / VixxoLink lookup when company is missing |
 
 Normalize company names before search (strip punctuation; keep LLC/Inc when
 matching Siebel rows).

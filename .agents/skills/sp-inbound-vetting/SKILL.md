@@ -2,23 +2,24 @@
 name: sp-inbound-vetting
 description: >-
   Vets inbound Freshdesk items for aphelp@vixxo.com, ksonboarding@vixxo.com,
-  and the SPM - Invoice Concerns folder by searching Gateway for existing
-  service providers and Salesforce for Leads and Cases. Posts Freshdesk internal
-  notes, updates the ticket SP name/number field when a match is found, and
-  adds Salesforce Task notes on matched Leads or Cases. Use when the user asks
-  to vet AP Help, KS Onboarding, or SPM Invoice Concerns intake, confirm whether
-  an SP already exists, enrich Freshdesk with SP # and name, or document inbound
-  mail against Gateway and Salesforce. For voicemail-only KSOnboarding queue
-  work use sp-voicemail-triage. For invoice resolution and provider replies use
+  and the SPM - Invoice Concerns folder by searching Gateway and VixxoLink
+  (SP number, SR, contact name, email, company) and Salesforce for Leads and
+  Cases. Posts Freshdesk internal notes, updates the ticket SP name/number
+  field when a match is found, and adds Salesforce Task notes on matched Leads
+  or Cases. Use when the user asks to vet AP Help, KS Onboarding, or SPM
+  Invoice Concerns intake, confirm whether an SP already exists, enrich
+  Freshdesk with SP # and name, or document inbound mail against Gateway,
+  VixxoLink, and Salesforce. For voicemail-only KSOnboarding queue work use
+  sp-voicemail-triage. For invoice resolution and provider replies use
   vixxo-spm-invoice-concerns or vixxo-freshdesk-invoice-review.
 ---
 
 # SP Inbound Vetting (AP Help + KS Onboarding + SPM Invoice Concerns)
 
 Work-only workflow that **vets service-provider identity** on inbound SPM
-mail and tickets. For each item the skill searches **Gateway** (Siebel SP) and
-**Salesforce** (Lead / Case), then **documents findings** in Freshdesk and
-Salesforce.
+mail and tickets. For each item the skill searches **Gateway** and **VixxoLink**
+(SP number, SR, contact name, email, company) and **Salesforce** (Lead /
+Case), then **documents findings** in Freshdesk and Salesforce.
 
 **Intake surfaces:**
 
@@ -106,6 +107,7 @@ See [reference/examples.md](reference/examples.md).
 | **Source** | Freshdesk #{id} / Outlook {message id} |
 | **Inbox / queue** | aphelp / ksonboarding / spm-invoice-concerns |
 | **Requester** | {name} <{email}> |
+| **Contact name** | {Freshdesk requester name} |
 | **Company** | {extracted or Not stated} |
 | **Reference IDs** | {SP # / SR / invoice / none} |
 | **Entity posture** | {from company vetting} |
@@ -134,9 +136,13 @@ See [reference/examples.md](reference/examples.md).
 2. **Extract entities** — company, SP #, SR, contact email/phone
    ([intake.md](reference/intake.md)).
 3. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md):
-   - Gateway: `gateway_search_invoices` (by `serviceProviderNumber` or
-     `searchString`), `gateway_get_service_request` when SR cited.
-   - Salesforce: Lead, Case, Account SOQL.
+   - **Gateway:** `gateway_search_invoices` by KS#, email (`createdByUsername`),
+     contact name, company (`searchString`); `gateway_get_service_request` when
+     SR cited.
+   - **VixxoLink:** `vixxolink_resolve_service_request` to cross-check SR-assigned
+     SP when SR is known or discovered via invoice chain.
+   - **Salesforce:** Lead / Case / Account SOQL by company, **contact name**, and
+     requester email.
 4. **Post Freshdesk internal note** —
    [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md)
    via `create_ticket_note` (`"private": true`).
@@ -189,8 +195,9 @@ See [reference/queues.md](reference/queues.md) for queue keys and filters.
 
 ```
 Vetting progress — {ticket id}:
-- [ ] Gateway SP search complete
-- [ ] Salesforce Lead search complete
+- [ ] Gateway SP search complete (KS/SR/email/name/company)
+- [ ] VixxoLink SR cross-check complete (when SR present)
+- [ ] Salesforce Lead search complete (company + contact name + email)
 - [ ] Salesforce Case search complete
 - [ ] Internal note posted
 - [ ] cf_sp + sp-vetted tag updated

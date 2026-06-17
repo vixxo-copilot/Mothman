@@ -71,6 +71,8 @@ def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[s
 
 **Processed:** {ts}
 **Inbox / queue:** {inbox}
+**Requester:** {item.get('requester', 'Not stated')}
+**Contact name:** {item.get('contact_name', 'Not stated')}
 **Extracted company:** {item.get('company', 'Not stated')}
 **Reference IDs:** SR {item.get('sr_number') or 'none'} | KS {item.get('ks_number') or 'none'}
 
