@@ -161,6 +161,27 @@ foul-language term list in `batch_process_freshdesk.py`).
 
 **Priority:** Overrides all other categories when matched.
 
+---
+
+### Too Short (<10s)
+
+Voicemail duration under 10 seconds (from 8x8 `Duration: MM:SS` metadata or
+Whisper audio length).
+
+**Signals:** duration &lt; 0:10
+
+**Forward to:** **None** — post private internal note, **resolve without forward**
+
+---
+
+### Blank / Minimal Speech
+
+Spoken transcript is empty or only one or two words after STT.
+
+**Signals:** blank audio, hang-up, "hello", "test", single-word messages
+
+**Forward to:** **None** — post private internal note, **resolve without forward**
+
 ## Multi-topic messages
 
 When the caller mentions multiple topics:

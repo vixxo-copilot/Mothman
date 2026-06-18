@@ -152,7 +152,9 @@ def _suffix_for_filename(filename: str) -> str:
     return ".wav"
 
 
-def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") -> str:
+def transcribe_audio_bytes(
+    audio_bytes: bytes, filename: str = "voicemail.wav"
+) -> tuple[str, float | None]:
     if not audio_bytes:
         raise RuntimeError("Downloaded audio file is empty")
 
@@ -163,7 +165,7 @@ def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") 
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(audio_bytes)
             tmp_path = tmp.name
-        segments, _info = model.transcribe(
+        segments, info = model.transcribe(
             tmp_path,
             language="en",
             vad_filter=False,
@@ -171,20 +173,18 @@ def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "voicemail.wav") 
         )
         parts = [segment.text.strip() for segment in segments if segment.text.strip()]
         text = " ".join(parts).strip()
+        duration_seconds = getattr(info, "duration", None)
     finally:
         if tmp_path and os.path.isfile(tmp_path):
             os.unlink(tmp_path)
 
-    if not text:
-        raise RuntimeError(
-            "faster-whisper returned empty transcript (silent or unintelligible audio)"
-        )
-    return text
+    return text, duration_seconds
 
 
 def transcribe_wav_bytes(wav_bytes: bytes, filename: str = "voicemail.wav") -> str:
-    """Backward-compatible alias."""
-    return transcribe_audio_bytes(wav_bytes, filename)
+    """Backward-compatible alias — returns transcript text only."""
+    text, _duration = transcribe_audio_bytes(wav_bytes, filename)
+    return text
 
 
 def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
@@ -200,10 +200,11 @@ def transcribe_ticket(ticket: dict, api_key: str) -> dict[str, Any]:
     model_size, device, compute_type = whisper_settings()
     try:
         audio = download_attachment(url, api_key)
-        text = transcribe_audio_bytes(audio, filename)
+        text, duration_seconds = transcribe_audio_bytes(audio, filename)
         return {
             "ok": True,
             "transcript": text,
+            "duration_seconds": duration_seconds,
             "attachment_name": filename,
             "attachment_source": att.get("_source"),
             "bytes": len(audio),

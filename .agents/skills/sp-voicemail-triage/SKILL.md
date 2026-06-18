@@ -219,7 +219,8 @@ Whisper or agent STT.
 2. Download via Freshdesk attachment URL (authenticated).
 3. Transcribe via **faster-whisper** (local; `pip install -r scripts/requirements.txt`, ffmpeg on PATH).
 4. Note `Transcript source: faster-whisper`.
-5. If transcript contains **foul language** → internal note, **skip forward**, resolve.
+5. If transcript matches a **no-forward** rule (foul language, &lt;10s duration,
+   blank or one/two words) → internal note, **skip forward**, resolve.
 6. Only then run classify, vetting (if applicable), and Phase 2 writes.
 
 **Single-item exception:** {{employee_name}} may paste a transcript or attach audio
@@ -248,6 +249,9 @@ must be `{SR_NUMBER}, Need Assistance`.
 
 For **foul language in transcript**: post internal note, **do not forward**, resolve.
 
+For **voicemail under 10 seconds** or **blank / one–two words**: post internal
+note, **do not forward**, resolve.
+
 If any write fails, continue the pipeline where safe, record the failure in the
 batch summary **Status** column, and do not re-attempt without user direction.
 
@@ -260,6 +264,10 @@ batch summary **Status** column, and do not re-attempt without user direction.
 - **Foul language:** profanity in the transcript → internal note + resolve,
   **no forward** (overrides category routing). See
   [reference/routing-actions.md](reference/routing-actions.md).
+- **Short duration:** voicemail under **10 seconds** → internal note + resolve,
+  **no forward**.
+- **Minimal speech:** blank transcript or **one/two words** only → internal note
+  + resolve, **no forward**.
 - Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
   automatically when this skill is invoked — except in explicit **dry-run** mode.
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.

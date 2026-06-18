@@ -55,6 +55,21 @@ FOUL_LANGUAGE_TERMS = [
     "piss off",
 ]
 
+MIN_FORWARD_DURATION_SECONDS = 10
+MAX_FORWARD_SPEECH_WORDS = 2
+
+SKIP_FORWARD_LABELS = {
+    "foul-language": "Skipped (foul language detected in transcript)",
+    "short-duration": "Skipped (voicemail under 10 seconds)",
+    "minimal-speech": "Skipped (blank or minimal speech — one or two words)",
+}
+
+SKIP_FORWARD_CATEGORIES = {
+    "foul-language": "Foul Language / Abusive",
+    "short-duration": "Too Short (<10s)",
+    "minimal-speech": "Blank / Minimal Speech",
+}
+
 CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("COI / Compliance", ["coi", "certificate of insurance", "insurance", "acord", "additional insured"], "COI@vixxo.com"),
     ("Payment Information", ["payment", "paid", "check", "remittance", "ach", "wire", "when paid", "haven't received payment"], "aphelp@vixxo.com"),
@@ -244,6 +259,50 @@ def detect_foul_language(transcript: str) -> tuple[bool, list[str]]:
     return bool(hits), hits
 
 
+def parse_duration_to_seconds(duration: str | None) -> int | None:
+    if not duration or str(duration).strip().lower() == "unknown":
+        return None
+    m = re.match(r"^(\d{1,2}):(\d{2})$", str(duration).strip())
+    if not m:
+        return None
+    return int(m.group(1)) * 60 + int(m.group(2))
+
+
+def resolve_duration_seconds(meta: dict, stt: dict[str, Any]) -> int | None:
+    from_meta = parse_duration_to_seconds(meta.get("duration"))
+    if from_meta is not None:
+        return from_meta
+    raw = stt.get("duration_seconds")
+    if raw is None:
+        return None
+    try:
+        return int(round(float(raw)))
+    except (TypeError, ValueError):
+        return None
+
+
+def count_speech_words(text: str) -> int:
+    cleaned = re.sub(r"[^\w\s'-]", " ", text or "")
+    return len([word for word in cleaned.split() if word.strip()])
+
+
+def detect_skip_forward(
+    meta: dict, stt: dict[str, Any], spoken_text: str
+) -> tuple[bool, str]:
+    foul, _hits = detect_foul_language(spoken_text)
+    if foul:
+        return True, "foul-language"
+
+    duration_seconds = resolve_duration_seconds(meta, stt)
+    if duration_seconds is not None and duration_seconds < MIN_FORWARD_DURATION_SECONDS:
+        return True, "short-duration"
+
+    if count_speech_words(spoken_text) <= MAX_FORWARD_SPEECH_WORDS:
+        return True, "minimal-speech"
+
+    return False, ""
+
+
 def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
     text = transcript.lower()
     sr = None
@@ -290,14 +349,17 @@ def internal_note(
     skip_vetting: bool = False,
     transcript_source: str = "metadata-only",
     stt_error: str = "",
-    foul_language: bool = False,
-    foul_terms: list[str] | None = None,
+    skip_forward_reason: str = "",
+    spoken_word_count: int | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
-    if foul_language:
+    if skip_forward_reason:
+        skip_label = SKIP_FORWARD_LABELS.get(
+            skip_forward_reason, f"Skipped ({skip_forward_reason})"
+        )
         routing_action = (
-            "- **Forward to:** Skipped (foul language detected in transcript)\n"
+            f"- **Forward to:** {skip_label}\n"
             "- **Email forward sent:** No\n"
             "- **Disposition:** Resolve without forward"
         )
@@ -332,17 +394,38 @@ def internal_note(
     stt_line = f"**Transcript source:** {transcript_source}"
     if stt_error:
         stt_line += f"\n**Transcription error:** {stt_error}"
-    if foul_language:
+    if skip_forward_reason == "foul-language":
         stt_line += "\n**Foul language detected:** Yes — forward skipped per policy"
+    elif skip_forward_reason == "short-duration":
+        stt_line += (
+            f"\n**Duration:** {meta.get('duration', 'Unknown')} "
+            f"(under {MIN_FORWARD_DURATION_SECONDS}s — forward skipped)"
+        )
+    elif skip_forward_reason == "minimal-speech":
+        word_count = spoken_word_count if spoken_word_count is not None else 0
+        stt_line += (
+            f"\n**Speech content:** {word_count} word(s) — forward skipped "
+            "(blank or one/two words only)"
+        )
 
-    callback_rationale = (
-        "Voicemail contained foul language; ticket closed without forward per policy."
-        if foul_language
-        else (
+    callback_rationales = {
+        "foul-language": "Voicemail contained foul language; ticket closed without forward per policy.",
+        "short-duration": (
+            f"Voicemail under {MIN_FORWARD_DURATION_SECONDS} seconds; "
+            "ticket closed without forward per policy."
+        ),
+        "minimal-speech": (
+            "Voicemail blank or only one/two words; "
+            "ticket closed without forward per policy."
+        ),
+    }
+    callback_rationale = callback_rationales.get(
+        skip_forward_reason,
+        (
             "Voicemail left on KS onboarding line; spoken content transcribed from audio attachment."
             if transcript_source == TRANSCRIPT_SOURCE
             else "Voicemail left on KS onboarding line; no audio transcript available."
-        )
+        ),
     )
 
     return f"""**SP Voicemail Triage — Freshdesk #{ticket_id}**
@@ -420,6 +503,7 @@ def process_ticket(
     transcript_source = "metadata-only"
     stt_error = ""
     transcription_ok = False
+    stt: dict[str, Any] = {}
     if transcribe:
         stt = transcribe_ticket(ticket, api_key)
         if stt.get("ok"):
@@ -450,16 +534,19 @@ def process_ticket(
         )
         return result
 
+    spoken_text = str(stt.get("transcript") or "")
+    spoken_word_count = count_speech_words(spoken_text)
+    skip_forward, skip_forward_reason = detect_skip_forward(meta, stt, spoken_text)
+
     category, route, sr = classify(transcript, meta)
-    foul_language, foul_terms = detect_foul_language(transcript)
-    if foul_language:
-        category = "Foul Language / Abusive"
+    if skip_forward:
+        category = SKIP_FORWARD_CATEGORIES.get(skip_forward_reason, category)
         route = "—"
     callback, urgency = callback_decision(transcript)
-    if foul_language:
+    if skip_forward:
         callback, urgency = "No", "Normal"
 
-    if category == "Service Request / Dispatch" and sr and not foul_language:
+    if category == "Service Request / Dispatch" and sr and not skip_forward:
         route = "service.providermanagement@vixxo.com"
         forward_subject = f"{sr}, Need Assistance"
     else:
@@ -478,8 +565,8 @@ def process_ticket(
         skip_vetting=skip_vetting,
         transcript_source=transcript_source,
         stt_error=stt_error,
-        foul_language=foul_language,
-        foul_terms=foul_terms,
+        skip_forward_reason=skip_forward_reason,
+        spoken_word_count=spoken_word_count,
     )
     result = Result(
         ticket_id=tid,
@@ -493,7 +580,7 @@ def process_ticket(
     )
 
     if dry_run:
-        result.note = "dry-run:foul-language" if foul_language else "dry-run"
+        result.note = f"dry-run:{skip_forward_reason}" if skip_forward_reason else "dry-run"
         return result
 
     try:
@@ -508,8 +595,8 @@ def process_ticket(
         result.note = f"failed:{exc.code}"
         result.error = f"note:{exc.reason}"
 
-    if foul_language:
-        result.forward = "not-sent:foul-language"
+    if skip_forward:
+        result.forward = f"not-sent:{skip_forward_reason}"
     elif no_email:
         result.forward = "not-sent:no-email"
     else:
@@ -640,6 +727,12 @@ def main() -> int:
         "foul_language_closed": sum(
             1 for r in results if str(r.forward) == "not-sent:foul-language" and r.resolve == "closed"
         ),
+        "short_duration_closed": sum(
+            1 for r in results if str(r.forward) == "not-sent:short-duration" and r.resolve == "closed"
+        ),
+        "minimal_speech_closed": sum(
+            1 for r in results if str(r.forward) == "not-sent:minimal-speech" and r.resolve == "closed"
+        ),
         "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
         "failed": [r.ticket_id for r in results if r.error or str(r.note).startswith("failed")],
@@ -658,6 +751,8 @@ def main() -> int:
                         "transcribed",
                         "transcription_failed",
                         "foul_language_closed",
+                        "short_duration_closed",
+                        "minimal_speech_closed",
                         "routed",
                         "closed",
                         "failed",

@@ -18,10 +18,17 @@ decision, and [company vetting](company-vetting.md).
 | Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
 | Wrong Number / Non-SP | None | Internal note only; resolve | No forward |
 | Foul Language / Abusive | **None** | Internal note + resolve | **No forward** — profanity in transcript |
+| Too Short (<10s) | **None** | Internal note + resolve | **No forward** — duration under 10 seconds |
+| Blank / Minimal Speech | **None** | Internal note + resolve | **No forward** — blank or one/two words |
 
 Categories align with [categories.md](categories.md).
 
-## Foul language branch
+## No-forward branches
+
+These run **after** successful transcription and **before** forward. Each
+**overrides** classification and SR vetting when matched.
+
+### Foul language
 
 When the **transcript** (from audio STT) matches a term on the foul-language
 list in `scripts/batch_process_freshdesk.py`:
@@ -33,8 +40,25 @@ list in `scripts/batch_process_freshdesk.py`:
 3. **Resolve** the ticket (`status: 5`, `cf_sp: Unknown`).
 4. **Callback:** No; urgency Normal.
 
-This runs **after** successful transcription and **before** forward. It
-overrides classification and SR vetting branches.
+### Short duration (<10 seconds)
+
+When voicemail **duration** (from 8x8 metadata `Duration: MM:SS`, or Whisper
+audio length when metadata is missing) is **under 10 seconds**:
+
+1. **Do not forward** email.
+2. Post private internal note (category `Too Short (<10s)`).
+3. **Resolve** the ticket.
+4. **Callback:** No; urgency Normal.
+
+### Blank / minimal speech
+
+When the **spoken transcript** (STT text only, not email metadata) is **blank**
+or **one or two words**:
+
+1. **Do not forward** email.
+2. Post private internal note (category `Blank / Minimal Speech`).
+3. **Resolve** the ticket.
+4. **Callback:** No; urgency Normal.
 
 ## Onboarding branch (want to join as SP)
 

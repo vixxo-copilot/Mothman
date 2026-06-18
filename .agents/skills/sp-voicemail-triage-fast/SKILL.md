@@ -73,8 +73,8 @@ content must come from transcribing the attachment.
 2. Filter voicemail subjects
 3. Download **audio attachment** (`.wav` or `.mp3`, required)
 4. Transcribe with **faster-whisper** (local) — **required**
-5. If transcript contains **foul language** → internal note, **no forward**, resolve
-6. **On transcription success (and no foul language):** classify, internal note, forward, resolve
+5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
+6. **Otherwise:** classify, internal note, forward, resolve
 7. **On transcription failure:** skip ticket — no Freshdesk updates
 
 Phase 2 runs automatically (except `--dry-run`).
