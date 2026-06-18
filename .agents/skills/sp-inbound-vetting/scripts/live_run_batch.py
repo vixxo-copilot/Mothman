@@ -38,7 +38,7 @@ def sf_bin() -> str:
 
 
 def posture_tag(posture: str) -> str:
-    if posture.startswith("Known SP"):
+    if posture.startswith("Known SP") or posture.startswith("Possible SP"):
         return "known-sp"
     if "SF Lead" in posture or posture.startswith("Prospect"):
         return "sf-lead-match"
@@ -49,16 +49,32 @@ def posture_tag(posture: str) -> str:
 
 def gateway_row(item: dict) -> tuple[str, str]:
     gw = item.get("gateway_sp") or {}
-    if item["posture"].startswith("Known SP") and gw:
+    posture = item.get("posture") or ""
+    if not gw:
+        return "No", "No match"
+    if posture.startswith("Possible SP"):
+        score = gw.get("match_score")
+        score_note = f" (similarity {score})" if score else ""
+        alts = gw.get("alternates") or []
+        alt_note = f"; alternates: {len(alts)}" if alts else ""
+        return (
+            "Possible",
+            f"{gw.get('sp_number')} — {gw.get('name')}{score_note}{alt_note} ({gw.get('source', 'Gateway')})",
+        )
+    if posture.startswith("Known SP"):
         return "Yes", f"{gw.get('sp_number')} — {gw.get('name')} ({gw.get('source', 'Gateway')})"
-    return "No", item.get("gateway_sp") or "No match"
+    return "No", "No match"
 
 
 def sf_lead_row(item: dict) -> tuple[str, str]:
     lead = item.get("sf_lead")
-    if lead:
-        return "Yes", f"{lead['Id']} — {lead.get('Status', 'Unknown')}"
-    return "No", "No match"
+    if not lead:
+        return "No", "No match"
+    match_type = lead.get("match_type", "exact")
+    label = "Yes" if match_type == "exact" else "Possible"
+    score = lead.get("match_score")
+    score_note = f" (similarity {score})" if score and match_type != "exact" else ""
+    return label, f"{lead['Id']} — {lead.get('Status', 'Unknown')}{score_note}"
 
 
 def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[str], sf_task: str) -> str:
@@ -86,7 +102,7 @@ def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[s
 | Salesforce Lead | {lead_yes} | {lead_id} |
 | Salesforce Case | No | No match |
 
-**Entity posture:** {item['posture']}
+**Entity posture:** {item['posture']} (confidence: {item.get('confidence', 'n/a')})
 
 ---
 
@@ -146,7 +162,14 @@ def create_sf_lead_task(tid: int, item: dict, lead_id: str) -> str:
         f"Subject='{subject}' Description='{desc}' WhoId='{lead_id}' Status='Completed' Priority='Normal'",
     ]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
     except FileNotFoundError:
         return "failed — sf CLI not found"
     if proc.returncode != 0:

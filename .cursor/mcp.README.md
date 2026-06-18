@@ -122,17 +122,24 @@ in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
 **Purpose:** Internal Vixxo read/write tools via `https://vixxonow.com/mcp/*`.
 
-**Transport:** local stdio via `npx mcp-remote` (direct HTTP endpoint in
-`.cursor/mcp.json`; no token pre-check wrapper).
+**Transport:** remote URL (HTTP) — wired directly in `.cursor/mcp.json` (same
+pattern as Linear and HubSpot).
 
-**Auth:** If the endpoint requires a Bearer token, add it via Cursor HTTP MCP
-OAuth or extend the `mcp-remote` args with
-`--header Authorization:Bearer <token>`. Optional token storage (for scripts/skills):
+**Auth:** OAuth via Cursor's MCP UI on first connect. Open **Cursor Settings →
+MCP**, click each Vixxo server (`gateway`, `vixxolink`, `vixxonow`, …), and
+complete the browser login when prompted. No static API token file required for
+Cursor.
+
+**Optional (scripts / skills only):** Bearer token for headless Python scripts
+(not Cursor MCP UI):
 
 - `~/.vixxo/vixxolink_api_token` (recommended)
 - `~/.vixxo/vixxonow_api_token`
 - `~/.vixxo/gateway_api_token`
 - or `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+
+Legacy stdio bridge (token file): `.cursor/bin/run-vixxo-http-mcp.cmd` — use
+only if OAuth via URL transport is unavailable.
 
 After auth changes, open **Cursor Settings → MCP** and restart the affected
 servers (`gateway`, `vixxolink`, `vixxonow`, etc.).

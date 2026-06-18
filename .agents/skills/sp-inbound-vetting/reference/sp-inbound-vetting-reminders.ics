@@ -1,0 +1,48 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Vixxo Assistant//SP Inbound Vetting Reminders//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:sp-inbound-vetting-clockin@vixxo-assistant
+DTSTAMP:20260617T160000Z
+DTSTART:20260618T080000
+DTEND:20260618T081500
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+SUMMARY:Run SP inbound vetting (clock-in)
+DESCRIPTION:Manual vetting batch in Cursor (requires Gateway/VixxoLink MCP + sf CLI):\n\nLive:\npython .agents/skills/sp-inbound-vetting/scripts/live_run_batch.py --queue all\n\nPreview:\npython .agents/skills/sp-inbound-vetting/scripts/dry_run_batch.py --queue all\n\nSkill: .agents/skills/sp-inbound-vetting/SKILL.md
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Run SP inbound vetting now
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:sp-inbound-vetting-noon@vixxo-assistant
+DTSTAMP:20260617T160000Z
+DTSTART:20260618T120000
+DTEND:20260618T121500
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+SUMMARY:Run SP inbound vetting (noon)
+DESCRIPTION:Manual vetting batch in Cursor:\npython .agents/skills/sp-inbound-vetting/scripts/live_run_batch.py --queue all
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Run SP inbound vetting now
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:sp-inbound-vetting-3pm@vixxo-assistant
+DTSTAMP:20260617T160000Z
+DTSTART:20260618T150000
+DTEND:20260618T151500
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+SUMMARY:Run SP inbound vetting (3 PM)
+DESCRIPTION:Manual vetting batch in Cursor:\npython .agents/skills/sp-inbound-vetting/scripts/live_run_batch.py --queue all
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Run SP inbound vetting now
+END:VALARM
+END:VEVENT
+END:VCALENDAR

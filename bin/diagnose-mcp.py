@@ -13,6 +13,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MCP_JSON = ROOT / ".cursor" / "mcp.json"
 VIXXO_DIR = Path.home() / ".vixxo"
+ENV_PATH = ROOT / ".env"
+
+
+def load_dotenv() -> None:
+    if not ENV_PATH.is_file():
+        return
+    for raw in ENV_PATH.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key and val and not os.environ.get(key):
+            os.environ[key] = val
 
 
 def has_secret(*names: str) -> bool:
@@ -22,6 +37,17 @@ def has_secret(*names: str) -> bool:
         p = VIXXO_DIR / name.lower()
         if p.is_file() and p.read_text(encoding="utf-8").strip():
             return True
+        p2 = VIXXO_DIR / f"{name.lower()}.txt"
+        if p2.is_file() and p2.read_text(encoding="utf-8").strip():
+            return True
+    # Also scan ~/.vixxo filenames mapped to env-style keys.
+    if VIXXO_DIR.is_dir():
+        for path in VIXXO_DIR.iterdir():
+            if not path.is_file():
+                continue
+            stem = path.stem.upper().replace("-", "_")
+            if stem in names and path.read_text(encoding="utf-8").strip():
+                return True
     return False
 
 
@@ -39,15 +65,28 @@ def check_cmd(name: str) -> bool:
     return False
 
 
+def check_gh_auth() -> bool:
+    binary = ROOT / ".cursor" / "bin" / "github-mcp-server.exe"
+    if not binary.is_file():
+        return False
+    if os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN", "").strip():
+        return True
+    if shutil.which("gh") is None:
+        return False
+    proc = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, timeout=30)
+    return proc.returncode == 0 and bool(proc.stdout.strip())
+
+
 def main() -> int:
+    load_dotenv()
     results: list[dict] = []
 
     checks = [
         ("freshdesk", has_secret("FRESHDESK_API_KEY", "FRESHDESK_TOKEN"), "freshdesk_token in ~/.vixxo or FRESHDESK_API_KEY in .env"),
         ("freshservice", has_secret("FRESHSERVICE_API_KEY"), "freshservice_api_key in ~/.vixxo"),
-        ("gateway/vixxolink/vixxonow", has_secret("VIXXOLINK_API_TOKEN", "GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"), "vixxolink_api_token or vixxonow_api_token in ~/.vixxo"),
+        ("gateway/vixxolink/vixxonow (OAuth)", True, "complete OAuth in Cursor Settings → MCP (no token file required)"),
         ("salesforce CLI", check_cmd("sf"), "npm install -g @salesforce/cli && sf org login web"),
-        ("github MCP binary", (ROOT / ".cursor" / "bin" / "github-mcp-server.exe").is_file(), "see .cursor/mcp.README.md § GitHub"),
+        ("github gh auth", check_gh_auth(), "gh auth login or set GITHUB_PERSONAL_ACCESS_TOKEN in .env"),
         ("node/npx", check_cmd("npx"), "install Node.js"),
         ("gong", has_secret("GONG_ACCESS_KEY", "GONG_ACCESS_KEY_SECRET"), "GONG_ACCESS_KEY + GONG_ACCESS_KEY_SECRET in .env"),
         ("smartsheet", has_secret("SMARTSHEET_API_TOKEN"), "SMARTSHEET_API_TOKEN in .env"),

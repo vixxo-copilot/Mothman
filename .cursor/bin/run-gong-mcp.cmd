@@ -1,3 +1,3 @@
 @echo off
 setlocal EnableExtensions
-python "%~dp0run-github-mcp.py" %*
+python "%~dp0run-gong-mcp.py" %*

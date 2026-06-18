@@ -18,13 +18,19 @@ Post via `create_ticket_note` with `"private": true`.
 
 | System | Match | Identifier |
 | --- | --- | --- |
-| Gateway SP | {Yes/No/Possible} | {SP # — display name} |
+| Gateway SP | {Yes/No/Possible} | {SP # — display name; include similarity score when Possible} |
 | VixxoLink SP | {Yes/No/Possible} | {SP # — name from SR} |
-| Salesforce Lead | {Yes/No/Possible} | {Lead Id — Status} |
-| Salesforce Case | {Yes/No/Possible} | {Case # — Status} |
+| Salesforce Lead | {Yes/No/Possible} | {Lead Id — Status; score when Possible} |
+| Salesforce Case | {Yes/No/Possible} | {Case # — Status; score when Possible} |
 | Salesforce Account | {Yes/No/Possible} | {Account Id} |
 
-**Entity posture:** {Known SP | Prospect | Open SF Case | Unknown}
+**Entity posture:** {Known SP | Possible SP (Gateway) | Prospect | Open SF Case | Unknown}
+**Confidence:** {High | Medium | Low}
+
+Use **Possible** in the Match column when `match_type` is `fuzzy` (similar name,
+not exact email or normalized company equality). List alternate SP or Lead
+candidates under **Open questions** when `alternates` or `lead_alternates` are
+present.
 
 ---
 

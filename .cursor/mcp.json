@@ -1,32 +1,20 @@
 {
   "mcpServers": {
     "business-objects": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/bo-universe"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/bo-universe"
     },
     "chatfpt": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/chatfpt"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/chatfpt"
     },
     "dynamics365": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/dynamics365"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/dynamics365"
     },
     "freshdesk": {
-      "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshdesk-mcp.cmd",
+      "args": [
+        "-y",
+        "freshdesk-mcp"
+      ],
+      "command": "npx",
       "env": {
         "FRESHDESK_DOMAIN": "vixxo-helpdesk.freshdesk.com",
         "NODE_ENV": "production"
@@ -34,43 +22,26 @@
     },
     "freshservice": {
       "args": [
-        "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshservice-mcp.cmd"
+        "freshservice-mcp"
       ],
-      "command": "C:\\Windows\\System32\\cmd.exe",
+      "command": "uvx",
       "env": {
         "FRESHSERVICE_DOMAIN": "vixxo.freshservice.com"
       }
     },
     "gateway": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/gateway"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/gateway"
     },
     "github": {
-      "args": [
-        "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-github-mcp.cmd"
-      ],
-      "command": "C:\\Windows\\System32\\cmd.exe"
+      "args": [],
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-github-mcp.cmd"
     },
     "gong": {
-      "args": [
-        "-y",
-        "github:kenazk/gong-mcp"
-      ],
-      "command": "npx"
+      "args": [],
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-gong-mcp.cmd"
     },
     "gong-transact": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://transact.vixxo.com/mcp/gong"
-      ],
-      "command": "npx"
+      "url": "https://transact.vixxo.com/mcp/gong"
     },
     "hubspot": {
       "url": "https://mcp.hubspot.com"
@@ -83,26 +54,29 @@
         "-y",
         "@softeria/ms-365-mcp-server@latest"
       ],
-      "command": "npx"
+      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-npx-mcp.cmd"
     },
     "ms365": {
       "args": [
-        "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-ms365-mcp.cmd"
-      ],
-      "command": "C:\\Windows\\System32\\cmd.exe"
-    },
-    "powerbi-prod": {
-      "args": [
         "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/powerbi"
+        "@softeria/ms-365-mcp-server",
+        "--org-mode"
       ],
       "command": "npx"
     },
+    "powerbi-prod": {
+      "url": "https://vixxonow.com/mcp/powerbi"
+    },
     "salesforce": {
-      "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-salesforce-mcp.cmd"
+      "args": [
+        "-y",
+        "@salesforce/mcp@latest",
+        "--orgs",
+        "DEFAULT_TARGET_ORG",
+        "--toolsets",
+        "orgs,metadata,data,users"
+      ],
+      "command": "npx"
     },
     "skills": {
       "args": [
@@ -116,20 +90,10 @@
       "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-smartsheet-mcp.cmd"
     },
     "vixxolink": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxolink"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/vixxolink"
     },
     "vixxonow": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxonow"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/vixxonow"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"

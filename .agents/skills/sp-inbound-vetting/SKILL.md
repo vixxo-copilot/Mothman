@@ -137,12 +137,14 @@ See [reference/examples.md](reference/examples.md).
    ([intake.md](reference/intake.md)).
 3. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md):
    - **Gateway:** `gateway_search_invoices` by KS#, email (`createdByUsername`),
-     contact name, company (`searchString`); `gateway_get_service_request` when
-     SR cited.
+     contact name, company (`searchString`); fuzzy-match SP names and contact
+     fields when exact strings differ (see company-vetting **Fuzzy / similar name
+     matching**).
    - **VixxoLink:** `vixxolink_resolve_service_request` to cross-check SR-assigned
      SP when SR is known or discovered via invoice chain.
    - **Salesforce:** Lead / Case / Account SOQL by company, **contact name**, and
-     requester email.
+     requester email; post-filter with same similarity scoring when LIKE results
+     are ambiguous.
 4. **Post Freshdesk internal note** —
    [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md)
    via `create_ticket_note` (`"private": true`).
@@ -191,6 +193,13 @@ explicitly asks — invoice-review and COI skills own those transitions.
 
 See [reference/queues.md](reference/queues.md) for queue keys and filters.
 
+## Scheduled reminders (weekdays)
+
+Automation cannot vet without Gateway/VixxoLink MCP on the host — run manually
+at **clock-in (8 AM)**, **noon**, and **3 PM** Mon–Fri. Import Outlook reminders:
+[reference/sp-inbound-vetting-reminders.ics](reference/sp-inbound-vetting-reminders.ics).
+Setup: [reference/automation-setup.md](reference/automation-setup.md).
+
 ## Document checklist (automatic)
 
 ```
@@ -227,6 +236,7 @@ Vetting progress — {ticket id}:
 | [reference/company-vetting.md](reference/company-vetting.md) | Gateway + Salesforce search |
 | [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md) | Internal note body |
 | [reference/salesforce-notes.md](reference/salesforce-notes.md) | Task / Chatter writes |
+| [reference/automation-setup.md](reference/automation-setup.md) | Outlook calendar + manual schedule |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
 
 Sibling skills: **`sp-voicemail-triage`** (voicemail routing),

@@ -1,7 +1,7 @@
 {
   "last_applied_manifest_hash": "sha256:9b9148102608405f9568fdbd14ca228e6732d24f8d2fcf6350913cb11a030cd5",
   "last_applied_manifest_version": "1.0.2",
-  "last_apply_timestamp": "2026-06-15T18:11:47.659Z",
+  "last_apply_timestamp": "2026-06-17T20:37:00.934Z",
   "managed_entry_fingerprints": {
     "business-objects": "sha256:79d5da4c09c1424d4440854fdd6ba61ccb5789c105ac5258ace3cc90c995644f",
     "chatfpt": "sha256:a4bc378cb9c9a450b79889b50d77f76bfa5e36f3932e29234469bd082d6ba948",

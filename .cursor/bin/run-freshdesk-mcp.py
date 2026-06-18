@@ -8,39 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-def load_env_file(path: Path) -> None:
-    if not path.is_file():
-        return
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if "=" not in line:
-            continue
-        key, val = line.split("=", 1)
-        key = key.strip()
-        val = val.strip().strip('"').strip("'")
-        if key and val and not os.environ.get(key):
-            os.environ[key] = val
-
-
-def load_secret_file(path: Path, target: str) -> None:
-    if os.environ.get(target) or not path.is_file():
-        return
-    secret = path.read_text(encoding="utf-8").strip()
-    if secret:
-        os.environ[target] = secret
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mcp_env import load_workspace_env, resolve_npx  # noqa: E402
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[2]
-    load_env_file(root / ".env")
-
-    home_vixxo = Path.home() / ".vixxo"
-    load_secret_file(home_vixxo / "freshdesk_token", "FRESHDESK_API_KEY")
-    load_secret_file(home_vixxo / "freshdesk_api_key", "FRESHDESK_API_KEY")
-
+    load_workspace_env()
     if not os.environ.get("FRESHDESK_API_KEY") and os.environ.get("FRESHDESK_TOKEN"):
         os.environ["FRESHDESK_API_KEY"] = os.environ["FRESHDESK_TOKEN"]
 
@@ -57,7 +30,7 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    npx = os.environ.get("NPX", "npx")
+    npx = resolve_npx()
     return subprocess.call([npx, "-y", "freshdesk-mcp", *sys.argv[1:]])
 
 
