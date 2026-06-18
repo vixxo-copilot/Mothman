@@ -4,6 +4,7 @@ node_modules/
 !.env.example
 *.log
 tmp/
+.tmp/
 .cursor/bin/github-mcp-server
 .cursor/bin/github-mcp-server.tar.gz
 bin/github-mcp-server
