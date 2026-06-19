@@ -8,6 +8,8 @@ import json
 import re
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -25,8 +27,10 @@ from entity_match import (  # noqa: E402
     company_similarity,
     contact_name_similarity,
     is_exact_company_match,
+    is_exact_sp_name_match,
     match_confidence,
     normalize_company,
+    sp_name_similarity,
 )
 from gateway_vetting import gateway_find_sp  # noqa: E402
 from queue_config import VettingQueue, resolve_queues  # noqa: E402
@@ -37,13 +41,24 @@ KS_RE = re.compile(r"\b(KS\d+)\b", re.I)
 SR_RE = re.compile(r"\b(1-\d{9,10})\b")
 
 
+def _urlopen_with_retry(req: urllib.request.Request, *, timeout: int = 90, retries: int = 5) -> Any:
+    for attempt in range(retries):
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 429 and attempt < retries - 1:
+                time.sleep(min(30, 2 ** attempt * 2))
+                continue
+            raise
+
+
 def search_all(api_key: str, query: str) -> list[dict]:
     results: list[dict] = []
     for page in range(1, 11):
         params = {"query": f'"{query}"', "page": str(page)}
         url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
         req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
-        with urllib.request.urlopen(req, timeout=90) as resp:
+        with _urlopen_with_retry(req) as resp:
             data = json.loads(resp.read().decode())
         page_results = data.get("results") or []
         results.extend(page_results)
@@ -55,7 +70,7 @@ def search_all(api_key: str, query: str) -> list[dict]:
 def get_ticket(api_key: str, ticket_id: int) -> dict:
     url = f"https://{DOMAIN}/api/v2/tickets/{ticket_id}?include=requester"
     req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
-    with urllib.request.urlopen(req, timeout=90) as resp:
+    with _urlopen_with_retry(req) as resp:
         return json.loads(resp.read().decode())
 
 
@@ -164,11 +179,15 @@ def sf_query(soql: str) -> list[dict]:
     return [{"_error": "Salesforce CLI unavailable"}]
 
 
-def _annotate_sf_record(record: dict, *, match_type: str, confidence: str, score: float) -> dict:
+def _annotate_sf_record(
+    record: dict, *, match_type: str, confidence: str, score: float, match_kind: str | None = None
+) -> dict:
     out = dict(record)
     out["match_type"] = match_type
     out["confidence"] = confidence
     out["match_score"] = round(score, 3)
+    if match_kind:
+        out["match_kind"] = match_kind
     return out
 
 
@@ -200,8 +219,8 @@ def _rank_sf_leads(
             continue
         lead_company = str(lead.get("Company") or "")
         if company not in ("Not stated", "") and lead_company:
-            score = company_similarity(company, lead_company)
-            kind = "company_exact" if is_exact_company_match(company, lead_company) else "company_fuzzy"
+            score = sp_name_similarity(company, lead_company)
+            kind = "company_exact" if is_exact_sp_name_match(company, lead_company) else "company_fuzzy"
             if score >= FUZZY_THRESHOLD:
                 ranked.append((lead, score, kind))
                 continue
@@ -212,10 +231,10 @@ def _rank_sf_leads(
                 ranked.append((lead, score, "name_fuzzy"))
                 continue
         if company not in ("Not stated", "") and lead_name:
-            score = company_similarity(company, lead_name)
+            score = sp_name_similarity(company, lead_name)
             if score >= FUZZY_THRESHOLD:
                 ranked.append((lead, score, "company_fuzzy"))
-    kind_order = {"email": 0, "company_exact": 1, "company_fuzzy": 2, "name_fuzzy": 3}
+    kind_order = {"email": 0, "name_fuzzy": 1, "company_exact": 2, "company_fuzzy": 3}
     ranked.sort(key=lambda x: (kind_order.get(x[2], 9), -x[1]))
     return ranked
 
@@ -227,6 +246,29 @@ def salesforce_search(entities: dict) -> dict:
     contact_name = entities.get("contact_name") or ""
 
     lead_candidates: list[dict] = []
+
+    if email not in ("Not stated", ""):
+        esc = email.replace("'", "\\'")
+        leads = sf_query(
+            f"SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead WHERE Email = '{esc}' LIMIT 5"
+        )
+        if leads and leads[0].get("_error"):
+            out["errors"].append(leads[0]["_error"])
+        else:
+            lead_candidates.extend(leads)
+
+    if contact_name not in ("Not stated", ""):
+        esc = contact_name.replace("'", "\\'")
+        leads = sf_query(
+            "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+            f"WHERE Name LIKE '%{esc}%' OR Email LIKE '%{esc}%' "
+            "ORDER BY LastModifiedDate DESC LIMIT 10"
+        )
+        if leads and leads[0].get("_error"):
+            out["errors"].append(leads[0]["_error"])
+        else:
+            lead_candidates.extend(leads)
+
     if company != "Not stated":
         for token in _company_search_tokens(company):
             esc = token.replace("'", "\\'")
@@ -239,27 +281,6 @@ def salesforce_search(entities: dict) -> dict:
                 out["errors"].append(leads[0]["_error"])
             else:
                 lead_candidates.extend(leads)
-
-    if contact_name not in ("Not stated", ""):
-        esc = contact_name.replace("'", "\\'")
-        leads = sf_query(
-            "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
-            f"WHERE Name LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 10"
-        )
-        if leads and leads[0].get("_error"):
-            out["errors"].append(leads[0]["_error"])
-        else:
-            lead_candidates.extend(leads)
-
-    if email not in ("Not stated", ""):
-        esc = email.replace("'", "\\'")
-        leads = sf_query(
-            f"SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead WHERE Email = '{esc}' LIMIT 3"
-        )
-        if leads and leads[0].get("_error"):
-            out["errors"].append(leads[0]["_error"])
-        else:
-            lead_candidates.extend(leads)
 
     seen_ids: set[str] = set()
     deduped: list[dict] = []
@@ -279,6 +300,7 @@ def salesforce_search(entities: dict) -> dict:
             match_type="exact" if exact else "fuzzy",
             confidence=match_confidence(exact, score),
             score=score,
+            match_kind=kind,
         )
         alternates = []
         for alt, alt_score, alt_kind in ranked[1:4]:
@@ -308,6 +330,30 @@ def salesforce_search(entities: dict) -> dict:
         elif cases and cases[0].get("_error"):
             out["errors"].append(cases[0]["_error"])
 
+    if not out.get("case") and contact_name not in ("Not stated", ""):
+        esc = contact_name.replace("'", "\\'")
+        cases = sf_query(
+            "SELECT Id, CaseNumber, Subject, Status FROM Case "
+            f"WHERE Subject LIKE '%{esc}%' ORDER BY CreatedDate DESC LIMIT 5"
+        )
+        if cases and not cases[0].get("_error"):
+            best_case = None
+            best_score = 0.0
+            for case in cases:
+                score = contact_name_similarity(contact_name, str(case.get("Subject") or ""))
+                if score > best_score:
+                    best_score = score
+                    best_case = case
+            if best_case and best_score >= FUZZY_THRESHOLD:
+                out["case"] = _annotate_sf_record(
+                    best_case,
+                    match_type="fuzzy",
+                    confidence=match_confidence(False, best_score),
+                    score=best_score,
+                )
+        elif cases and cases[0].get("_error"):
+            out["errors"].append(cases[0]["_error"])
+
     if not out.get("case") and company != "Not stated":
         esc = company.replace("'", "\\'")
         cases = sf_query(
@@ -318,12 +364,12 @@ def salesforce_search(entities: dict) -> dict:
             best_case = None
             best_score = 0.0
             for case in cases:
-                score = company_similarity(company, str(case.get("Subject") or ""))
+                score = sp_name_similarity(company, str(case.get("Subject") or ""))
                 if score > best_score:
                     best_score = score
                     best_case = case
             if best_case and best_score >= FUZZY_THRESHOLD:
-                exact = is_exact_company_match(company, str(best_case.get("Subject") or ""))
+                exact = is_exact_sp_name_match(company, str(best_case.get("Subject") or ""))
                 out["case"] = _annotate_sf_record(
                     best_case,
                     match_type="exact" if exact else "fuzzy",
@@ -361,6 +407,26 @@ def posture(gw: dict | None, sf: dict) -> tuple[str, str, str]:
     return "Unknown / Not in systems", "Unknown", "Low"
 
 
+def sf_match_needs_review(item: dict) -> bool:
+    """True when a fuzzy or Medium/Low SF Lead/Case hit should not auto-post a Task."""
+    requester = (item.get("requester") or "").strip().lower()
+    for key in ("sf_lead", "sf_case"):
+        record = item.get(key)
+        if not record or not record.get("Id"):
+            continue
+        if key == "sf_lead":
+            lead_email = str(record.get("Email") or "").strip().lower()
+            if requester and requester != "not stated" and lead_email == requester:
+                continue
+            if record.get("match_kind") == "email":
+                continue
+        match_type = record.get("match_type", "fuzzy")
+        confidence = record.get("confidence", "Low")
+        if match_type == "fuzzy" or confidence in ("Medium", "Low"):
+            return True
+    return False
+
+
 def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]:
     seen: set[int] = set()
     items: list[dict] = []
@@ -382,28 +448,28 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
         post, cf_target, confidence = posture(gw, sf)
         if entities.get("cf_sp_current") not in (None, "", "Unknown") and post == "Unknown / Not in systems":
             cf_target = "(keep existing)"
-        items.append(
-            {
-                "ticket_id": tid,
-                "queue": queue.key,
-                "inbox_label": queue.inbox_label,
-                "subject": summary.get("subject"),
-                "company": entities["company"],
-                "contact_name": entities["contact_name"],
-                "ks_number": entities["ks_number"],
-                "sr_number": entities["sr_number"],
-                "requester": entities["requester_email"],
-                "cf_sp_current": entities["cf_sp_current"],
-                "posture": post,
-                "confidence": confidence,
-                "cf_sp_target": cf_target,
-                "gateway_sp": gw,
-                "sf_lead": sf.get("lead"),
-                "sf_lead_alternates": sf.get("lead_alternates"),
-                "sf_case": sf.get("case"),
-                "errors": sf.get("errors", []),
-            }
-        )
+        row = {
+            "ticket_id": tid,
+            "queue": queue.key,
+            "inbox_label": queue.inbox_label,
+            "subject": summary.get("subject"),
+            "company": entities["company"],
+            "contact_name": entities["contact_name"],
+            "ks_number": entities["ks_number"],
+            "sr_number": entities["sr_number"],
+            "requester": entities["requester_email"],
+            "cf_sp_current": entities["cf_sp_current"],
+            "posture": post,
+            "confidence": confidence,
+            "cf_sp_target": cf_target,
+            "gateway_sp": gw,
+            "sf_lead": sf.get("lead"),
+            "sf_lead_alternates": sf.get("lead_alternates"),
+            "sf_case": sf.get("case"),
+            "errors": sf.get("errors", []),
+        }
+        row["sf_match_review"] = sf_match_needs_review(row)
+        items.append(row)
     return items
 
 

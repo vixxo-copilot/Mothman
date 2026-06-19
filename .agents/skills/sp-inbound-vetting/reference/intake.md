@@ -104,12 +104,14 @@ From subject, body, requester, and attachments metadata extract:
 
 | Field | Priority |
 | --- | --- |
-| Contact name | Freshdesk requester `name` (always capture for Gateway name search) |
+| Email | Requester email — **primary** Gateway `createdByUsername` anchor |
+| Contact name | Freshdesk requester `name` — search before company string |
 | SP number | Explicit `SP #`, `SP-`, `KS#####`, Siebel-style numbers in body |
-| Company name | Requester org, signature, subject, body, email domain |
-| Email | Requester email (Gateway `createdByUsername` search) |
+| SR / invoice refs | Bootstrap Gateway / VixxoLink when identifiers present |
+| Company name | Requester org, signature, subject, body — fuzzy vs Gateway SP name |
 | Phone | Requester + body |
-| SR / invoice refs | Use to bootstrap Gateway / VixxoLink lookup when company is missing |
 
-Normalize company names before search (strip punctuation; keep LLC/Inc when
-matching Siebel rows).
+Gateway/Siebel SP display names may include internal tracking prefixes (`KS`,
+`CCPAY`, `STRYKER ONLY`) that will **not** appear on provider documentation.
+Strip those before comparing company text; prefer email and contact name for
+identification.

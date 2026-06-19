@@ -136,15 +136,16 @@ See [reference/examples.md](reference/examples.md).
 2. **Extract entities** — company, SP #, SR, contact email/phone
    ([intake.md](reference/intake.md)).
 3. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md):
+   - **Priority:** requester **email** and **contact name** before company string;
+     Gateway SP names often carry internal tracking prefixes (`KS`, `CCPAY`,
+     `STRYKER ONLY`) not on provider docs.
    - **Gateway:** `gateway_search_invoices` by KS#, email (`createdByUsername`),
-     contact name, company (`searchString`); fuzzy-match SP names and contact
-     fields when exact strings differ (see company-vetting **Fuzzy / similar name
-     matching**).
+     contact name, then company; strip tracking prefixes and fuzzy-match SP
+     display names.
    - **VixxoLink:** `vixxolink_resolve_service_request` to cross-check SR-assigned
      SP when SR is known or discovered via invoice chain.
-   - **Salesforce:** Lead / Case / Account SOQL by company, **contact name**, and
-     requester email; post-filter with same similarity scoring when LIKE results
-     are ambiguous.
+   - **Salesforce:** Lead / Case SOQL — email and contact name first, then company;
+     post-filter with tracking-prefix-aware similarity scoring.
 4. **Post Freshdesk internal note** —
    [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md)
    via `create_ticket_note` (`"private": true`).
@@ -178,8 +179,16 @@ Merge tags with existing tags; do not remove unrelated tags (including
 explicitly asks — invoice-review and COI skills own those transitions.
 
 6. **Salesforce notes** — [reference/salesforce-notes.md](reference/salesforce-notes.md):
-   - Task on matched **Lead** when Lead found.
-   - Task on matched **Case** when Case search hits.
+   - Task on matched **Lead** when Lead found **and** match is exact with High
+     confidence, or requester email exactly matches Lead `Email`.
+   - Task on matched **Case** when Case found **and** match is exact with High
+     confidence (e.g. `ContactEmail` hit).
+   - **Do not** auto-post Lead or Case Tasks when `match_type` is `fuzzy` or
+     `confidence` is Medium/Low — add tag `sf-match-review`, document
+     **SF match — review required** in the internal note, and leave Task for
+     operator confirmation.
+   - Known SP (Gateway exact) alone does not require an SF Task unless a Lead
+     also qualifies for auto-post.
 7. **Record failures** in the batch summary **Status** column; continue the
    pipeline where safe.
 
@@ -210,8 +219,9 @@ Vetting progress — {ticket id}:
 - [ ] Salesforce Case search complete
 - [ ] Internal note posted
 - [ ] cf_sp + sp-vetted tag updated
-- [ ] SF Lead Task posted (if Lead found)
-- [ ] SF Case Task posted (if Case found)
+- [ ] SF Lead Task posted (if Lead found **and** exact/High or exact email)
+- [ ] SF Case Task posted (if Case found **and** exact/High)
+- [ ] `sf-match-review` tag added when fuzzy/Medium/Low SF match skipped Task
 ```
 
 ## Guardrails
@@ -222,6 +232,9 @@ Vetting progress — {ticket id}:
   public Freshdesk replies unless {{employee_name}} explicitly directs it.
 - **No ticket close / resolve** from this skill by default.
 - Never invent SP numbers or Salesforce ids — use Gateway/SOQL results only.
+- **SF match review:** do not create Salesforce Tasks on fuzzy or Medium/Low
+  Lead/Case matches; tag `sf-match-review` and document in the internal note.
+  Exact email on Lead and exact High-confidence matches still auto-post.
 - If `cf_sp` already has a value that conflicts with vetting, note the conflict
   in the internal note and **do not overwrite** without user confirmation.
 - Redact full phone numbers in chat summaries; keep full numbers in internal

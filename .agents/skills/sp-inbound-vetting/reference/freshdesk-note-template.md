@@ -37,14 +37,21 @@ present.
 **Freshdesk field update**
 
 - **cf_sp set to:** {value or skipped — reason}
-- **Tags added:** sp-vetted, …
+- **Tags added:** sp-vetted, … (`sf-match-review` when SF Lead/Case match is fuzzy or Medium/Low confidence and Task was skipped)
+
+---
+
+**SF match — review required** *(only when Task skipped)*
+
+- **Lead** `{Lead Id}` — match_type={exact|fuzzy}, score={n}, confidence={High|Medium|Low}. Task skipped: {reason}.
+- **Case** `{Case Id}` — match_type={exact|fuzzy}, score={n}, confidence={High|Medium|Low}. Task skipped: {reason}.
 
 ---
 
 **Salesforce notes**
 
-- **Lead Task:** {Lead Id — posted | N/A | failed + reason}
-- **Case Task:** {Case Id — posted | N/A | failed + reason}
+- **Lead Task:** {Lead Id — posted | skipped — reason | N/A | failed + reason}
+- **Case Task:** {Case Id — posted | skipped — reason | N/A | failed + reason}
 
 ---
 

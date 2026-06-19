@@ -1,0 +1,14 @@
+name: ksonboarding-inbound-routing
+title: "KS Onboarding Inbound Routing"
+description: "Reviews inbound ksonboarding@vixxo.com email in the Freshdesk KSOnboarding queue, vets SP identity, and reclassifies ticket type to COIs, VixxoLink Support, or Invoice Support based on content; leaves cf_sp blank when SP name is uncertain."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: "{{employee_name}}"
+version: "1.0.0"
+tags: [ksonboarding, service-provider, routing, freshdesk, gateway, salesforce, coi, vixxolink, invoice-support, onboarding]
+status: approved
+requires_mcp: [freshdesk, gateway, vixxolink, salesforce]
+source: vixxo
+provenance: user

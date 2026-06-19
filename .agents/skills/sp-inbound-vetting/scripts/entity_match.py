@@ -15,6 +15,36 @@ _COMMON_SUFFIXES = frozenset(
     {"llc", "inc", "co", "corp", "ltd", "the", "company", "services", "service"}
 )
 
+# Gateway/Siebel display-name tokens used for internal tracking — not on provider docs.
+_TRACKING_PREFIX_RE = re.compile(
+    r"^(?:(?:ks\s*[-–]?\s*)|(?:ccpay\s*)|(?:stryker\s+only\s*))+",
+    re.IGNORECASE,
+)
+_TRACKING_SUFFIX_ONLY_RE = re.compile(r"\s+only\s*$", re.IGNORECASE)
+_TRACKING_INLINE_TOKENS = frozenset({"ccpay", "only", "ks", "stryker"})
+
+
+def strip_sp_tracking_prefixes(name: str) -> str:
+    """Remove internal tracking prefixes (KS, CCPAY, STRYKER ONLY, etc.)."""
+    text = (name or "").strip()
+    while True:
+        stripped = _TRACKING_PREFIX_RE.sub("", text).strip()
+        stripped = _TRACKING_SUFFIX_ONLY_RE.sub("", stripped).strip()
+        if stripped == text:
+            break
+        text = stripped
+    return text
+
+
+def normalize_sp_display_name(name: str) -> str:
+    """Normalize a Gateway/Siebel SP display name for comparison to intake text."""
+    text = strip_sp_tracking_prefixes(name)
+    text = (text or "").lower()
+    text = re.sub(r"[^\w\s]", " ", text)
+    text = _collapse_ws(text)
+    tokens = [t for t in text.split() if t and t not in _COMMON_SUFFIXES and t not in _TRACKING_INLINE_TOKENS]
+    return " ".join(tokens)
+
 
 def _collapse_ws(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
@@ -74,6 +104,29 @@ def company_similarity(a: str, b: str) -> float:
     return max(scores)
 
 
+def sp_name_similarity(documentation_name: str, sp_display_name: str) -> float:
+    """Compare intake company text to a Gateway SP name with tracking prefixes stripped."""
+    doc_norm = normalize_company(documentation_name)
+    sp_norm = normalize_sp_display_name(sp_display_name)
+    if not doc_norm or not sp_norm:
+        return 0.0
+    if doc_norm == sp_norm:
+        return 1.0
+    if doc_norm in sp_norm or sp_norm in doc_norm:
+        return max(0.85, SequenceMatcher(None, doc_norm, sp_norm).ratio())
+
+    scores = [
+        SequenceMatcher(None, doc_norm, sp_norm).ratio(),
+        token_overlap_ratio(doc_norm, sp_norm),
+    ]
+    doc_tokens, sp_tokens = set(doc_norm.split()), set(sp_norm.split())
+    if doc_tokens <= sp_tokens or sp_tokens <= doc_tokens:
+        scores.append(0.82)
+    # Also score against the raw display name in case stripping was too aggressive.
+    scores.append(company_similarity(documentation_name, sp_display_name))
+    return max(scores)
+
+
 def contact_name_similarity(query: str, candidate: str) -> float:
     """Score contact names; last-name + first-initial match scores high."""
     q = normalize_contact_name(query)
@@ -107,6 +160,10 @@ def is_fuzzy_contact_match(query: str, candidate: str) -> bool:
 
 def is_exact_company_match(a: str, b: str) -> bool:
     return normalize_company(a) == normalize_company(b)
+
+
+def is_exact_sp_name_match(documentation_name: str, sp_display_name: str) -> bool:
+    return normalize_company(documentation_name) == normalize_sp_display_name(sp_display_name)
 
 
 def rank_candidates(

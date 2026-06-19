@@ -35,6 +35,35 @@ Priority='Normal'"
 
 When both Lead and Case match, post on **both** unless the user narrows scope.
 
+## SF match review guardrail (live batch)
+
+Before creating a Salesforce **Task**, confirm the Lead or Case match is
+trustworthy. **Do not auto-post Tasks** when:
+
+- `match_type` is `fuzzy`, or
+- `confidence` is `Medium` or `Low`
+
+**Exception — Lead email exact:** when requester email equals Lead `Email`
+(`match_kind: email`), auto-post the Lead Task even if other signals are weak.
+
+**Exact matches that still auto-post:**
+
+| Object | Auto-post when |
+| --- | --- |
+| Lead | `match_type: exact` and `confidence: High`, or exact email match |
+| Case | `match_type: exact` and `confidence: High` (e.g. `ContactEmail` hit) |
+
+**When skipped — flag for review instead:**
+
+1. Add Freshdesk tag `sf-match-review` (merge with existing tags).
+2. In the internal note, include **SF match — review required** with Lead/Case
+   Id, `match_score`, `match_type`, and why the Task was skipped.
+3. Operator confirms the correct SF record, then posts the Task manually or
+   re-runs live after correcting intake entities.
+
+Known SP (Gateway exact KS/SR/email) does **not** require an SF Task unless a
+matched Lead also qualifies for auto-post under the rules above.
+
 ### Task body content
 
 Include:

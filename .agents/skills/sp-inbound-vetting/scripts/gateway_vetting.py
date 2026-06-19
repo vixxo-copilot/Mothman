@@ -7,10 +7,10 @@ from typing import Any
 
 from entity_match import (
     FUZZY_THRESHOLD,
-    company_similarity,
     contact_name_similarity,
-    is_exact_company_match,
+    is_exact_sp_name_match,
     match_confidence,
+    sp_name_similarity,
 )
 from mcp_http import mcp_call, mcp_result_text
 
@@ -154,7 +154,7 @@ def _score_invoice_rows_by_company(rows: list[dict], company: str) -> list[tuple
         sp_name = str(row.get("serviceProviderName") or "")
         if not sp_name:
             continue
-        score = company_similarity(company, sp_name)
+        score = sp_name_similarity(company, sp_name)
         if score > 0:
             scored.append((row, score))
     scored.sort(key=lambda x: x[1], reverse=True)
@@ -229,7 +229,7 @@ def pick_invoice_match(
         if scored:
             best_row, best_score = scored[0]
             sp_name = str(best_row.get("serviceProviderName") or "")
-            exact = is_exact_company_match(company, sp_name)
+            exact = is_exact_sp_name_match(company, sp_name)
             if best_score >= FUZZY_THRESHOLD:
                 hit = sp_from_invoice_row(best_row, f"{source_prefix}(company={company})")
                 if hit:
@@ -241,9 +241,6 @@ def pick_invoice_match(
                         alternates=_alternates_from_scored(scored, best_score),
                     )
 
-    hit = sp_from_invoice_row(rows[0], f"{source_prefix}(first-hit)")
-    if hit:
-        return _annotate_hit(hit, match_type="fuzzy", confidence="Low", score=0.0)
     return None
 
 
