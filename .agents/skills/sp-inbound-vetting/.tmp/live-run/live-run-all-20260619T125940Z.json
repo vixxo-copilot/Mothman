@@ -1,0 +1,361 @@
+{
+  "mode": "live",
+  "queue": "all",
+  "run_at": "2026-06-19T12:59:40.800514+00:00",
+  "total": 27,
+  "notes_posted": 27,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 57259,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57256,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Sentinel Lock and Door LLC)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57197,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57304,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57301,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57297,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57296,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57272,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57261,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wknyo2AA)",
+      "error": null
+    },
+    {
+      "ticket_id": 57257,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All American lock corp",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuyg2AC \u2014 posted (Task 00TTS00000wkbxl2AA)",
+      "error": null
+    },
+    {
+      "ticket_id": 57255,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All American lock corp",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuyg2AC \u2014 posted (Task 00TTS00000wkw4Y2AQ)",
+      "error": null
+    },
+    {
+      "ticket_id": 57254,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Garcia's Landscape Maintennsance LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "failed \u2014 {\n  \"name\": \"Error\",\n  \"message\": \"Malformed key=value pair for value: Landscape.\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"stack\": \"Error: Malformed key=value pair for value: Landscape.\\n    at Sf",
+      "error": null
+    },
+    {
+      "ticket_id": 57253,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All American lock corp",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuyg2AC \u2014 posted (Task 00TTS00000wkxAD2AY)",
+      "error": null
+    },
+    {
+      "ticket_id": 57248,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57247,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57242,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All American lock corp",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuyg2AC \u2014 posted (Task 00TTS00000wksIz2AI)",
+      "error": null
+    },
+    {
+      "ticket_id": 57241,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57238,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All American lock corp",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuyg2AC \u2014 posted (Task 00TTS00000wkVKT2A2)",
+      "error": null
+    },
+    {
+      "ticket_id": 57233,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57232,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57230,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57229,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57221,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57217,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Rivers Plumbing & Electric of Chesterfield",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000blluF2AQ \u2014 posted (Task 00TTS00000wkjk22AA)",
+      "error": null
+    },
+    {
+      "ticket_id": 57216,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57194,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56943,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

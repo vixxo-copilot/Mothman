@@ -1,0 +1,1659 @@
+{
+  "mode": "live",
+  "queue": "invoice-concerns",
+  "run_at": "2026-06-17T15:00:55.898937+00:00",
+  "total": 102,
+  "notes_posted": 102,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 56679,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56662,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56655,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56649,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Edidel Construction, LLC (101156))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56642,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56618,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56612,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56604,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Ward's Maintenance)",
+      "tags": [
+        "freshdesk-rest-forwarded",
+        "invoice-intake",
+        "invoice-resub-forwarded",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56599,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56596,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56593,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "missing-sr",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56580,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - ACS of Long Island (KS69772))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56567,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-attachment-review",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56562,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56553,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56549,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56514,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56475,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56443,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Tri State Spray",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000ZH0sH2AT \u2014 posted (Task 00TTS00000wZcXP2A0)",
+      "error": null
+    },
+    {
+      "ticket_id": 56432,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56430,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56427,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56380,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56373,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56359,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56357,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56343,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56337,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56335,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56311,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56300,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56290,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Commercial Signs Awnings and Metal Art",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000bLmlu2AC \u2014 posted (Task 00TTS00000wZYX62AO)",
+      "error": null
+    },
+    {
+      "ticket_id": 56238,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56223,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56222,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56206,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56198,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56196,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56194,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "provider-escalation",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56166,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56156,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56107,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Credit Card Payments US)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56096,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56079,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56078,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56034,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: 12946076,  \u200b12992505,  \u200b1-6527817382,  \u200b12991965,  \u200b1-6532517902,  \u200b1-6532279432,  \u200b1-6535294592,  \u200b1-6533505122,  \u200b1-6530164992,  \u200b1-6540963632,  \u200b13005808)",
+      "tags": [
+        "manual-review",
+        "multi-invoice-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56003,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56001,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55998,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55997,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wZa122AC)",
+      "error": null
+    },
+    {
+      "ticket_id": 55991,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wZnHU2A0)",
+      "error": null
+    },
+    {
+      "ticket_id": 55988,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wZgpc2AC)",
+      "error": null
+    },
+    {
+      "ticket_id": 55987,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wZjqo2AC)",
+      "error": null
+    },
+    {
+      "ticket_id": 55970,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Safety Hood",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZuLz2AK \u2014 posted (Task 00TTS00000wZCDO2A4)",
+      "error": null
+    },
+    {
+      "ticket_id": 55948,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "needs-ap-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55945,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "needs-ap-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55943,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "needs-ap-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55930,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55929,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55924,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-status",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55923,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wZNzu2AG)",
+      "error": null
+    },
+    {
+      "ticket_id": 55886,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55866,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55861,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "needs-ap-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55841,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55819,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55818,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55785,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55650,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wZK622AG)",
+      "error": null
+    },
+    {
+      "ticket_id": 55638,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55488,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Amp One (65863))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55412,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-status",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55385,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "N/A",
+      "tags": [
+        "invoice-resub-forwarded",
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000bf3Ko2AI \u2014 posted (Task 00TTS00000wZVMI2A4)",
+      "error": null
+    },
+    {
+      "ticket_id": 55167,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-support",
+        "manual-review",
+        "payment-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54804,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "portal-help",
+        "sf-case-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54711,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "campaign-clarification",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 54686,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "corp-ap-routed",
+        "payment-support",
+        "sp-vetted",
+        "unknown-sp",
+        "urgent-follow-up"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 53683,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-adjustment",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 53672,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "N/A",
+      "tags": [
+        "invoice-link-forwarded",
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000bf3Ko2AI \u2014 posted (Task 00TTS00000wZXUX2A4)",
+      "error": null
+    },
+    {
+      "ticket_id": 52097,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 52017,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "banking-change",
+        "gateway-unavailable",
+        "manual-review",
+        "no-click",
+        "payment-info-change",
+        "pending-hold",
+        "security-review",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "statement",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 51836,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 51805,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "pending-hold",
+        "remittance-research",
+        "security-risk",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 51803,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "pending-hold",
+        "remittance-research",
+        "security-risk",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 48000,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: total construction services)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 47715,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: The Coffee Fix Services Ltd.)",
+      "tags": [
+        "account-team-needed",
+        "manual-entry-invoice",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 47551,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Vericlean Ks69693)",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "qsiap-source",
+        "sp-vetted",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 47497,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 45112,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "B&B Builders LLC",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000dNJzZ2AW \u2014 posted (Task 00TTS00000wZdrb2AC)",
+      "error": null
+    },
+    {
+      "ticket_id": 45053,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 45040,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-attachment-review",
+        "gateway-unavailable",
+        "manual-ap-review",
+        "manual-review",
+        "missing-sr",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "qsiap-source",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 45032,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - BDG Construction Corp)",
+      "tags": [
+        "account-team-needed",
+        "ap-team-routed",
+        "gateway-unavailable",
+        "manual-review",
+        "multi-invoice-review",
+        "needs-ap-review",
+        "pending-hold",
+        "security-risk",
+        "sp-update-request",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 45026,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "accounting-review",
+        "ap-team-routed",
+        "gateway-unavailable",
+        "high-dollar",
+        "manual-review",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44978,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Rappahannock Petroleum LLC)",
+      "tags": [
+        "account-team-needed",
+        "ap-team-routed",
+        "direct-bill",
+        "gateway-unavailable",
+        "manual-review",
+        "needs-provider-info",
+        "no-sr",
+        "payment-followup",
+        "payment-status-request",
+        "pending-hold",
+        "security-risk",
+        "sp-update-request",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44962,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Conklin Office Furniture",
+      "tags": [
+        "ap-team-routed",
+        "gateway-unavailable",
+        "manual-review",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZufM2AS \u2014 posted (Task 00TTS00000wZu9D2AS)",
+      "error": null
+    },
+    {
+      "ticket_id": 44936,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-attachment-review",
+        "exception-review-needed",
+        "gateway-unavailable",
+        "manual-ap-review",
+        "manual-review",
+        "missing-sr",
+        "non-reply-sender",
+        "pending-hold",
+        "qsiap-source",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44933,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-team-routed",
+        "gateway-unavailable",
+        "manual-review",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44756,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "accounting-review",
+        "ap-attachment-review",
+        "ap-team-routed",
+        "bucket-4-invoice-intake",
+        "gateway-exception",
+        "gateway-unavailable",
+        "invoice-link-forward",
+        "invoice-review-needed",
+        "invoices-pending-forward",
+        "manual-ap-review",
+        "manual-review",
+        "missing-sr",
+        "payment-confirmation-request",
+        "pending-hold",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44707,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Wade Plumbing Solutions)",
+      "tags": [
+        "account-team-needed",
+        "gateway-reviewed",
+        "gateway-status-provided",
+        "needs-ap-review",
+        "pending-payment",
+        "qsiap-source",
+        "review-by-account-team",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 44650,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Rappahannock Petroleum LLC)",
+      "tags": [
+        "ap-team-routed",
+        "gateway-exception",
+        "gateway-unavailable",
+        "invoice-review-needed",
+        "manual-review",
+        "multi-invoice-review",
+        "needs-ap-review",
+        "pending-hold",
+        "sp-update-request",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 30575,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Van Hook Service Co., Inc)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 4525,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Southwest Mechanical Services Inc)",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "rejected-invoice-help",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

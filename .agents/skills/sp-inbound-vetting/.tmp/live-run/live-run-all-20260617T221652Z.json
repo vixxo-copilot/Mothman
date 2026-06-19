@@ -1,0 +1,487 @@
+{
+  "mode": "live",
+  "queue": "all",
+  "run_at": "2026-06-17T22:16:52.494654+00:00",
+  "total": 35,
+  "notes_posted": 35,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 56788,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56925,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Manto Services",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "failed \u2014 {\n  \"name\": \"CANNOT_UPDATE_CONVERTED_LEAD\",\n  \"message\": \"cannot reference converted lead\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"data\": {\n    \"message\": \"cannot reference converted lead\",\n    \"e",
+      "error": null
+    },
+    {
+      "ticket_id": 56920,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56919,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56911,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56910,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZaNI2A0 \u2014 posted (Task 00TTS00000wc0qS2AQ)",
+      "error": null
+    },
+    {
+      "ticket_id": 56909,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56901,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56868,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56865,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56863,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56862,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-resub-forwarded",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56861,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56854,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56846,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56845,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56815,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56811,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56787,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Mastec Company",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000bobDZ2AY \u2014 posted (Task 00TTS00000wbpTw2AI)",
+      "error": null
+    },
+    {
+      "ticket_id": 56778,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "duplicate-or-resubmission",
+        "manual-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56774,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56765,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "duplicate-or-resubmission",
+        "manual-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56747,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56700,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wbqbA2AQ)",
+      "error": null
+    },
+    {
+      "ticket_id": 56540,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Morales Contractors LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZtJg2AK \u2014 posted (Task 00TTS00000wblyJ2AQ)",
+      "error": null
+    },
+    {
+      "ticket_id": 54708,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 52015,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 49762,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Interstate Fire & Safety Equipment",
+      "tags": [
+        "COI",
+        "ap-team-routed",
+        "coi-blocked",
+        "coi-reviewed",
+        "gateway-unavailable",
+        "missing-sr",
+        "needs-ap-review",
+        "payment-followup",
+        "pending-hold",
+        "qsiap-source",
+        "risk-compliance-routed",
+        "security-risk",
+        "sf-lead-match",
+        "sp-update-request",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed"
+      ],
+      "sf_task": "00QTS00000a1ut42AA \u2014 posted (Task 00TTS00000wcEOj2AM)",
+      "error": null
+    },
+    {
+      "ticket_id": 56927,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56860,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56813,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56431,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "spm-routed",
+        "unknown-sp",
+        "vixxolink-support"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56272,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56243,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56106,
+      "queue": "aphelp",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Retail",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "00QTS00000aZfTr2AK \u2014 posted (Task 00TTS00000wc4692AA)",
+      "error": null
+    }
+  ]
+}

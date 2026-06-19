@@ -1,0 +1,2713 @@
+{
+  "mode": "live",
+  "re_vet": true,
+  "queue": "all",
+  "run_at": "2026-06-19T15:17:16.093060+00:00",
+  "total": 154,
+  "notes_posted": 154,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 57259,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57197,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57142,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: ProSite Facilities & Paving Group)",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56995,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56976,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "FastSigns Virginia Beach - Norfolk - Chesapeake",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000c5vfh2AA \u2014 posted (Task 00TTS00000wlDgj2AE)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000c5vfh2AA \u2014 posted (Task 00TTS00000wlDgj2AE)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56788,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: A-1 Express Lock)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56502,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54919,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "known-sp",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54727,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54635,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Alpha Concepts LLC - KS101031)",
+      "tags": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54152,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS101347 - KS- Hamilton Lock & Safe)",
+      "tags": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54088,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 51923,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "account-team-needed",
+        "gateway-unavailable",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "vixxolink-support"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 50268,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 50235,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 48741,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 47978,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "known-sp",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 47977,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "known-sp",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 46735,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "EIS OH LLC dba Elevated Industrial Solutions",
+      "tags": [
+        "duplicate-or-resubmission",
+        "gateway-unavailable",
+        "pending-hold",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 46572,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "web2application",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 46521,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "web2application",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 46482,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 46467,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 46409,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS101178 - KS - Trevena Handyman)",
+      "tags": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 46277,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 44001,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57319,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Moeco Fire & Safety",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57315,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "McKinstry Co., LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000cI89J2AS \u2014 posted (Task 00TTS00000wlIoG2AU)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000cI89J2AS \u2014 posted (Task 00TTS00000wlIoG2AU)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57309,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57304,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57297,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57296,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Spartan Service Group (67429))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57272,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57261,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wlVTg2AM)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wlVTg2AM)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57257,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: All American lock corp)",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57255,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: All American lock corp)",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57254,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Garcia's Landscape Maintennsance LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "failed \u2014 {\n  \"name\": \"Error\",\n  \"message\": \"Malformed key=value pair for value: Landscape.\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"stack\": \"Error: Malformed key=value pair for value: Landscape.\\n    at Sf",
+      "sf_case_task": "N/A",
+      "sf_task": "failed \u2014 {\n  \"name\": \"Error\",\n  \"message\": \"Malformed key=value pair for value: Landscape.\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"stack\": \"Error: Malformed key=value pair for value: Landscape.\\n    at Sf",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57242,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: All American lock corp)",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57238,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: All American lock corp)",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57232,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57230,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57229,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57221,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57194,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57139,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57133,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57098,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57077,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Langway Contracting, LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000ZRSQf2AP \u2014 posted (Task 00TTS00000wlWPj2AM)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000ZRSQf2AP \u2014 posted (Task 00TTS00000wlWPj2AM)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57076,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wlAm52AE)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000aZfSD2A0 \u2014 posted (Task 00TTS00000wlAm52AE)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57074,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57047,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57039,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57019,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57005,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56998,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Golden Gears LLC",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56997,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56993,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56979,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56943,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56934,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56927,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56919,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56911,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56909,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56868,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56862,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-resub-forwarded",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56861,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56854,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56846,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56845,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56815,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56811,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56778,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "duplicate-or-resubmission",
+        "manual-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56774,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56765,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "duplicate-or-resubmission",
+        "manual-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56747,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56700,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wleM12AI)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wleM12AI)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56655,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Marriott Raleigh City Center",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56649,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Edidel Construction, LLC (101156))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56642,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Birch Coffee",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56612,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56604,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "freshdesk-rest-forwarded",
+        "invoice-intake",
+        "invoice-resub-forwarded",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56599,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56580,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - ACS of Long Island (KS69772))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56567,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-attachment-review",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56562,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56553,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56549,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56475,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56443,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Elements Massage Simi Valley",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56432,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56430,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56427,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56380,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56373,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56359,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56357,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56343,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Air Solutions LLC",
+      "tags": [
+        "sf-case-match",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "500TS00000gH5WIYA0 \u2014 posted (Task 00TTS00000wlEpU2AU)",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56337,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56335,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56311,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56290,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Commercial Signs Awnings and Metal Art",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56238,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56223,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56222,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56198,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56166,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56156,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56107,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Credit Card Payments US)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56096,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56078,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56079,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55998,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Unicare Building Maintenance",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 55987,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "pending-hold",
+        "sf-lead-match",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wl7w52AA)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wl7w52AA)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55930,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp",
+        "voicemail"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55929,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55924,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-status",
+        "pending-hold",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55923,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wli7R2AQ)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wli7R2AQ)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55886,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55841,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Garcia's Landscape Maintennsance LLC",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 55819,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55818,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55785,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55650,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wlheR2AQ)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000wlheR2AQ)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55638,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55385,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Manto Services",
+      "tags": [
+        "invoice-resub-forwarded",
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "failed \u2014 {\n  \"name\": \"CANNOT_UPDATE_CONVERTED_LEAD\",\n  \"message\": \"cannot reference converted lead\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"data\": {\n    \"message\": \"cannot reference converted lead\",\n    \"e",
+      "sf_case_task": "500TS00000l0ltVYAQ \u2014 posted (Task 00TTS00000wl37q2AA)",
+      "sf_task": "failed \u2014 {\n  \"name\": \"CANNOT_UPDATE_CONVERTED_LEAD\",\n  \"message\": \"cannot reference converted lead\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"data\": {\n    \"message\": \"cannot reference converted lead\",\n    \"e",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 55167,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-support",
+        "manual-review",
+        "payment-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54804,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "portal-help",
+        "sf-case-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "500TS00000jRJ1WYAW \u2014 posted (Task 00TTS00000wl6n32AA)",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54711,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "campaign-clarification",
+        "manual-review",
+        "pending-hold",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54708,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54686,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "corp-ap-routed",
+        "payment-support",
+        "sp-vetted",
+        "unknown-sp",
+        "urgent-follow-up"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 53683,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-adjustment",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 53672,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "N/A",
+      "tags": [
+        "invoice-link-forwarded",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "00QTS00000bf3Ko2AI \u2014 posted (Task 00TTS00000wlCxN2AU)",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "00QTS00000bf3Ko2AI \u2014 posted (Task 00TTS00000wlCxN2AU)",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 52097,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 52017,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "banking-change",
+        "gateway-unavailable",
+        "manual-review",
+        "no-click",
+        "payment-info-change",
+        "pending-hold",
+        "security-review",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "statement",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 51836,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 51805,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "pending-hold",
+        "remittance-research",
+        "security-risk",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 51803,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "pending-hold",
+        "remittance-research",
+        "security-risk",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 47715,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: The Coffee Fix Services Ltd.)",
+      "tags": [
+        "account-team-needed",
+        "manual-entry-invoice",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 47551,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Vericlean Ks69693)",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "qsiap-source",
+        "sp-vetted",
+        "statement-review",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 45053,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "gateway-unavailable",
+        "manual-review",
+        "pending-hold",
+        "sp-vetted",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 45026,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "accounting-review",
+        "ap-team-routed",
+        "gateway-unavailable",
+        "high-dollar",
+        "manual-review",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 44978,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Rappahannock Petroleum LLC)",
+      "tags": [
+        "account-team-needed",
+        "ap-team-routed",
+        "direct-bill",
+        "gateway-unavailable",
+        "manual-review",
+        "needs-provider-info",
+        "no-sr",
+        "payment-followup",
+        "payment-status-request",
+        "pending-hold",
+        "security-risk",
+        "sp-update-request",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 44933,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "POWER VC LLC",
+      "tags": [
+        "ap-team-routed",
+        "gateway-unavailable",
+        "manual-review",
+        "payment-followup",
+        "pending-hold",
+        "pending-payment",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 44756,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "RammTech LLC",
+      "tags": [
+        "accounting-review",
+        "ap-attachment-review",
+        "ap-team-routed",
+        "bucket-4-invoice-intake",
+        "gateway-exception",
+        "gateway-unavailable",
+        "invoice-link-forward",
+        "invoice-review-needed",
+        "invoices-pending-forward",
+        "manual-ap-review",
+        "manual-review",
+        "missing-sr",
+        "payment-confirmation-request",
+        "pending-hold",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted",
+        "spm-dry-run-worked",
+        "spm-ic-publish-2026-06-02",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 30575,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Van Hook Service Co., Inc)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 4525,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Southwest Mechanical Services Inc)",
+      "tags": [
+        "manual-review",
+        "pending-hold",
+        "rejected-invoice-help",
+        "sp-vetted",
+        "spm-invoice-concerns-reviewed",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57335,
+      "queue": "aphelp",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Full House Heating and Air LLC",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57334,
+      "queue": "aphelp",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57084,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57060,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 57050,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 56675,
+      "queue": "aphelp",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "Prime Maintenance",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "00QTS00000aZWrh2AG \u2014 posted (Task 00TTS00000wlUCj2AM)",
+      "sf_case_task": "N/A",
+      "sf_task": "00QTS00000aZWrh2AG \u2014 posted (Task 00TTS00000wlUCj2AM)",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 56530,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - Fresh Start Janitorial and Maintenance Services #KS69727)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    }
+  ]
+}

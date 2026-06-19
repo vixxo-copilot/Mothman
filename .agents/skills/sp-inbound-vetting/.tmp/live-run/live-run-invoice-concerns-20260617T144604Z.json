@@ -1,0 +1,23 @@
+{
+  "mode": "live",
+  "queue": "invoice-concerns",
+  "run_at": "2026-06-17T14:46:04.391500+00:00",
+  "total": 1,
+  "notes_posted": 1,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 56686,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

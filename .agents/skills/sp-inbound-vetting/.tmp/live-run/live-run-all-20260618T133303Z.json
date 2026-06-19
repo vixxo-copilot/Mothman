@@ -1,0 +1,368 @@
+{
+  "mode": "live",
+  "queue": "all",
+  "run_at": "2026-06-18T13:33:03.319157+00:00",
+  "total": 26,
+  "notes_posted": 26,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 57010,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56995,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56989,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56988,
+      "queue": "ksonboarding",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56976,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead only)",
+      "note": "posted",
+      "cf_sp": "FastSigns Virginia Beach - Norfolk - Chesapeake",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000c5vfh2AA \u2014 posted (Task 00TTS00000welYN2AY)",
+      "error": null
+    },
+    {
+      "ticket_id": 56931,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57007,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Jan-Pro Franchising, Inc",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZPOo2AO \u2014 posted (Task 00TTS00000weqJc2AI)",
+      "error": null
+    },
+    {
+      "ticket_id": 57005,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57003,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Texas Automatic Door Services",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000cRilR2AS \u2014 posted (Task 00TTS00000weaDH2AY)",
+      "error": null
+    },
+    {
+      "ticket_id": 56998,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Moeco Fire & Safety",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZDor2AG \u2014 posted (Task 00TTS00000welIS2AY)",
+      "error": null
+    },
+    {
+      "ticket_id": 56997,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56993,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56979,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56961,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56953,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000wdWmt2AE)",
+      "error": null
+    },
+    {
+      "ticket_id": 56948,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Baseinfo Market",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000cJBrV2AW \u2014 posted (Task 00TTS00000weqzZ2AQ)",
+      "error": null
+    },
+    {
+      "ticket_id": 56934,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56933,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56932,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56928,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 55599,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Preferred Plumbing and Drain - NH (KS68802))",
+      "tags": [
+        "manual-review",
+        "payment-status",
+        "pending-hold",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50238,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "missing-sr",
+        "payment-link-caution",
+        "qsiap-source",
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50236,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-followup",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50231,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "ap-team-routed",
+        "qsiap-source",
+        "sf-case-match",
+        "sp-update-request",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 50229,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Langway Contracting, LLC",
+      "tags": [
+        "ap-team-routed",
+        "qsiap-source",
+        "sf-lead-match",
+        "sp-update-request",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000ZRSQf2AP \u2014 posted (Task 00TTS00000weyZA2AY)",
+      "error": null
+    },
+    {
+      "ticket_id": 50216,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "invoice-attachment",
+        "manual-review",
+        "missing-sr",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "mode": "dry-run",
+  "queue": "all",
+  "queues_scanned": [
+    "ksonboarding",
+    "invoice-concerns",
+    "aphelp"
+  ],
+  "counts_by_queue": {
+    "ksonboarding": 0,
+    "invoice-concerns": 0,
+    "aphelp": 0
+  },
+  "in_scope_count": 0,
+  "items": []
+}

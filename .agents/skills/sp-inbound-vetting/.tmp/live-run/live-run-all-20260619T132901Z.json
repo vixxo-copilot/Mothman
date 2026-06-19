@@ -1,0 +1,62 @@
+{
+  "mode": "live",
+  "queue": "all",
+  "run_at": "2026-06-19T13:29:01.550093+00:00",
+  "total": 4,
+  "notes_posted": 4,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 57315,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "McKinstry Co., LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000cI89J2AS \u2014 posted (Task 00TTS00000wkypg2AA)",
+      "error": null
+    },
+    {
+      "ticket_id": 57309,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56530,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - Fresh Start Janitorial and Maintenance Services #KS69727)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 56529,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: KS - Fresh Start Janitorial and Maintenance Services #KS69727)",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,1119 @@
+{
+  "mode": "dry-run",
+  "skill": "ksonboarding-inbound-routing",
+  "query": "group_id:159000485013 AND status:2 AND type:'KSOnboarding'",
+  "generated_at": "2026-06-19T18:06:00Z",
+  "search_total": 29,
+  "skipped": {
+    "routed": 0,
+    "voicemail": 2
+  },
+  "in_scope_count": 27,
+  "counts_by_classification": {
+    "COI": 5,
+    "KSOnboarding retained": 15,
+    "VixxoLink Support": 4,
+    "Invoice Support": 3
+  },
+  "items": [
+    {
+      "ticket_id": 57412,
+      "subject": "FYI - common summer HVAC issues to be aware of",
+      "requester": "amanda@unlimitedhp.com",
+      "contact_name": "Amanda Lynas",
+      "company": "Amanda Lynas",
+      "tags_current": [],
+      "classification": "COI",
+      "new_type": "COIs",
+      "type_change": "KSOnboarding \u2192 COIs",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "coi",
+        "risk-compliance-routed"
+      ],
+      "signals": [
+        "keyword:coi"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "left blank",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 57395,
+      "subject": "Reminder payment request from A Mobile Locksmith - invoice 108986",
+      "requester": "invoices@amobilelockcs.com",
+      "contact_name": "Invoices",
+      "company": "Invoices",
+      "tags_current": [],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "left blank",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "Invoice 108986.pdf",
+        "Scan_20260501 (4).pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 57259,
+      "subject": "Certificate of Insurance for Ascension Property Services",
+      "requester": "dencerts@lockton.com",
+      "contact_name": "Dencerts",
+      "company": "Dencerts",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "COI",
+      "new_type": "COIs",
+      "type_change": "KSOnboarding \u2192 COIs",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "coi",
+        "risk-compliance-routed"
+      ],
+      "signals": [
+        "keyword:coi",
+        "keyword:certificate of insurance",
+        "keyword:insurance certificate"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 57197,
+      "subject": "KLG 2026-2027 COI",
+      "requester": "m.post@cfgins.net",
+      "contact_name": "Madeline Post",
+      "company": "Madeline Post",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "COI",
+      "new_type": "COIs",
+      "type_change": "KSOnboarding \u2192 COIs",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "coi",
+        "risk-compliance-routed"
+      ],
+      "signals": [
+        "attachment:ACORD Form 20260618-145812-93.pdf",
+        "keyword:coi",
+        "keyword:acord"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "ACORD Form 20260618-145812-93.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 57142,
+      "subject": "Onboarding - ProSite Facilities & Paving Group 06.18.26",
+      "requester": "mager@prositefg.com",
+      "contact_name": "Michael Ager",
+      "company": "ProSite Facilities & Paving Group",
+      "tags_current": [
+        "sf-lead-match",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: ProSite Facilities & Paving Group",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "ProSite Facilities & Paving Group.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 56995,
+      "subject": "Invoice 21768 from ALLIED LOCKSMITHS OF YOUNGSTOWN",
+      "requester": "invoices2904@gmail.com",
+      "contact_name": "Invoices2904",
+      "company": "ALLIED LOCKSMITHS OF YOUNGSTOWN",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "Inv_21768_from_ALLIED_LOCKSMITHS_OF_YOUNGSTOWN_6428.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 56976,
+      "subject": "Re: Transfer of account",
+      "requester": "derek.fletcher@fastsigns.com",
+      "contact_name": "Derek Fletcher",
+      "company": "FastSigns Virginia Beach - Norfolk - Chesapeake",
+      "tags_current": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "classification": "VixxoLink Support",
+      "new_type": "VixxoLink Support",
+      "type_change": "KSOnboarding \u2192 VixxoLink Support",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "vixxolink-routed"
+      ],
+      "signals": [
+        "keyword:vixxolink"
+      ],
+      "posture": "Prospect (SF Lead only)",
+      "confidence": "High",
+      "cf_sp": null,
+      "cf_sp_note": "existing: FastSigns Virginia Beach - Norfolk - Chesapeake",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000c5vfh2AA"
+        },
+        "Id": "00QTS00000c5vfh2AA",
+        "Name": "Derek Fletcher",
+        "Company": "FastSigns Virginia Beach - Norfolk - Chesapeake",
+        "Status": "New",
+        "Email": "derek.fletcher@fastsigns.com",
+        "LastModifiedDate": "2026-05-13T19:50:44.000+0000",
+        "match_type": "exact",
+        "confidence": "High",
+        "match_score": 1.0,
+        "match_kind": "email"
+      },
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 56502,
+      "subject": "Invoice 22024 from ALLIED LOCKSMITHS OF YOUNGSTOWN",
+      "requester": "invoices2904@gmail.com",
+      "contact_name": "Invoices2904",
+      "company": "ALLIED LOCKSMITHS OF YOUNGSTOWN",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "Inv_22024_from_ALLIED_LOCKSMITHS_OF_YOUNGSTOWN_6428.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 54919,
+      "subject": "Your service with\u00a0Texas Premier Locksmith -\u00a01-6582223572",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "contact_name": "Texas_premier_locksmith",
+      "company": "Texas Premier Locksmith",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "sf-case-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Open SF Case (possible match)",
+      "confidence": "Medium",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000hhDHSYA2"
+        },
+        "Id": "500TS00000hhDHSYA2",
+        "CaseNumber": "00003689",
+        "Subject": "KS - Texas Premier Locksmith Inc - Rate Negotiation",
+        "Status": "New",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.85
+      },
+      "attachment_names": [
+        "Before.jpg",
+        "After.jpg",
+        "Sign Off.pdf",
+        "f57341e762beb85eda166d62e8bac667-invoice_51740.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 54727,
+      "subject": "FW: Contract",
+      "requester": "amanda.pearson@vixxo.com",
+      "contact_name": "Amanda Pearson",
+      "company": "Amanda Pearson",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp",
+        "sf-case-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "confidence": "Medium",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000aZTvT2AW"
+        },
+        "Id": "00QTS00000aZTvT2AW",
+        "Name": "Amanda Simon",
+        "Company": "[not provided]",
+        "Status": "New",
+        "Email": "asimon@freshthyme.com",
+        "LastModifiedDate": "2026-04-08T20:02:01.000+0000",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.769,
+        "match_kind": "name_fuzzy"
+      },
+      "sf_case": null,
+      "attachment_names": [
+        "Ainsworth Inc _42926C - Profile.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 54635,
+      "subject": "Update on your Vixxo account",
+      "requester": "philips@alphaconceptsllc.com",
+      "contact_name": "Philips",
+      "company": "Alpha Concepts LLC - KS101031",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Alpha Concepts LLC - KS101031",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 54152,
+      "subject": "KS101347 - Hamilton Lock and Safe account updates and payment issues.",
+      "requester": "stefan.bishop@vixxo.com",
+      "contact_name": "Stefan Bishop",
+      "company": "KS101347",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "VixxoLink Support",
+      "new_type": "VixxoLink Support",
+      "type_change": "KSOnboarding \u2192 VixxoLink Support",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "vixxolink-routed"
+      ],
+      "signals": [
+        "keyword:vixxo link"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: KS101347 - KS- Hamilton Lock & Safe",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 54088,
+      "subject": "Follow-Up: Account #2026-0991 \u2014 $365.00 Balance",
+      "requester": "collections@stonesaunders.com",
+      "contact_name": "Stone, Saunders & Associates",
+      "company": "Stone, Saunders & Associates",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "Invoice Support",
+      "new_type": "Invoice Support",
+      "type_change": "KSOnboarding \u2192 Invoice Support",
+      "retain_type": false,
+      "cf_type_of_request": "Follow up on an Unpaid Invoice",
+      "route_tags": [
+        "ks-inbound-routed",
+        "invoice-routed"
+      ],
+      "signals": [
+        "keyword:outstanding balance"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 51923,
+      "subject": "RE: Onboarding setup for Golterman and Sabo",
+      "requester": "karenh@golterman.com",
+      "contact_name": "Karen Hoxworth",
+      "company": "Golterman and Sabo",
+      "tags_current": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "account-team-needed",
+        "vixxolink-support",
+        "pending-hold",
+        "gateway-unavailable",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "VixxoLink Support",
+      "new_type": "VixxoLink Support",
+      "type_change": "KSOnboarding \u2192 VixxoLink Support",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "vixxolink-routed"
+      ],
+      "signals": [
+        "keyword:vixxolink"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 50268,
+      "subject": "Natural, here's your receipt from Minuteman, Inc.",
+      "requester": "minuteman_inc@msg.workiz.com",
+      "contact_name": "Minuteman_inc",
+      "company": "Minuteman, Inc",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "Receipt - Natural Grocers VIXXO KANSAS LLC. Thu May 28, 2026.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 50235,
+      "subject": "Needing to get an invoice rejection resolved",
+      "requester": "tim@e3construction.net",
+      "contact_name": "Tim Emery",
+      "company": "Tim Emery",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "Invoice Support",
+      "new_type": "Invoice Support",
+      "type_change": "KSOnboarding \u2192 Invoice Support",
+      "retain_type": false,
+      "cf_type_of_request": "Follow up on an Unpaid Invoice",
+      "route_tags": [
+        "ks-inbound-routed",
+        "invoice-routed"
+      ],
+      "signals": [
+        "keyword:delinquent"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "E3 Construction Services - Profile (5).pdf",
+        "attachment.eml"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 48741,
+      "subject": "FlyLock Security Solutions Richmond 6622302",
+      "requester": "david.millure@flylock.com",
+      "contact_name": "David Millure",
+      "company": "FlyLock Security Solutions",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 47978,
+      "subject": "Polo Ralph, here's your receipt from Texas Premier Locksmith",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "contact_name": "Texas_premier_locksmith",
+      "company": "Texas Premier Locksmith",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "sf-case-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Open SF Case (possible match)",
+      "confidence": "Medium",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000hhDHSYA2"
+        },
+        "Id": "500TS00000hhDHSYA2",
+        "CaseNumber": "00003689",
+        "Subject": "KS - Texas Premier Locksmith Inc - Rate Negotiation",
+        "Status": "New",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.85
+      },
+      "attachment_names": [
+        "Receipt - Polo Ralph Lauren VIXXO FACILITY SOLUTIONS Thu May 21, 2026.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 47977,
+      "subject": "Polo Ralph, here's your receipt from Texas Premier Locksmith",
+      "requester": "texas_premier_locksmith@msg.workiz.com",
+      "contact_name": "Texas_premier_locksmith",
+      "company": "Texas Premier Locksmith",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "sf-case-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Open SF Case (possible match)",
+      "confidence": "Medium",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000hhDHSYA2"
+        },
+        "Id": "500TS00000hhDHSYA2",
+        "CaseNumber": "00003689",
+        "Subject": "KS - Texas Premier Locksmith Inc - Rate Negotiation",
+        "Status": "New",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.85
+      },
+      "attachment_names": [
+        "Receipt - Polo Ralph Lauren VIXXO FACILITY SOLUTIONS Thu May 21, 2026.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 46735,
+      "subject": "Statement from INDUSTRIAL DOOR & WEATHERSTRIP CO INC",
+      "requester": "indwstcoin@aol.com",
+      "contact_name": "indwstcoin@aol. com",
+      "company": "INDUSTRIAL",
+      "tags_current": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "duplicate-or-resubmission",
+        "pending-hold",
+        "gateway-unavailable",
+        "sp-vetted",
+        "unknown-sp",
+        "sf-lead-match",
+        "sf-match-review"
+      ],
+      "classification": "Invoice Support",
+      "new_type": "Invoice Support",
+      "type_change": "KSOnboarding \u2192 Invoice Support",
+      "retain_type": false,
+      "cf_type_of_request": "Follow up on an Unpaid Invoice",
+      "route_tags": [
+        "ks-inbound-routed",
+        "invoice-routed"
+      ],
+      "signals": [
+        "attachment:Statement_2492_from_INDUSTRIAL_DOOR__WEATHERSTRIP_CO_INC.pdf",
+        "keyword:statement"
+      ],
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "confidence": "Medium",
+      "cf_sp": null,
+      "cf_sp_note": "existing: EIS OH LLC dba Elevated Industrial Solutions",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000dchru2AA"
+        },
+        "Id": "00QTS00000dchru2AA",
+        "Name": "Sheri Snively",
+        "Company": "EIS OH LLC dba Elevated Industrial Solutions",
+        "Status": "New",
+        "Email": "ssnively@elevatedindustrial.com",
+        "LastModifiedDate": "2026-06-19T12:44:22.000+0000",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.85,
+        "match_kind": "company_fuzzy"
+      },
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000l2OsoYAE"
+        },
+        "Id": "500TS00000l2OsoYAE",
+        "CaseNumber": "00004028",
+        "Subject": "SPM - Onboard SPM - Industrial Piping Systems LLC",
+        "Status": "Setup/Training",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.85
+      },
+      "attachment_names": [
+        "Statement_2492_from_INDUSTRIAL_DOOR__WEATHERSTRIP_CO_INC.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 46572,
+      "subject": "Reminder: aedoorsales invited you to join PROJECT REF: 8539-01 on ClickUp",
+      "requester": "team@info.clickup.com",
+      "contact_name": "Team",
+      "company": "web2application",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp",
+        "sf-lead-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Prospect (SF Lead only)",
+      "confidence": "High",
+      "cf_sp": null,
+      "cf_sp_note": "existing: web2application",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000aZaya2AC"
+        },
+        "Id": "00QTS00000aZaya2AC",
+        "Name": "web2application Team",
+        "Company": "web2application",
+        "Status": "New",
+        "Email": "support@web2application.com",
+        "LastModifiedDate": "2026-04-08T21:24:32.000+0000",
+        "match_type": "exact",
+        "confidence": "High",
+        "match_score": 1.0,
+        "match_kind": "company_exact"
+      },
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000lOwUSYA0"
+        },
+        "Id": "500TS00000lOwUSYA0",
+        "CaseNumber": "00004213",
+        "Subject": "KS - C.A.T Carpet Action Team - Coverage Change",
+        "Status": "New",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.8
+      },
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 46521,
+      "subject": "Reminder: aedoorsales invited you to join PROJECT REF: 8539-01 on ClickUp",
+      "requester": "team@info.clickup.com",
+      "contact_name": "Team",
+      "company": "web2application",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp",
+        "sf-lead-match",
+        "sf-match-review"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Prospect (SF Lead only)",
+      "confidence": "High",
+      "cf_sp": null,
+      "cf_sp_note": "existing: web2application",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000aZaya2AC"
+        },
+        "Id": "00QTS00000aZaya2AC",
+        "Name": "web2application Team",
+        "Company": "web2application",
+        "Status": "New",
+        "Email": "support@web2application.com",
+        "LastModifiedDate": "2026-04-08T21:24:32.000+0000",
+        "match_type": "exact",
+        "confidence": "High",
+        "match_score": 1.0,
+        "match_kind": "company_exact"
+      },
+      "sf_case": {
+        "attributes": {
+          "type": "Case",
+          "url": "/services/data/v67.0/sobjects/Case/500TS00000lOwUSYA0"
+        },
+        "Id": "500TS00000lOwUSYA0",
+        "CaseNumber": "00004213",
+        "Subject": "KS - C.A.T Carpet Action Team - Coverage Change",
+        "Status": "New",
+        "match_type": "fuzzy",
+        "confidence": "Medium",
+        "match_score": 0.8
+      },
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 46482,
+      "subject": "COI - Paradise Kitchens and Floors LLC - Vixxo Corporation",
+      "requester": "p&ccertrequest@cbiz.com",
+      "contact_name": "CertRequest, P&C",
+      "company": "Paradise Kitchens and Floors LLC",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "COI",
+      "new_type": "COIs",
+      "type_change": "KSOnboarding \u2192 COIs",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "coi",
+        "risk-compliance-routed"
+      ],
+      "signals": [
+        "attachment:COI - Paradise Kitchens and Floors LLC - Vixxo Corporation.pdf",
+        "keyword:coi",
+        "keyword:certificate of insurance"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [
+        "COI - Paradise Kitchens and Floors LLC - Vixxo Corporation.pdf"
+      ],
+      "errors": []
+    },
+    {
+      "ticket_id": 46467,
+      "subject": "SR # 16491517272",
+      "requester": "reaganniemann@yahoo.com",
+      "contact_name": "Reagan Niemann",
+      "company": "Reagan Niemann",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 46409,
+      "subject": "FW: SR#: 1-6565263552 | WO# 350644278 | Ulta Beauty - Rock Springs/WY - 1689 | Plumbing | Priority: P1 (Onsite within 4 hours, completion within 5 days.)",
+      "requester": "kelly.mitchell@vixxo.com",
+      "contact_name": "Kelly Mitchell",
+      "company": "KS101178 - KS - Trevena Handyman",
+      "tags_current": [
+        "known-sp",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "VixxoLink Support",
+      "new_type": "VixxoLink Support",
+      "type_change": "KSOnboarding \u2192 VixxoLink Support",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "vixxolink-routed"
+      ],
+      "signals": [
+        "keyword:vixxolink"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: KS101178 - KS - Trevena Handyman",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 46277,
+      "subject": "Business Insurance",
+      "requester": "parnzip@gmail.com",
+      "contact_name": "Patrick Ashley",
+      "company": "[not provided]",
+      "tags_current": [
+        "sp-vetted",
+        "unknown-sp",
+        "sf-lead-match",
+        "sf-match-review"
+      ],
+      "classification": "COI",
+      "new_type": "COIs",
+      "type_change": "KSOnboarding \u2192 COIs",
+      "retain_type": false,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "coi",
+        "risk-compliance-routed"
+      ],
+      "signals": [
+        "keyword:certificate of insurance"
+      ],
+      "posture": "Prospect (SF Lead only)",
+      "confidence": "High",
+      "cf_sp": null,
+      "cf_sp_note": "existing: [not provided]",
+      "gateway_sp": null,
+      "sf_lead": {
+        "attributes": {
+          "type": "Lead",
+          "url": "/services/data/v67.0/sobjects/Lead/00QTS00000aZfSD2A0"
+        },
+        "Id": "00QTS00000aZfSD2A0",
+        "Name": "Andrea Zecevi",
+        "Company": "[not provided]",
+        "Status": "New",
+        "Email": "azconsulting2001@gmail.com",
+        "LastModifiedDate": "2026-04-08T22:02:40.000+0000",
+        "match_type": "exact",
+        "confidence": "High",
+        "match_score": 1.0,
+        "match_kind": "company_exact"
+      },
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    },
+    {
+      "ticket_id": 44001,
+      "subject": "RE: [External] WO needed for May Services 13017608",
+      "requester": "callie.riggs@vixxo.com",
+      "contact_name": "Callie Riggs",
+      "company": "Callie Riggs",
+      "tags_current": [
+        "spm-invoice-concerns-reviewed",
+        "spm-ic-publish-2026-06-02",
+        "manual-review",
+        "pending-hold",
+        "gateway-unavailable",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "classification": "KSOnboarding retained",
+      "new_type": null,
+      "type_change": "none",
+      "retain_type": true,
+      "cf_type_of_request": null,
+      "route_tags": [
+        "ks-inbound-routed",
+        "ks-onboarding-retained"
+      ],
+      "signals": [
+        "no retype signals"
+      ],
+      "posture": "Unknown / Not in systems",
+      "confidence": "Low",
+      "cf_sp": null,
+      "cf_sp_note": "existing: Unknown",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_case": null,
+      "attachment_names": [],
+      "errors": []
+    }
+  ]
+}

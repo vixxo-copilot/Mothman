@@ -1,0 +1,317 @@
+{
+  "mode": "live",
+  "queue": "all",
+  "run_at": "2026-06-18T19:11:21.037954+00:00",
+  "total": 23,
+  "notes_posted": 23,
+  "errors": [
+    {
+      "ticket_id": 57112,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "error": "update:Bad Request"
+    }
+  ],
+  "results": [
+    {
+      "ticket_id": 57142,
+      "queue": "ksonboarding",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Stanleys Roofing",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000be6PZ2AY \u2014 posted (Task 00TTS00000whWJX2A2)",
+      "error": null
+    },
+    {
+      "ticket_id": 57082,
+      "queue": "ksonboarding",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57165,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZaiE2AS \u2014 posted (Task 00TTS00000whDKK2A2)",
+      "error": null
+    },
+    {
+      "ticket_id": 57151,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "All One Venture LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZuNg2AK \u2014 posted (Task 00TTS00000whAGI2A2)",
+      "error": null
+    },
+    {
+      "ticket_id": 57150,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: Pro Paving Co LLC (68135))",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57145,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "American Commercial Cleaning",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZYLR2A4 \u2014 posted (Task 00TTS00000whW0J2AU)",
+      "error": null
+    },
+    {
+      "ticket_id": 57139,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57133,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57130,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57098,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57077,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Langway Contracting, LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000ZRSQf2AP \u2014 posted (Task 00TTS00000wh7N22AI)",
+      "error": null
+    },
+    {
+      "ticket_id": 57076,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000aZTvT2AW \u2014 posted (Task 00TTS00000whcOx2AI)",
+      "error": null
+    },
+    {
+      "ticket_id": 57074,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57047,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57045,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57039,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57022,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57019,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57112,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "error": "update:Bad Request"
+    },
+    {
+      "ticket_id": 57084,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57078,
+      "queue": "aphelp",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Langway Contracting, LLC",
+      "tags": [
+        "sf-lead-match",
+        "sp-vetted"
+      ],
+      "sf_task": "00QTS00000ZRSQf2AP \u2014 posted (Task 00TTS00000whRAG2A2)",
+      "error": null
+    },
+    {
+      "ticket_id": 57060,
+      "queue": "aphelp",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    },
+    {
+      "ticket_id": 57050,
+      "queue": "aphelp",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "sf-case-match",
+        "sp-vetted"
+      ],
+      "sf_task": "N/A",
+      "error": null
+    }
+  ]
+}

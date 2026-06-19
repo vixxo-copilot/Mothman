@@ -1,0 +1,127 @@
+{
+  "mode": "live",
+  "re_vet": false,
+  "queue": "all",
+  "run_at": "2026-06-19T14:41:56.487302+00:00",
+  "total": 6,
+  "notes_posted": 6,
+  "errors": [],
+  "results": [
+    {
+      "ticket_id": 57335,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Full House Heating and Air LLC",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 57334,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "[not provided]",
+      "tags": [
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54341,
+      "queue": "invoice-concerns",
+      "posture": "Open SF Case (possible match)",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "payment-link-caution",
+        "qsiap-source",
+        "sf-case-match",
+        "sf-match-review",
+        "sp-vetted",
+        "statement-review"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_task": "N/A",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54286,
+      "queue": "invoice-concerns",
+      "posture": "Prospect (SF Lead \u2014 possible match)",
+      "note": "posted",
+      "cf_sp": "Burnhams Locksmith",
+      "tags": [
+        "manual-review",
+        "missing-sr",
+        "payment-link-caution",
+        "qsiap-source",
+        "sf-lead-match",
+        "sf-match-review",
+        "sp-vetted"
+      ],
+      "sf_lead_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_case_task": "N/A",
+      "sf_task": "skipped \u2014 match_type=fuzzy, confidence=Medium \u2014 task skipped pending review",
+      "sf_match_review": true,
+      "error": null
+    },
+    {
+      "ticket_id": 54285,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "accounting-routed",
+        "manual-review",
+        "payment-support",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    },
+    {
+      "ticket_id": 54282,
+      "queue": "invoice-concerns",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": [
+        "manual-review",
+        "missing-sr",
+        "payment-link-caution",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp"
+      ],
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_task": "N/A",
+      "sf_match_review": false,
+      "error": null
+    }
+  ]
+}
