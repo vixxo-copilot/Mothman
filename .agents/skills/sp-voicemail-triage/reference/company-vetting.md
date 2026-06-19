@@ -24,9 +24,46 @@ Search all four systems below. Record every hit; note ambiguous matches.
    suffixes when matching Siebel records).
 2. If the transcript cites an **SP number**, **customer number**, or **SR
    number**, resolve that ID first — it is stronger than fuzzy name search.
-3. Run name searches across systems in parallel when MCP is available.
+3. Run name and **phone** searches across systems in parallel when MCP is
+   available.
 4. If multiple name matches, pick the best match and list alternates under
    **Open questions**. Do not merge distinct companies.
+
+## Phone number vetting (required for voicemails)
+
+Normalize the callback number to **last 10 digits** (strip country code,
+ punctuation). Search when the number is present and valid — in addition to
+ email/name/company checks.
+
+| System | Tool / query | Match field |
+| --- | --- | --- |
+| Gateway | `gateway_swm_list_customers` | Scan returned rows for phone/contact phone fields matching last 10 digits |
+| Gateway | `gateway_search_invoices` | `searchString`: 10-digit phone (secondary — may surface site/contact context) |
+| Salesforce Lead | `run_soql_query` | `Phone LIKE '%{last10}%'` |
+| Salesforce Contact | `run_soql_query` | `Phone LIKE '%{last10}%'` or `MobilePhone LIKE '%{last10}%'` |
+| Salesforce Account | `run_soql_query` | `Phone LIKE '%{last10}%'` |
+| Salesforce Case | `run_soql_query` | Contact phone on related Contact when Case surfaced by email/subject |
+
+Example Lead SOQL (also used in `sp-inbound-vetting` batch vetting):
+
+```sql
+SELECT Id, Name, Company, Status, Phone, Email, LastModifiedDate
+FROM Lead
+WHERE Phone LIKE '%{last10_digits}%'
+ORDER BY LastModifiedDate DESC
+LIMIT 5
+```
+
+A **Gateway customer** or **Salesforce Account/Contact** hit with **no Known SP**
+posture → treat as **Known Customer** and apply client voicemail routing in
+[routing-actions.md](routing-actions.md).
+
+**Batch REST limitation:** `scripts/batch_process_freshdesk.py` (and fast skill
+with `--skip-vetting`) uses **caller-ID and transcript heuristics only** — no
+Gateway/Salesforce phone lookup. Run the **parent skill with MCP** (or agent
+interactive triage) for full phone vetting. See also
+[sp-inbound-vetting/reference/company-vetting.md](../../sp-inbound-vetting/reference/company-vetting.md)
+for shared Salesforce phone SOQL patterns.
 
 ## Siebel (via Gateway)
 
@@ -112,7 +149,7 @@ onboarding branch.
 | --- | --- |
 | Known SP + billing/invoice category | AP path still applies; mention SP # in forward |
 | Known SP + VixxoLink/technical | `service.providermanagement@vixxo.com` |
-| Known Customer (not SP) | Unlikely SP onboarding — clarify in summary; do not route to recruitment |
+| Known Customer (not SP) | **Client voicemail branch** — no forward; tag `client-voicemail-review` for {{employee_name}}. Do not route to recruitment or AP/SPM unless portal-support keywords → Amy |
 | Prospect (SF Lead only) | Onboarding branch → Lead note + resolve Freshdesk |
 | Unknown + onboarding intent | Onboarding branch → recruitment forward |
 | Unknown + other category | Route by category; flag unknown entity in internal note |

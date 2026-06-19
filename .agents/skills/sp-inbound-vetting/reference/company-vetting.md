@@ -29,8 +29,30 @@ string equality.
 1. Lowercase; strip punctuation; collapse whitespace.
 2. Drop common suffix tokens: `LLC`, `Inc`, `Co`, `Corp`, `Ltd`, `The`,
    `Company`, `Services`, `Service`.
-3. Compare normalized strings — do not require punctuation or suffix parity with
-   Siebel display names.
+3. **Strip Gateway tracking prefixes** from Siebel SP display names before
+   comparing to intake text — these are internal labels, not on provider docs:
+   `KS`, `KS-`, `CCPAY`, `STRYKER ONLY`, trailing `ONLY`.
+4. Compare normalized strings — do not require punctuation, suffix parity, or
+   tracking-prefix parity with Siebel display names.
+
+Example: intake company **Alpha Concepts** matches Gateway SP
+**KS - Alpha Concepts LLC** after stripping `KS -` and scoring fuzzy tokens.
+
+### Identification priority
+
+Prefer **contact email** and **contact name** over company string matching.
+Provider documentation often uses the trade name; Gateway/Siebel uses tracking
+prefixes. Email (`createdByUsername`) and requester name are stronger anchors.
+
+| Priority | Signal | Why |
+| --- | --- | --- |
+| 1 | Requester email | Portal submitter on invoice rows |
+| 2 | Contact name | Correlates to `createdByUsername` / Lead name |
+| 3 | KS / SR number | Hard identifiers when present |
+| 4 | Company / SP display name | Fuzzy match after tracking-prefix strip |
+| 5 | Email domain stem | Fallback when company missing |
+
+Do **not** accept a weak first-hit company search without scoring ≥ 0.75.
 
 ### Similarity scoring
 
@@ -61,14 +83,16 @@ Script payloads carry `match_type` (`exact` \| `fuzzy`), `confidence`
    `vixxolink_resolve_service_request` for cross-check.
 3. **Requester email** — Gateway invoice search keyed to submitter email
    (`createdByUsername` on invoice rows). Skip `@vixxo.com` internal mailboxes.
+   **Strongest soft identifier when KS/SR absent.**
 4. **Contact name** — Freshdesk requester display name via Gateway invoice
-   search; prefer rows whose `createdByUsername` or SP name correlates.
-5. **Company name** — `gateway_search_invoices` (`searchString`) + Salesforce
+   search; prefer rows whose `createdByUsername` correlates.
+5. **Company name** — fuzzy match against Gateway SP display names after
+   stripping tracking prefixes (`KS`, `CCPAY`, `STRYKER ONLY`, etc.) + Salesforce
    company SOQL.
 6. **Email domain stem** — when company is missing, search Gateway on the
    domain token before `@` (skip generic freemail domains).
-7. On multiple fuzzy hits, pick the best match; list alternates under **Open
-   questions**. Never merge distinct companies.
+7. On multiple fuzzy hits, pick the best score; list alternates under **Open
+   questions**. Never merge distinct companies. **No un-scored first-hit fallback.**
 
 ## Contact email — Gateway
 
@@ -146,6 +170,12 @@ LIMIT 10
 
 Run email and contact-name predicates even when company is `Not stated`.
 
+**Voicemail cross-reference:** When vetting SP voicemails, also search by
+**callback phone** (last 10 digits) — see
+[sp-voicemail-triage/reference/company-vetting.md](../../sp-voicemail-triage/reference/company-vetting.md)
+for Gateway customer + Salesforce Contact/Lead/Account phone paths and client
+routing rules.
+
 ### Case search
 
 ```sql
@@ -175,14 +205,19 @@ Prefer the most recently modified Lead when multiple Leads match.
 
 | Posture | Freshdesk `cf_sp` | Salesforce note | Tag |
 | --- | --- | --- | --- |
-| Known SP | `{SP#} - {Gateway display name}` | Optional Task on related Lead/Case if also found | `sp-vetted`, `known-sp` |
-| Possible SP (Gateway) | `{SP#} - {Gateway display name}` (note **Possible** in internal note) | Optional Task; flag fuzzy match in Description | `sp-vetted`, `known-sp` |
-| Prospect (SF Lead only) | Lead company name or `Unknown` | **Required** Task on Lead | `sp-vetted`, `sf-lead-match` |
-| Prospect (SF Lead — possible match) | Lead company name or `Unknown` | **Required** Task; note similarity score | `sp-vetted`, `sf-lead-match` |
-| Open SF Case | Case subject company or `Unknown` | **Required** Task on Case | `sp-vetted`, `sf-case-match` |
-| Known SP + SF Lead/Case | `{SP#} - {name}` | Task on Lead/Case linking SP # | `sp-vetted`, `known-sp` |
-| Possible SP (Gateway) + SF Lead | `{SP#} - {name}` | Task on Lead; note fuzzy Gateway match | `sp-vetted`, `known-sp` |
+| Known SP | `{SP#} - {Gateway display name}` | Task only if exact/High Lead also found | `sp-vetted`, `known-sp` |
+| Possible SP (Gateway) | `{SP#} - {Gateway display name}` (note **Possible** in internal note) | No SF Task unless exact/High Lead/Case; flag fuzzy SF hits | `sp-vetted`, `known-sp` |
+| Prospect (SF Lead only) | Lead company name or `Unknown` | **Required** Task on Lead (exact/High or exact email) | `sp-vetted`, `sf-lead-match` |
+| Prospect (SF Lead — possible match) | Lead company name or `Unknown` | **No auto Task** — `sf-match-review`; operator confirms Lead | `sp-vetted`, `sf-lead-match`, `sf-match-review` |
+| Open SF Case | Case subject company or `Unknown` | **Required** Task on Case when exact/High (`ContactEmail`) | `sp-vetted`, `sf-case-match` |
+| Open SF Case (possible match) | Case subject company or `Unknown` | **No auto Task** — `sf-match-review`; operator confirms Case | `sp-vetted`, `sf-case-match`, `sf-match-review` |
+| Known SP + SF Lead/Case | `{SP#} - {name}` | Task on Lead/Case only when exact/High (or Lead exact email) | `sp-vetted`, `known-sp` |
+| Possible SP (Gateway) + SF Lead | `{SP#} - {name}` | Task on Lead only when exact/High or exact email; else `sf-match-review` | `sp-vetted`, `known-sp` |
 | Unknown | `Unknown` or extracted company string | None | `sp-vetted`, `unknown-sp` |
+
+**SF Task auto-post rule:** `match_type: exact` and `confidence: High`, or Lead
+`Email` equals requester email. Fuzzy or Medium/Low matches → internal note
+**SF match — review required** + tag `sf-match-review`; no Task until confirmed.
 
 Do not change ticket status or send outbound email from this skill unless the
 user explicitly requests it.

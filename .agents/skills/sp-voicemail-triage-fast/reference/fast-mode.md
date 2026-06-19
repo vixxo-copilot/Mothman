@@ -12,8 +12,23 @@
 | Salesforce Lead / Account lookup | MCP | **Skipped** |
 | Salesforce Lead note (onboarding branch) | MCP write | **Skipped** |
 | Outlook inbox scan (batch REST path) | M365 MCP | **Skipped** (Freshdesk REST only) |
+| Gateway / Salesforce **phone** vetting | MCP | **Skipped** — caller-ID + transcript heuristics only |
 
 Internal notes record **vetting skipped** and **entity posture: Unknown**.
+
+## Client/customer detection (fast mode)
+
+The parent batch script still applies **heuristic client routing** without MCP:
+
+| Scenario | Forward | Notes |
+| --- | --- | --- |
+| Client/customer voicemail | None | Caller-ID patterns (e.g. `STRYKER CORPORA`), transcript client intent; tag `client-voicemail-review` |
+| Client portal support | `Amy.Grantham@vixxo.com` | Keyword match; forward states **client support needed** |
+
+**Not available in fast mode:** Gateway customer phone lookup, Salesforce
+Contact/Lead/Case phone SOQL. False negatives possible — run **parent skill with
+MCP** when phone vetting is required. See
+[../../sp-voicemail-triage/reference/company-vetting.md](../../sp-voicemail-triage/reference/company-vetting.md).
 
 ## Still performed
 

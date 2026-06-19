@@ -182,6 +182,37 @@ Spoken transcript is empty or only one or two words after STT.
 
 **Forward to:** **None** — post private internal note, **resolve without forward**
 
+---
+
+### Client / Customer Voicemail
+
+Caller is a **Vixxo client/customer** (not a service provider). Identified via
+caller ID, phone vetting, or transcript intent — see
+[company-vetting.md](company-vetting.md) and
+[routing-actions.md](routing-actions.md).
+
+**Signals:** caller ID like `STRYKER CORPORA`; phone matches Gateway customer or
+Salesforce Contact/Account; "we're your client", "our stores/locations"
+
+**Forward to:** **None** — internal note + resolve; tag `client-voicemail-review`;
+flagged for {{employee_name}} review
+
+**Priority:** Overrides SP billing/SR categories when client posture is confirmed.
+
+**Not:** Gateway SP names with tracking prefix `STRYKER ONLY` — those are SP-side.
+
+---
+
+### Client Portal Support
+
+Client/customer needs help with the **client portal** (not VixxoLink / SP portal).
+
+**Signals:** client portal, customer portal, store portal, client support portal
+
+**Forward to:** `Amy.Grantham@vixxo.com` — internal note must state **client support needed**
+
+---
+
 ## Multi-topic messages
 
 When the caller mentions multiple topics:

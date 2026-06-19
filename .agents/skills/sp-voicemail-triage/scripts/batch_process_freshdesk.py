@@ -62,13 +62,54 @@ SKIP_FORWARD_LABELS = {
     "foul-language": "Skipped (foul language detected in transcript)",
     "short-duration": "Skipped (voicemail under 10 seconds)",
     "minimal-speech": "Skipped (blank or minimal speech — one or two words)",
+    "client-voicemail-review": "Skipped (client/customer voicemail — flagged for review)",
 }
 
 SKIP_FORWARD_CATEGORIES = {
     "foul-language": "Foul Language / Abusive",
     "short-duration": "Too Short (<10s)",
     "minimal-speech": "Blank / Minimal Speech",
+    "client-voicemail-review": "Client / Customer Voicemail",
 }
+
+CLIENT_PORTAL_SUPPORT_EMAIL = "Amy.Grantham@vixxo.com"
+
+# Gateway SP tracking prefixes — internal labels, not customer/client names.
+SP_TRACKING_PREFIXES = (
+    "STRYKER ONLY",
+    "CCPAY",
+)
+
+# Caller-ID substrings for known Vixxo customers/clients (not SP-side tracking names).
+KNOWN_CLIENT_CALLER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\bSTRYKER\b", re.I), "Stryker (client caller ID)"),
+    (re.compile(r"\bSTARBUCKS\b", re.I), "Starbucks (client caller ID)"),
+    (re.compile(r"\bLUXOTTICA\b", re.I), "Luxottica (client caller ID)"),
+    (re.compile(r"\bL['\u2019]?OREAL\b", re.I), "L'Oreal (client caller ID)"),
+    (re.compile(r"\bFAMILY DOLLAR\b", re.I), "Family Dollar (client caller ID)"),
+]
+
+CLIENT_PORTAL_SUPPORT_KEYWORDS = [
+    "client portal",
+    "customer portal",
+    "our portal",
+    "store portal",
+    "facilities portal",
+    "client support",
+    "customer support portal",
+    "portal support",
+]
+
+CLIENT_INTENT_KEYWORDS = [
+    "we're your client",
+    "we are your client",
+    "as your client",
+    "as a customer of vixxo",
+    "our stores",
+    "our locations",
+    "our facilities",
+    "client of vixxo",
+]
 
 CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("COI / Compliance", ["coi", "certificate of insurance", "insurance", "acord", "additional insured"], "COI@vixxo.com"),
@@ -286,6 +327,73 @@ def count_speech_words(text: str) -> int:
     return len([word for word in cleaned.split() if word.strip()])
 
 
+def is_sp_tracking_name(name: str) -> bool:
+    upper = (name or "").upper()
+    return any(prefix in upper for prefix in SP_TRACKING_PREFIXES)
+
+
+def looks_like_client_caller_id(caller: str, company: str) -> tuple[bool, str]:
+    for field in (caller, company):
+        if not field or field in ("Not stated", "WIRELESS CALLER"):
+            continue
+        if is_sp_tracking_name(field):
+            continue
+        for pattern, label in KNOWN_CLIENT_CALLER_PATTERNS:
+            if pattern.search(field):
+                return True, label
+    return False, ""
+
+
+def detect_client_portal_support(transcript: str) -> bool:
+    text = (transcript or "").lower()
+    if "vixxolink" in text:
+        return False
+    return any(_keyword_in_text(keyword, text) for keyword in CLIENT_PORTAL_SUPPORT_KEYWORDS)
+
+
+def detect_client_intent(transcript: str) -> bool:
+    text = (transcript or "").lower()
+    return any(_keyword_in_text(keyword, text) for keyword in CLIENT_INTENT_KEYWORDS)
+
+
+@dataclass
+class ClientRouting:
+    is_client: bool = False
+    portal_support: bool = False
+    reason: str = ""
+    source: str = ""
+
+
+def detect_client_routing(meta: dict, transcript: str) -> ClientRouting:
+    caller = str(meta.get("caller") or "")
+    company = str(meta.get("company") or "")
+
+    if detect_client_portal_support(transcript):
+        return ClientRouting(
+            portal_support=True,
+            is_client=True,
+            reason="Client portal support keywords in transcript",
+            source="transcript-keywords",
+        )
+
+    matched, label = looks_like_client_caller_id(caller, company)
+    if matched:
+        return ClientRouting(
+            is_client=True,
+            reason=label,
+            source="caller-id",
+        )
+
+    if detect_client_intent(transcript):
+        return ClientRouting(
+            is_client=True,
+            reason="Caller described themselves as a Vixxo client/customer",
+            source="transcript-intent",
+        )
+
+    return ClientRouting()
+
+
 def detect_skip_forward(
     meta: dict, stt: dict[str, Any], spoken_text: str
 ) -> tuple[bool, str]:
@@ -351,6 +459,7 @@ def internal_note(
     stt_error: str = "",
     skip_forward_reason: str = "",
     spoken_word_count: int | None = None,
+    client_routing: ClientRouting | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
@@ -368,6 +477,12 @@ def internal_note(
             f"- **Recommended forward to:** {route}\n"
             f"- **Email forward sent:** No (no-email skill)\n"
             f"- **Disposition:** Resolve after internal note"
+        )
+    elif client_routing and client_routing.portal_support:
+        routing_action = (
+            f"- **Forward to:** {route}\n"
+            "- **Client support needed:** Yes — client portal / customer support request\n"
+            "- **Disposition:** Resolve after forward"
         )
     else:
         routing_action = (
@@ -407,6 +522,17 @@ def internal_note(
             f"\n**Speech content:** {word_count} word(s) — forward skipped "
             "(blank or one/two words only)"
         )
+    elif skip_forward_reason == "client-voicemail-review":
+        client_reason = (client_routing.reason if client_routing else "") or "client/customer detected"
+        stt_line += (
+            f"\n**Client/customer voicemail:** Yes — {client_reason}; "
+            "forward skipped — flagged for operator review"
+        )
+    elif client_routing and client_routing.portal_support:
+        stt_line += (
+            f"\n**Client portal support:** Yes — {client_routing.reason}; "
+            f"forward to {CLIENT_PORTAL_SUPPORT_EMAIL}"
+        )
 
     callback_rationales = {
         "foul-language": "Voicemail contained foul language; ticket closed without forward per policy.",
@@ -417,6 +543,10 @@ def internal_note(
         "minimal-speech": (
             "Voicemail blank or only one/two words; "
             "ticket closed without forward per policy."
+        ),
+        "client-voicemail-review": (
+            "Voicemail identified as client/customer (not SP); "
+            "ticket closed without forward — flagged for operator review."
         ),
     }
     callback_rationale = callback_rationales.get(
@@ -538,13 +668,29 @@ def process_ticket(
     spoken_word_count = count_speech_words(spoken_text)
     skip_forward, skip_forward_reason = detect_skip_forward(meta, stt, spoken_text)
 
-    category, route, sr = classify(transcript, meta)
-    if skip_forward:
-        category = SKIP_FORWARD_CATEGORIES.get(skip_forward_reason, category)
+    client_routing = ClientRouting()
+    sr = ""
+    if not skip_forward:
+        client_routing = detect_client_routing(meta, transcript)
+
+    if not skip_forward and client_routing.portal_support:
+        category = "Client Portal Support"
+        route = CLIENT_PORTAL_SUPPORT_EMAIL
+        callback, urgency = callback_decision(transcript)
+    elif not skip_forward and client_routing.is_client:
+        skip_forward = True
+        skip_forward_reason = "client-voicemail-review"
+        category = SKIP_FORWARD_CATEGORIES[skip_forward_reason]
         route = "—"
-    callback, urgency = callback_decision(transcript)
-    if skip_forward:
-        callback, urgency = "No", "Normal"
+        callback, urgency = "Recommended", "High"
+    else:
+        category, route, sr = classify(transcript, meta)
+        if skip_forward:
+            category = SKIP_FORWARD_CATEGORIES.get(skip_forward_reason, category)
+            route = "—"
+        callback, urgency = callback_decision(transcript)
+        if skip_forward:
+            callback, urgency = "No", "Normal"
 
     if category == "Service Request / Dispatch" and sr and not skip_forward:
         route = "service.providermanagement@vixxo.com"
@@ -567,6 +713,7 @@ def process_ticket(
         stt_error=stt_error,
         skip_forward_reason=skip_forward_reason,
         spoken_word_count=spoken_word_count,
+        client_routing=client_routing if client_routing.is_client or client_routing.portal_support else None,
     )
     result = Result(
         ticket_id=tid,
@@ -602,6 +749,13 @@ def process_ticket(
     else:
         forward_body = (
             f"SP Voicemail triage — Freshdesk #{tid}\n\n"
+        )
+        if client_routing.portal_support:
+            forward_body += (
+                "**Client support needed** — caller requested client portal / "
+                "customer support assistance.\n\n"
+            )
+        forward_body += (
             f"Category: {category}\n"
             f"Caller: {meta['caller']}\n"
             f"Callback: {meta['phone']}\n"
@@ -633,15 +787,20 @@ def process_ticket(
                 result.error = f"forward:{exc.reason}"
 
     try:
+        resolve_payload: dict[str, Any] = {
+            "status": 5,
+            "type": "KSOnboarding",
+            "custom_fields": {"cf_sp": "Unknown"},
+        }
+        if skip_forward_reason == "client-voicemail-review":
+            resolve_payload["tags"] = ["client-voicemail-review"]
+        elif category == "Client Portal Support":
+            resolve_payload["tags"] = ["client-portal-support"]
         http_json(
             "PUT",
             f"/api/v2/tickets/{tid}",
             api_key,
-            {
-                "status": 5,
-                "type": "KSOnboarding",
-                "custom_fields": {"cf_sp": "Unknown"},
-            },
+            resolve_payload,
         )
         result.resolve = "closed"
     except urllib.error.HTTPError as exc:
@@ -733,6 +892,14 @@ def main() -> int:
         "minimal_speech_closed": sum(
             1 for r in results if str(r.forward) == "not-sent:minimal-speech" and r.resolve == "closed"
         ),
+        "client_review_closed": sum(
+            1
+            for r in results
+            if str(r.forward) == "not-sent:client-voicemail-review" and r.resolve == "closed"
+        ),
+        "client_portal_support_routed": sum(
+            1 for r in results if r.forward == CLIENT_PORTAL_SUPPORT_EMAIL
+        ),
         "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
         "failed": [r.ticket_id for r in results if r.error or str(r.note).startswith("failed")],
@@ -753,6 +920,8 @@ def main() -> int:
                         "foul_language_closed",
                         "short_duration_closed",
                         "minimal_speech_closed",
+                        "client_review_closed",
+                        "client_portal_support_routed",
                         "routed",
                         "closed",
                         "failed",

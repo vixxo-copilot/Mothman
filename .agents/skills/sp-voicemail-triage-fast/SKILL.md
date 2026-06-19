@@ -73,9 +73,12 @@ content must come from transcribing the attachment.
 2. Filter voicemail subjects
 3. Download **audio attachment** (`.wav` or `.mp3`, required)
 4. Transcribe with **faster-whisper** (local) — **required**
-5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
-6. **Otherwise:** classify, internal note, forward, resolve
-7. **On transcription failure:** skip ticket — no Freshdesk updates
+5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words,
+   **client/customer voicemail**) → note, no forward, resolve
+6. If **client portal support** keywords match → note, forward to
+   `Amy.Grantham@vixxo.com`, resolve
+7. **Otherwise:** classify, internal note, forward, resolve
+8. **On transcription failure:** skip ticket — no Freshdesk updates
 
 Phase 2 runs automatically (except `--dry-run`).
 
@@ -93,8 +96,10 @@ Recommended automation prompt:
 Run SP voicemail fast batch:
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 
-Report processed, transcribed, transcription_failed, routed, closed, failed from JSON summary.
+Report processed, transcribed, transcription_failed, client_review_closed,
+client_portal_support_routed, routed, closed, failed from JSON summary.
 Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP — vetting is skipped by design.
+Client/customer detection in fast mode uses caller-ID and transcript heuristics only (no phone lookup).
 Tickets with transcription_failed were left open unchanged.
 ```
 

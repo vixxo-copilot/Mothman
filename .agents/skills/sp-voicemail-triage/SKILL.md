@@ -178,18 +178,26 @@ Then one **triage packet** per item (see below).
 3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
 5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
-   (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce Lead).
-6. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
+   (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce Lead;
+   **include callback phone** in Gateway + Salesforce searches).
+6. **Client detection** — before SP category routing, check for client/customer
+   posture (caller ID, phone vetting, transcript intent). See
+   [reference/routing-actions.md](reference/routing-actions.md):
+   - **Client/customer voicemail** → internal note, **no forward**, resolve with
+     tag `client-voicemail-review` (flagged for {{employee_name}})
+   - **Client portal support** → forward `Amy.Grantham@vixxo.com` with **client
+     support needed** note
+7. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
    - VixxoLink, Technical, General → `service.providermanagement@vixxo.com`
    - Billing / Invoice / Payment → `aphelp@vixxo.com`
    - Insurance / COI → `COI@vixxo.com`
    - Onboarding → Salesforce Lead branch → Lead note + resolve FD, or forward
      `spm-recruitment@vixxo.com`
    - SR assistance → Gateway PM + Support emails; subject `{SR#}, Need Assistance`
-7. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
-8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
-9. **Salesforce Lead note** — onboarding branch when Lead found.
-10. **Resolve Freshdesk** — `status: 5` with valid `type` and required
+8. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
+9. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
+10. **Salesforce Lead note** — onboarding branch when Lead found.
+11. **Resolve Freshdesk** — `status: 5` with valid `type` and required
     `custom_fields.cf_sp` (use `Unknown` when SP is not identified).
 
 ## Acquire and transcribe
@@ -220,8 +228,10 @@ Whisper or agent STT.
 3. Transcribe via **faster-whisper** (local; `pip install -r scripts/requirements.txt`, ffmpeg on PATH).
 4. Note `Transcript source: faster-whisper`.
 5. If transcript matches a **no-forward** rule (foul language, &lt;10s duration,
-   blank or one/two words) → internal note, **skip forward**, resolve.
-6. Only then run classify, vetting (if applicable), and Phase 2 writes.
+   blank or one/two words, **client/customer voicemail**) → internal note, **skip forward**, resolve.
+6. If **client portal support** keywords match → internal note, forward to
+   `Amy.Grantham@vixxo.com` (**client support needed**), resolve.
+7. Only then run classify, vetting (if applicable), and Phase 2 writes.
 
 **Single-item exception:** {{employee_name}} may paste a transcript or attach audio
 directly in chat — that is user-provided input, not email body text.
@@ -252,6 +262,14 @@ For **foul language in transcript**: post internal note, **do not forward**, res
 For **voicemail under 10 seconds** or **blank / one–two words**: post internal
 note, **do not forward**, resolve.
 
+For **client/customer voicemail** (not portal support): post internal note,
+**do not forward**, resolve with tag `client-voicemail-review` — flagged for
+{{employee_name}} review. Overrides AP/SPM keyword routing (e.g. Stryker caller
+ID misrouted as payment).
+
+For **client portal support**: forward to `Amy.Grantham@vixxo.com`; internal
+note must state **client support needed**.
+
 If any write fails, continue the pipeline where safe, record the failure in the
 batch summary **Status** column, and do not re-attempt without user direction.
 
@@ -268,6 +286,10 @@ batch summary **Status** column, and do not re-attempt without user direction.
   **no forward**.
 - **Minimal speech:** blank transcript or **one/two words** only → internal note
   + resolve, **no forward**.
+- **Client/customer:** Known Customer posture or caller-ID heuristics → internal
+  note + resolve, **no forward**, tag `client-voicemail-review`.
+- **Client portal support:** forward `Amy.Grantham@vixxo.com` with **client support
+  needed** in note and forward body.
 - Phase 2 writes (internal notes, forwards, SF Lead notes, resolve) run
   automatically when this skill is invoked — except in explicit **dry-run** mode.
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.

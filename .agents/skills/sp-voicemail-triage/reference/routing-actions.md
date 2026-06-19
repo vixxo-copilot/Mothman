@@ -20,6 +20,8 @@ decision, and [company vetting](company-vetting.md).
 | Foul Language / Abusive | **None** | Internal note + resolve | **No forward** — profanity in transcript |
 | Too Short (<10s) | **None** | Internal note + resolve | **No forward** — duration under 10 seconds |
 | Blank / Minimal Speech | **None** | Internal note + resolve | **No forward** — blank or one/two words |
+| Client / Customer Voicemail | **None** | Internal note + resolve | **No forward** — flagged for {{employee_name}} review; tag `client-voicemail-review` |
+| Client Portal Support | `Amy.Grantham@vixxo.com` | Internal note + forward; resolve when routed | Internal note must state **client support needed** |
 
 Categories align with [categories.md](categories.md).
 
@@ -59,6 +61,50 @@ or **one or two words**:
 2. Post private internal note (category `Blank / Minimal Speech`).
 3. **Resolve** the ticket.
 4. **Callback:** No; urgency Normal.
+
+## Client / customer voicemail (review — no forward)
+
+When vetting or heuristics identify the caller as a **Vixxo client/customer**
+(not a service provider), and the ask is **not** client portal support:
+
+1. **Do not forward** email — skip forward regardless of billing/SR keywords that
+   might otherwise match.
+2. Post private internal note (category `Client / Customer Voicemail`).
+3. **Resolve** the ticket with tag `client-voicemail-review`.
+4. **Callback:** Recommended; urgency High — {{employee_name}} reviews.
+
+**Detection signals** (run after transcription, before SP category routing):
+
+| Signal | Source | Notes |
+| --- | --- | --- |
+| Caller ID / company name | 8x8 metadata | Known client brands (e.g. `STRYKER CORPORA`) — **not** Gateway SP tracking prefixes like `STRYKER ONLY` |
+| Phone number | Gateway customer contacts + Salesforce Lead/Case/Contact/Account | Normalize to last 10 digits; see [company-vetting.md](company-vetting.md) |
+| Transcript intent | STT text | Caller describes themselves as a client/customer, their stores/locations, etc. |
+
+**Distinguish customer vs SP:** Gateway Siebel SP display names may include
+tracking prefixes (`KS`, `CCPAY`, **`STRYKER ONLY`**, trailing `ONLY`). Those
+label **SP-side** accounts, not the Stryker **client** corporation. Caller ID
+`STRYKER CORPORA` is a client signal; Gateway SP `STRYKER ONLY — …` is not.
+
+## Client portal support (forward to Amy)
+
+When the transcript indicates **client portal / customer portal support** (not
+VixxoLink / SP portal):
+
+1. **Forward** to `Amy.Grantham@vixxo.com` via `forward_ticket` or
+   `forward-mail-message`.
+2. Forward body and internal note must include **Client support needed**.
+3. Post private internal note (category `Client Portal Support`).
+4. **Resolve** Freshdesk after forward; tag `client-portal-support`.
+
+**Keywords:** client portal, customer portal, store portal, facilities portal,
+client support, customer support portal, portal support.
+
+**Exclude:** VixxoLink, dispatch board, accept work — those remain SP → SPM path.
+
+This branch runs **before** SP category routing when matched. It overrides
+billing/AP keyword false matches for known client callers (e.g. Stryker payment
+questions still route here for review, not `aphelp@vixxo.com`).
 
 ## Onboarding branch (want to join as SP)
 
