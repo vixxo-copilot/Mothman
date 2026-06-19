@@ -175,6 +175,8 @@ Then one **triage packet** per item (see below).
    or `.mp3`, required for Freshdesk/Outlook intake); or user-pasted transcript /
    attached audio in single-item mode ([Acquire and transcribe](#acquire-and-transcribe)).
 2. **Transcribe** verbatim; capture name, company, callback #, SR/invoice IDs.
+   Use spoken context to infer the SP/company name when the caller states it
+   (for example, "`This is Jane with Acme Maintenance`").
 3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
 5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
@@ -190,7 +192,8 @@ Then one **triage packet** per item (see below).
 8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
 9. **Salesforce Lead note** — onboarding branch when Lead found.
 10. **Resolve Freshdesk** — `status: 5` with valid `type` and required
-    `custom_fields.cf_sp` (use `Unknown` when SP is not identified).
+    `custom_fields.cf_sp` (use the transcript-inferred SP/company name when
+    available; use `Unknown` when SP is not identified).
 
 ## Acquire and transcribe
 
@@ -219,9 +222,13 @@ Whisper or agent STT.
 2. Download via Freshdesk attachment URL (authenticated).
 3. Transcribe via **faster-whisper** (local; `pip install -r scripts/requirements.txt`, ffmpeg on PATH).
 4. Note `Transcript source: faster-whisper`.
-5. If transcript matches a **no-forward** rule (foul language, &lt;10s duration,
+5. Build a short voicemail summary from the spoken content and use it in the
+   Freshdesk private note and any forward body.
+6. Infer SP/company name from the spoken content before falling back to caller
+   metadata; use that value for `cf_sp` when no verified SP number is available.
+7. If transcript matches a **no-forward** rule (foul language, &lt;10s duration,
    blank or one/two words) → internal note, **skip forward**, resolve.
-6. Only then run classify, vetting (if applicable), and Phase 2 writes.
+8. Only then run classify, vetting (if applicable), and Phase 2 writes.
 
 **Single-item exception:** {{employee_name}} may paste a transcript or attach audio
 directly in chat — that is user-provided input, not email body text.
@@ -251,6 +258,11 @@ For **foul language in transcript**: post internal note, **do not forward**, res
 
 For **voicemail under 10 seconds** or **blank / one–two words**: post internal
 note, **do not forward**, resolve.
+
+If a voicemail is forwarded without a confirmed SP/company name, set `cf_sp` to
+`Unknown`, tag the ticket `sp-name-review-needed`, and include the review request
+in the internal note/forward summary so {{employee_name}} can review and update
+the SP name.
 
 If any write fails, continue the pipeline where safe, record the failure in the
 batch summary **Status** column, and do not re-attempt without user direction.
