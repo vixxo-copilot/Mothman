@@ -73,11 +73,32 @@ content must come from transcribing the attachment.
 2. Filter voicemail subjects
 3. Download **audio attachment** (`.wav` or `.mp3`, required)
 4. Transcribe with **faster-whisper** (local) — **required**
-5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
-6. **Otherwise:** classify, internal note, forward, resolve
-7. **On transcription failure:** skip ticket — no Freshdesk updates
+5. Use spoken context from the transcript to infer the SP/company name
+   (example: "`This is Jane with Acme Maintenance`" → `Acme Maintenance`).
+   Use that inferred name in the Freshdesk `cf_sp` update and in the triage
+   summary. Do not invent SP numbers.
+6. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
+7. **Otherwise:** classify, internal note, forward, resolve
+8. **On transcription failure:** skip ticket — no Freshdesk updates
 
 Phase 2 runs automatically (except `--dry-run`).
+
+## Inbound vetting handoff
+
+The full `sp-inbound-vetting` workflow depends on Gateway/VixxoLink and
+Salesforce lookups. This fast automation does **not** have those MCPs available
+and keeps `--skip-vetting` by design. Instead, after transcription it performs
+best-effort SP-name inference from the voicemail itself:
+
+- If an SP/company name is found in the spoken message, set `cf_sp` to that
+  name and tag the ticket `sp-name-from-voicemail`.
+- If a voicemail is forwarded without a confirmed SP name, leave `cf_sp` as
+  `Unknown`, tag the ticket `sp-name-review-needed`, include the review request
+  in the private note/forward summary, and list the ticket in
+  `forwarded_without_sp_ids` in the batch JSON summary.
+
+Run `sp-inbound-vetting` separately only when full Gateway/Salesforce identity
+confirmation is required.
 
 ## Skipped vs parent
 
@@ -96,6 +117,7 @@ python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.p
 Report processed, transcribed, transcription_failed, routed, closed, failed from JSON summary.
 Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP — vetting is skipped by design.
 Tickets with transcription_failed were left open unchanged.
+Review any ids in forwarded_without_sp_ids and update Freshdesk SP name when needed.
 ```
 
 ## Sibling skills

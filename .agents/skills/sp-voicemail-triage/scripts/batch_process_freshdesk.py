@@ -70,6 +70,62 @@ SKIP_FORWARD_CATEGORIES = {
     "minimal-speech": "Blank / Minimal Speech",
 }
 
+SP_REVIEW_TAG = "sp-name-review-needed"
+SP_CONTEXT_TAG = "sp-name-from-voicemail"
+
+BUSINESS_NAME_TERMS = (
+    "air",
+    "automation",
+    "clean",
+    "company",
+    "co",
+    "construction",
+    "electric",
+    "electrical",
+    "facility",
+    "fire",
+    "glass",
+    "group",
+    "handyman",
+    "hvac",
+    "inc",
+    "llc",
+    "lock",
+    "locksmith",
+    "maintenance",
+    "mechanical",
+    "plumbing",
+    "refrigeration",
+    "repair",
+    "roofing",
+    "security",
+    "services",
+    "sign",
+    "solutions",
+)
+
+COMPANY_STOP_RE = re.compile(
+    r"\s+(?:"
+    r"my|i|i'm|i am|we|we're|we are|trying|calling|regarding|about|because|"
+    r"and|need|needs|the system|to|for|on|with|this|that|can|could|please"
+    r")\b.*$",
+    re.I,
+)
+
+COMPANY_PATTERNS = [
+    re.compile(
+        r"\b(?:this is|it is|it's|my name is|name is)\s+"
+        r"(?P<person>[A-Z][A-Za-z'.-]+(?:\s+[A-Z][A-Za-z'.-]+){0,3})\s+"
+        r"(?:with|from|at)\s+(?P<company>[A-Z0-9][A-Za-z0-9&'.,/ -]{2,80})",
+        re.I,
+    ),
+    re.compile(
+        r"\b(?:calling\s+from|calling\s+with|with|from|at)\s+"
+        r"(?P<company>[A-Z0-9][A-Za-z0-9&'.,/ -]{2,80})",
+        re.I,
+    ),
+]
+
 CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("COI / Compliance", ["coi", "certificate of insurance", "insurance", "acord", "additional insured"], "COI@vixxo.com"),
     ("Payment Information", ["payment", "paid", "check", "remittance", "ach", "wire", "when paid", "haven't received payment"], "aphelp@vixxo.com"),
@@ -214,6 +270,96 @@ def extract_metadata(ticket: dict) -> dict[str, str | None]:
     }
 
 
+@dataclass
+class SpContext:
+    name: str = "Unknown"
+    source: str = "not-found"
+    confidence: str = "none"
+    review_required: bool = True
+
+    @property
+    def known(self) -> bool:
+        return bool(self.name and self.name != "Unknown" and not self.review_required)
+
+
+def clean_company_candidate(candidate: str | None) -> str:
+    value = re.sub(r"\s+", " ", (candidate or "").strip(" ,.-"))
+    if not value:
+        return ""
+    value = COMPANY_STOP_RE.sub("", value).strip(" ,.-")
+    value = re.sub(r"\b(?:called|calling)$", "", value, flags=re.I).strip(" ,.-")
+    return value
+
+
+def looks_like_company(candidate: str) -> bool:
+    value = clean_company_candidate(candidate)
+    if not value or value.lower() in {"vixxo", "vendor relations", "wireless caller"}:
+        return False
+    if "," in value and not any(term in value.lower() for term in BUSINESS_NAME_TERMS):
+        return False
+    lower = value.lower()
+    if any(re.search(rf"\b{re.escape(term)}\b", lower) for term in BUSINESS_NAME_TERMS):
+        return True
+    tokens = value.split()
+    return len(tokens) >= 2 and any(ch.isdigit() for ch in value)
+
+
+def infer_sp_context(meta: dict, spoken_text: str) -> SpContext:
+    """Use voicemail spoken context before falling back to caller metadata."""
+    for pattern in COMPANY_PATTERNS:
+        for match in pattern.finditer(spoken_text or ""):
+            company = clean_company_candidate(match.group("company"))
+            if looks_like_company(company):
+                return SpContext(
+                    name=company,
+                    source="voicemail transcript",
+                    confidence="medium",
+                    review_required=False,
+                )
+
+    caller_company = clean_company_candidate(str(meta.get("company") or ""))
+    if looks_like_company(caller_company):
+        return SpContext(
+            name=caller_company,
+            source="caller metadata",
+            confidence="low",
+            review_required=False,
+        )
+
+    return SpContext()
+
+
+def resolve_cf_sp_value(ticket: dict, sp_context: SpContext) -> str:
+    current = ((ticket.get("custom_fields") or {}).get("cf_sp") or "").strip()
+    if current and current != "Unknown":
+        return current
+    if sp_context.known:
+        return sp_context.name
+    return "Unknown"
+
+
+def voicemail_summary(
+    meta: dict,
+    category: str,
+    route: str,
+    callback: str,
+    sr: str,
+    spoken_text: str,
+    sp_context: SpContext,
+) -> str:
+    caller = meta.get("caller") or "Unknown caller"
+    sp_name = sp_context.name if sp_context.known else "SP name not confirmed"
+    reference = f" Reference ID: {sr}." if sr else ""
+    route_text = route if "@" in route else "no email route"
+    message = re.sub(r"\s+", " ", (spoken_text or "").strip())
+    if len(message) > 220:
+        message = message[:217].rstrip() + "..."
+    return (
+        f"{caller} called for {sp_name}; classified as {category} and routed to "
+        f"{route_text}. Callback: {callback}.{reference} Message: {message or 'No spoken message captured.'}"
+    )
+
+
 def format_stt_transcript(stt: dict[str, Any], meta: dict, ticket: dict) -> str:
     subject = ticket.get("subject") or ""
     lines = [
@@ -351,9 +497,18 @@ def internal_note(
     stt_error: str = "",
     skip_forward_reason: str = "",
     spoken_word_count: int | None = None,
+    sp_context: SpContext | None = None,
+    summary: str = "",
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sr_line = f"**Reference IDs:** {sr}" if sr else "**Reference IDs:** none"
+    sp_context = sp_context or SpContext()
+    sp_line = (
+        f"**SP name:** {sp_context.name} "
+        f"({sp_context.source}, confidence: {sp_context.confidence})"
+        if sp_context.known
+        else "**SP name:** Unknown - review/update required"
+    )
     if skip_forward_reason:
         skip_label = SKIP_FORWARD_LABELS.get(
             skip_forward_reason, f"Skipped ({skip_forward_reason})"
@@ -376,11 +531,12 @@ def internal_note(
         )
     if skip_vetting:
         vetting_block = (
-            "**Company vetting:** Skipped (fast skill — no external system lookups)\n\n"
-            "**Entity posture:** Unknown (vetting skipped)"
+            "**Company vetting:** Skipped (fast skill - no Gateway/Salesforce MCP lookups)\n\n"
+            f"{sp_line}\n\n"
+            "**Entity posture:** Unknown (external vetting skipped)"
         )
     else:
-        vetting_block = """**Company vetting**
+        vetting_block = f"""**Company vetting**
 
 | System | Match | ID |
 | --- | --- | --- |
@@ -388,6 +544,8 @@ def internal_note(
 | Gateway / VixxoLink Customer | Unknown | — |
 | JDE Vendor | Unknown | — |
 | Salesforce Lead/Account | Unknown | — |
+
+{sp_line}
 
 **Entity posture:** Unknown (batch REST — vetting deferred; run parent skill with MCP for full vetting)"""
 
@@ -436,6 +594,7 @@ def internal_note(
 **Caller:** {meta['caller']} | **Company:** {meta['company']}
 **Callback #:** {meta['phone']}
 {sr_line}
+{sp_line}
 {stt_line}
 
 ---
@@ -458,6 +617,8 @@ def internal_note(
 
 **Summary:** KSOnboarding voicemail processed by sp-voicemail-triage batch. Audio attachment retained on ticket; recipient should listen and callback if needed.
 
+**Voicemail summary:** {summary or 'No summary generated.'}
+
 **Callback rationale:** {callback_rationale}
 """
 
@@ -470,6 +631,9 @@ class Result:
     category: str
     route: str
     callback: str
+    sp_name: str = "Unknown"
+    sp_name_source: str = "not-found"
+    sp_review_required: bool = True
     note: str = ""
     forward: str = ""
     resolve: str = ""
@@ -536,6 +700,7 @@ def process_ticket(
 
     spoken_text = str(stt.get("transcript") or "")
     spoken_word_count = count_speech_words(spoken_text)
+    sp_context = infer_sp_context(meta, spoken_text)
     skip_forward, skip_forward_reason = detect_skip_forward(meta, stt, spoken_text)
 
     category, route, sr = classify(transcript, meta)
@@ -551,6 +716,7 @@ def process_ticket(
         forward_subject = f"{sr}, Need Assistance"
     else:
         forward_subject = None
+    summary = voicemail_summary(meta, category, route, callback, sr, spoken_text, sp_context)
 
     note_body = internal_note(
         tid,
@@ -567,6 +733,8 @@ def process_ticket(
         stt_error=stt_error,
         skip_forward_reason=skip_forward_reason,
         spoken_word_count=spoken_word_count,
+        sp_context=sp_context,
+        summary=summary,
     )
     result = Result(
         ticket_id=tid,
@@ -575,6 +743,9 @@ def process_ticket(
         category=category,
         route=route,
         callback=callback,
+        sp_name=sp_context.name,
+        sp_name_source=sp_context.source,
+        sp_review_required=sp_context.review_required,
         transcribed="yes" if transcript_source == TRANSCRIPT_SOURCE else "no",
         transcript_source=transcript_source,
     )
@@ -603,23 +774,30 @@ def process_ticket(
         forward_body = (
             f"SP Voicemail triage — Freshdesk #{tid}\n\n"
             f"Category: {category}\n"
+            f"SP name: {sp_context.name if sp_context.known else 'Unknown - review/update required'}\n"
             f"Caller: {meta['caller']}\n"
             f"Callback: {meta['phone']}\n"
-            f"Callback required: {callback}\n\n"
+            f"Callback required: {callback}\n"
+            f"Summary: {summary}\n\n"
             f"{transcript}\n\n"
             f"— Automated triage (sp-voicemail-triage). Please listen to the attached "
             f"voicemail for full message content."
         )
+        if sp_context.review_required:
+            forward_body += (
+                "\n\nSP name review needed: voicemail context did not identify a service "
+                "provider name. Please update Freshdesk cf_sp if known."
+            )
         if reroute_correction:
             forward_body += (
                 "\nNote: Prior misroute to AP (keyword false match) — corrected forward to SPM."
             )
+        if forward_subject:
+            forward_body = f"Requested subject: {forward_subject}\n\n{forward_body}"
         fwd_payload: dict[str, Any] = {
             "body": forward_body,
             "to_emails": [route] if "@" in route else [],
         }
-        if forward_subject:
-            fwd_payload["subject"] = forward_subject
 
         try:
             if fwd_payload.get("to_emails"):
@@ -633,15 +811,24 @@ def process_ticket(
                 result.error = f"forward:{exc.reason}"
 
     try:
+        existing_tags = list(ticket.get("tags") or [])
+        tags = existing_tags
+        if sp_context.known:
+            tags = sorted(set(existing_tags + [SP_CONTEXT_TAG]))
+        elif "@" in str(result.forward):
+            tags = sorted(set(existing_tags + [SP_REVIEW_TAG]))
+        update_payload: dict[str, Any] = {
+            "status": 5,
+            "type": "KSOnboarding",
+            "custom_fields": {"cf_sp": resolve_cf_sp_value(ticket, sp_context)},
+        }
+        if tags != existing_tags:
+            update_payload["tags"] = tags
         http_json(
             "PUT",
             f"/api/v2/tickets/{tid}",
             api_key,
-            {
-                "status": 5,
-                "type": "KSOnboarding",
-                "custom_fields": {"cf_sp": "Unknown"},
-            },
+            update_payload,
         )
         result.resolve = "closed"
     except urllib.error.HTTPError as exc:
@@ -735,6 +922,16 @@ def main() -> int:
         ),
         "no_email": no_email,
         "closed": sum(1 for r in results if r.resolve == "closed"),
+        "sp_inferred": sum(1 for r in results if r.sp_name != "Unknown"),
+        "sp_review_required": sum(
+            1 for r in results if r.transcribed == "yes" and r.sp_review_required
+        ),
+        "sp_review_required_ids": [
+            r.ticket_id for r in results if r.transcribed == "yes" and r.sp_review_required
+        ],
+        "forwarded_without_sp_ids": [
+            r.ticket_id for r in results if r.sp_review_required and "@" in str(r.forward)
+        ],
         "failed": [r.ticket_id for r in results if r.error or str(r.note).startswith("failed")],
         "results": [r.__dict__ for r in results],
     }
@@ -755,6 +952,10 @@ def main() -> int:
                         "minimal_speech_closed",
                         "routed",
                         "closed",
+                        "sp_inferred",
+                        "sp_review_required",
+                        "sp_review_required_ids",
+                        "forwarded_without_sp_ids",
                         "failed",
                     )
                 },
