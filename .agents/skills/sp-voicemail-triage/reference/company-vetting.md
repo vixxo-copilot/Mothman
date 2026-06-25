@@ -13,7 +13,7 @@ Search all four systems below. Record every hit; note ambiguous matches.
 | Siebel / Gateway | Service Provider | Yes / No / Possible | SP # or name | |
 | Gateway / VixxoLink | Customer | Yes / No / Possible | Customer # or name | |
 | JDE | Vendor | Yes / No / Unknown | Vendor # if found | |
-| Salesforce | Lead / Account | Yes / No / Possible | SF Id | |
+| Salesforce | Lead / Case / Account / Contact | Yes / No / Possible | SF Id | Status, CaseNumber |
 
 **Overall entity posture:** `Known SP` | `Known Customer` | `Known SP + Customer` |
 `Prospect (SF Lead only)` | `Unknown / Not in systems`
@@ -74,37 +74,72 @@ Document which path was used in the vetting **Notes** column.
 
 ## Salesforce
 
-Resolve org with `get_username` before querying.
+Resolve org with `get_username` before querying. Run **Lead, Case, Account,
+and Contact** searches on every voicemail (unless `--skip-vetting`). Full write
+rules: [salesforce-notes.md](salesforce-notes.md).
 
-Search for **existing or previous leads** (required for onboarding voicemails):
+### Lead search
 
 ```sql
 SELECT Id, Name, Company, Status, Phone, Email, LastModifiedDate
 FROM Lead
 WHERE Company LIKE '%{normalized_company}%'
+   OR Name LIKE '%{contact_name}%'
    OR Name LIKE '%{normalized_company}%'
+   OR Phone LIKE '%{last10_digits}%'
 ORDER BY LastModifiedDate DESC
 LIMIT 10
 ```
 
-Also check converted/historical context:
+Run phone and contact-name predicates even when company is `Not stated`.
+
+### Case search
 
 ```sql
-SELECT Id, Name, Type, Phone, Website
+SELECT Id, CaseNumber, Subject, Status, ContactEmail, Description, CreatedDate
+FROM Case
+WHERE Description LIKE '%Freshdesk #{ticket_id}%'
+   OR Subject LIKE '%{normalized_company}%'
+   OR Subject LIKE '%{contact_name}%'
+   OR Description LIKE '%{last10_digits}%'
+ORDER BY CreatedDate DESC
+LIMIT 10
+```
+
+When a Freshdesk ticket id is known, the **`Freshdesk #{id}`** predicate is
+**required first** — prevents duplicate Cases on re-triage.
+
+### Account search (Service Provider bootstrap)
+
+When Gateway returns empty but company name is confident:
+
+```sql
+SELECT Id, Name, Type, Service_Provider_Number__c, Phone
 FROM Account
-WHERE Name LIKE '%{normalized_company}%'
+WHERE Type = 'Service Provider'
+  AND Name LIKE '%{normalized_company}%'
 LIMIT 5
 ```
 
-Prefer the most recently modified Lead when multiple match. Capture **Lead Id**
-(or Account Id) for onboarding routing.
+If `Service_Provider_Number__c` is populated, re-run Gateway with that KS
+number.
 
-**Salesforce notes:** The Salesforce MCP supports SOQL read (`run_soql_query`)
-only. To add a note on a Lead automatically during Phase 2, use the Salesforce
-CLI (`sf data create record --sobject Task` / Chatter) with the transcribed
-voicemail text, or the Salesforce UI if CLI is unavailable — record success or
-failure in the Freshdesk internal note. See [routing-actions.md](routing-actions.md)
-onboarding branch.
+### Contact search (callback phone)
+
+```sql
+SELECT Id, Name, Email, Phone, AccountId
+FROM Contact
+WHERE Phone LIKE '%{last10_digits}%'
+   OR MobilePhone LIKE '%{last10_digits}%'
+LIMIT 5
+```
+
+Prefer the most recently modified Lead when multiple Leads match. Capture
+**Lead Id**, **Case Number**, and **Account Id** in the triage packet.
+
+**Salesforce writes:** MCP is read-only. Phase 2 uses Salesforce CLI — Task
+on Lead and/or Case; create Case when no dedupe match and category maps to an
+SF queue. See [salesforce-notes.md](salesforce-notes.md).
 
 ## When vetting changes routing
 
@@ -113,6 +148,7 @@ onboarding branch.
 | Known SP + billing/invoice category | AP path still applies; mention SP # in forward |
 | Known SP + VixxoLink/technical | `service.providermanagement@vixxo.com` |
 | Known Customer (not SP) | Unlikely SP onboarding — clarify in summary; do not route to recruitment |
-| Prospect (SF Lead only) | Onboarding branch → Lead note + resolve Freshdesk |
-| Unknown + onboarding intent | Onboarding branch → recruitment forward |
+| Prospect (SF Lead only) | Onboarding branch → Lead Task + Case Task; resolve Freshdesk |
+| Open SF Case (incl. prior triage Case) | Task on existing Case — **do not duplicate Case** |
+| Unknown + onboarding intent | Onboarding branch → recruitment forward + SF Case when no Case exists |
 | Unknown + other category | Route by category; flag unknown entity in internal note |

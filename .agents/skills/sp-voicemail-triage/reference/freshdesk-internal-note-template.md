@@ -12,6 +12,7 @@ to the requester).
 **Caller:** {name or Not stated} | **Company:** {company or Not stated}
 **Callback #:** {number or Not stated}
 **Reference IDs:** {SR / invoice / SF Lead / none}
+**Review for {{employee_name}}:** {Yes | No} — {reason when Yes}
 
 ---
 
@@ -22,7 +23,8 @@ to the requester).
 | Siebel / Gateway SP | {Yes/No/Possible} | {SP #} |
 | Gateway / VixxoLink Customer | {Yes/No/Possible} | {Customer #} |
 | JDE Vendor | {Yes/No/Unknown} | {Vendor #} |
-| Salesforce Lead/Account | {Yes/No/Possible} | {SF Id} |
+| Salesforce Lead/Account/Contact | {Yes/No/Possible} | {SF Id} |
+| Salesforce Case | {Yes/No/Possible} | {CaseNumber} |
 
 **Entity posture:** {Known SP | Known Customer | Prospect | Unknown}
 
@@ -38,7 +40,8 @@ to the requester).
 
 - **Forward to:** {recipients or None}
 - **Subject:** {forward subject if SR branch}
-- **Salesforce Lead note:** {Lead Id + yes/no/pending}
+- **Salesforce Lead Task:** {Lead Id + posted | N/A | failed}
+- **Salesforce Case Task / Case:** {CaseNumber + posted | created | N/A | failed}
 - **Disposition:** {Resolve | Open — reason}
 
 ---

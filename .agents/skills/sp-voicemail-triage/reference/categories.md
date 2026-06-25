@@ -47,7 +47,33 @@ received payment, payment status, balance due from Vixxo
 
 **Forward to:** `aphelp@vixxo.com`
 
+**Anti-misroute:** Do **not** use this category when the caller is asking to
+speak with **sourcing**, **procurement**, or the **account team** about work
+opportunities — use **Sourcing / Account Team** instead (see below).
+
 **Related skills:** `vixxo-freshdesk-invoice-review`, `vixxo-spm-invoice-concerns`
+
+---
+
+### Sourcing / Account Team
+
+Caller wants to reach **sourcing**, **procurement**, or an **account / program
+manager** about work opportunities, coverage, or relationship follow-up — not
+AP, billing, or invoice status.
+
+**Signals:** sourcing, procurement, sourcing team, speak with [name/team],
+work opportunities, more work, check in about losses/work, account manager,
+program manager
+
+**Forward to:** `service.providermanagement@vixxo.com`
+
+**Review flag:** When the caller names a Vixxo contact or asks for a sourcing
+callback, set **Review for {{employee_name}}: Yes** in the internal note even
+when forwarding to SPM.
+
+**Anti-misroute:** Never forward these to `aphelp@vixxo.com`. Billing/payment
+keywords in email boilerplate do **not** override sourcing intent in the
+**audio transcript**.
 
 ---
 
@@ -187,6 +213,7 @@ Spoken transcript is empty or only one or two words after STT.
 When the caller mentions multiple topics:
 
 1. Identify the **primary ask** — what blocks them from working or getting paid.
-2. Typical priority order: **COI/compliance hold** > **payment** >
-   **invoice rejection** > **dispatch/SR** > **VixxoLink access** > **general**.
+2. Typical priority order: **COI/compliance hold** > **sourcing / account team**
+   (work-opportunity ask) > **payment** > **invoice rejection** > **dispatch/SR**
+   > **VixxoLink access** > **general**.
 3. Note secondary topics in the summary; do not split into multiple categories.

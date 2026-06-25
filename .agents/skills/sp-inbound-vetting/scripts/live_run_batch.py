@@ -17,6 +17,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"))
 
 from batch_process_freshdesk import http_json, load_credentials  # noqa: E402
+from gateway_vetting import gateway_health_check  # noqa: E402
 from queue_config import resolve_queues  # noqa: E402
 
 OUT_DIR = SCRIPT_DIR.parent / ".tmp" / "live-run"
@@ -73,6 +74,8 @@ def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[s
 **Inbox / queue:** {inbox}
 **Requester:** {item.get('requester', 'Not stated')}
 **Contact name:** {item.get('contact_name', 'Not stated')}
+**Vetting contact:** {item.get('vetting_contact_name') or item.get('contact_name', 'Not stated')}
+**Contact emails searched:** {', '.join(item.get('contact_emails') or [item.get('requester', 'Not stated')])}
 **Extracted company:** {item.get('company', 'Not stated')}
 **Reference IDs:** SR {item.get('sr_number') or 'none'} | KS {item.get('ks_number') or 'none'}
 
@@ -116,8 +119,6 @@ def resolve_cf_sp(item: dict, current: str | None) -> str | None:
         return None
     current_norm = (current or "").strip()
     if current_norm and current_norm not in ("Unknown", "") and target != current_norm:
-        if item["posture"].startswith("Known SP") and item.get("ticket_id") == 54635:
-            return None
         if item["posture"] == "Unknown / Not in systems":
             return None
     return target
@@ -179,7 +180,10 @@ def apply_item(api_key: str, item: dict) -> dict:
 
     existing_tags = list(ticket.get("tags") or [])
     current_cf = (ticket.get("custom_fields") or {}).get("cf_sp")
-    new_tags = sorted(set(existing_tags + ["sp-vetted", posture_tag(item["posture"])]))
+    positive_tag = posture_tag(item["posture"])
+    new_tags = sorted(set(existing_tags + ["sp-vetted", positive_tag]))
+    if positive_tag != "unknown-sp":
+        new_tags = [t for t in new_tags if t != "unknown-sp"]
     cf_sp_value = resolve_cf_sp(item, current_cf)
 
     sf_task = "N/A"
@@ -214,7 +218,7 @@ def apply_item(api_key: str, item: dict) -> dict:
     return out
 
 
-def load_items(data_path: Path | None, queue_arg: str) -> list[dict]:
+def load_items(data_path: Path | None, queue_arg: str, re_vet: bool = False) -> list[dict]:
     if data_path:
         data = json.loads(data_path.read_text(encoding="utf-8"))
         return data.get("items") or []
@@ -225,7 +229,7 @@ def load_items(data_path: Path | None, queue_arg: str) -> list[dict]:
     items: list[dict] = []
     seen: set[int] = set()
     for queue in resolve_queues(queue_arg):
-        for item in collect_queue(api, queue, re_vet=False):
+        for item in collect_queue(api, queue, re_vet=re_vet):
             tid = int(item["ticket_id"])
             if tid in seen:
                 continue
@@ -237,16 +241,20 @@ def load_items(data_path: Path | None, queue_arg: str) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Live sp-inbound-vetting batch")
     parser.add_argument("--queue", default="all", help="ksonboarding | invoice-concerns | aphelp | all")
+    parser.add_argument("--re-vet", action="store_true", help="Include tickets already tagged sp-vetted")
     parser.add_argument("--data", type=Path, help="Optional dry-run JSON (skip re-vetting)")
     args = parser.parse_args()
 
     api = load_credentials()
-    items = load_items(args.data, args.queue)
+    gw_health = gateway_health_check()
+    items = load_items(args.data, args.queue, re_vet=args.re_vet)
     results = [apply_item(api, item) for item in items]
 
     summary = {
         "mode": "live",
         "queue": args.queue,
+        "re_vet": args.re_vet,
+        "gateway_health": gw_health,
         "run_at": datetime.now(timezone.utc).isoformat(),
         "total": len(results),
         "notes_posted": sum(1 for r in results if r.get("note") == "posted"),

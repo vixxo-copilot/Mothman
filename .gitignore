@@ -1,4 +1,5 @@
 node_modules/
+.cursor/vendor/freshdesk-mcp/
 .env
 .env.*
 !.env.example

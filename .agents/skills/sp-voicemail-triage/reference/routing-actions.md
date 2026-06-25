@@ -8,6 +8,7 @@ decision, and [company vetting](company-vetting.md).
 
 | Category | Forward to | Freshdesk disposition | Notes |
 | --- | --- | --- | --- |
+| Sourcing / Account Team | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Flag **Review for {{employee_name}}** when caller names a Vixxo contact or asks for sourcing |
 | VixxoLink Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Include SP # if vetted |
 | Technical / Trade Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Same SPM path |
 | General Inquiry | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | When no sharper bucket fits |
@@ -60,6 +61,27 @@ or **one or two words**:
 3. **Resolve** the ticket.
 4. **Callback:** No; urgency Normal.
 
+## AP misroute guardrail (sourcing / account team)
+
+**Do not forward to `aphelp@vixxo.com`** when the **audio transcript** shows the
+caller wants to reach **sourcing**, **procurement**, or an **account / program
+manager** about work opportunities or relationship follow-up — even if billing
+or payment words appear elsewhere in the email notification wrapper.
+
+When matched:
+
+1. Classify as **Sourcing / Account Team**.
+2. **Forward** to `service.providermanagement@vixxo.com`.
+3. Internal note: set **Review for {{employee_name}}: Yes** when the caller
+   names a Vixxo contact (example: "speak with Max") or explicitly asks for
+   sourcing/procurement.
+4. Resolve after forward + note.
+
+**Known misroute example:** Freshdesk **#57452** — Restoration Group caller
+(Sean McCormick) checking in about work/losses for the week and asking to
+speak with a sourcing contact. Incorrectly sent to AP Help; correct path is
+SPM and/or {{employee_name}} review. See [examples.md](examples.md) Example 7.
+
 ## Onboarding branch (want to join as SP)
 
 Applies when the caller wants to **onboard as a service provider** (Coverage /
@@ -70,8 +92,10 @@ Onboarding category, or clear recruitment intent).
 2. **Lead found** in Salesforce:
    - Freshdesk **internal note** referencing Salesforce Lead Id / number, full
      transcript, callback number, and vetting summary.
-   - Add a **Salesforce note** on the Lead with the transcribed voicemail (Task
-     or Chatter — see company-vetting.md). Post automatically.
+   - Add a **Salesforce Task** on the Lead with the transcribed voicemail (see
+     [salesforce-notes.md](salesforce-notes.md)). Post automatically.
+   - When an open **Case** also matches, post a **Case Task** as well (both ids
+     in the internal note).
    - **Resolve** the Freshdesk ticket (`status: 5`). Set `type: KSOnboarding`
      when updating if not already set.
 3. **No Lead found**:
@@ -190,6 +214,23 @@ Freshdesk requires a valid `type` when changing status. Allowed values include:
 Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`, `No Action Required`,
 `KSOnboarding`.
 
+## Salesforce branch (all categories)
+
+After forward (or on no-forward paths when an open Case already exists):
+
+1. Run dedupe SOQL — `Description LIKE '%Freshdesk #{ticket_id}%'` when a
+   Freshdesk ticket exists. See [salesforce-notes.md](salesforce-notes.md).
+2. **Existing Case:** post **Task** on Case; record `CaseNumber` in the FD
+   internal note. **Do not create a duplicate Case.**
+3. **Lead match:** post **Task** on Lead when Lead Id is known (onboarding or
+   prospect posture).
+4. **No Case + category maps to SF queue:** create **Case** (Description must
+   include `Freshdesk #{id}` when present) then post **Task**.
+5. Record write status in the FD internal note.
+
+Skip SF writes on `--skip-vetting`, dry-run, and no-forward branches unless an
+open Case already exists (Task-only update).
+
 ## Internal note template
 
 Use [freshdesk-internal-note-template.md](freshdesk-internal-note-template.md).
@@ -203,7 +244,13 @@ approval step. Opt out only when the user explicitly requests **dry-run**.
 | --- | --- |
 | Post Freshdesk internal note | Every routed item |
 | Forward email / Freshdesk forward | Per routing table or branch rules |
-| Resolve Freshdesk ticket | After note + forward (or note-only paths) |
-| Salesforce Lead note | Onboarding branch when Lead found |
+| SF dedupe search | Every FD voicemail before Case create |
+| Salesforce Lead Task | Lead match or onboarding branch |
+| Salesforce Case Task | Open Case match or after Case create |
+| Salesforce Case create | No dedupe match + category maps to SF queue |
+| Resolve Freshdesk ticket | After note + forward + SF writes (or note-only paths) |
 
-**Write order:** internal note → forward → Salesforce Lead note → resolve.
+**Write order:** internal note → forward → Salesforce (Lead Task, Case Task,
+Case create when needed) → resolve.
+
+See [salesforce-notes.md](salesforce-notes.md).

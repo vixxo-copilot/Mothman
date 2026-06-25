@@ -1,55 +1,55 @@
-# Intake — AP Help, KS Onboarding, SPM Invoice Concerns
+# Intake — Salesforce Queues + AP Help
 
-Find items for SP identity vetting across three Freshdesk intake surfaces.
-Primary surface is Freshdesk; Outlook is secondary when the user points at mail
-without a ticket.
+Find items for SP identity vetting across **three Salesforce queues** and
+**Freshdesk AP Help**. Salesforce is primary for ksonboarding, COI, and
+service.providermanagement; Freshdesk is primary for AP Help.
 
-Queue filters and batch keys live in [queues.md](queues.md).
+Queue filters, SOQL, and routing rules live in [queues.md](queues.md).
 
-## Target mailboxes and folders
+## Target surfaces
 
-| Surface | Freshdesk mapping | Notes |
-| --- | --- | --- |
-| `aphelp@vixxo.com` | SPM group + recipient gate | AP / billing / payment intake |
-| `ksonboarding@vixxo.com` | `type:'KSOnboarding'` | SP onboarding / recruitment intake |
-| **SPM - Invoice Concerns** | `type:'Invoice Support'` in SPM group | Invoice/payment concern folder |
+| Surface | Primary system | Queue key | Notes |
+| --- | --- | --- | --- |
+| KS Onboarding | **Salesforce** | `ksonboarding` | SP onboarding / recruitment Cases and Leads |
+| COI | **Salesforce** | `coi` | Certificate of insurance / compliance Cases |
+| Service Provider Management | **Salesforce** | `spm` | SPM account, sourcing, VixxoLink/trade support Cases |
+| AP Help | **Freshdesk** | `aphelp` | AP / billing / payment intake at `aphelp@vixxo.com` |
 
-## Freshdesk batch pull
+## Salesforce batch pull (primary — ksonboarding, coi, spm)
 
-### 1. KS Onboarding
+1. `get_username` on Salesforce MCP.
+2. Discover queue Ids if not cached — see [queues.md](queues.md) discovery SOQL.
+3. For each queue key (`ksonboarding`, `coi`, `spm`):
+   - Pull open Cases with the queue `OwnerId` filter.
+   - For `ksonboarding`, also pull open Leads owned by the queue when your org
+     routes onboarding that way.
+4. Paginate / raise `LIMIT` when backlog exceeds 200.
+5. Skip Cases already vetted unless user says `re-vet`.
 
-```
-group_id:159000485013 AND status:2 AND type:'KSOnboarding'
-```
+**Case content sources:** `Subject`, `Description`, `SuppliedEmail`,
+`ContactEmail`, Email-to-Case thread (when available via Case feed or linked
+EmailMessage — use org-appropriate SOQL or UI export when MCP is read-only).
 
-### 2. SPM - Invoice Concerns
+**Single-item SF intake:** accept Case Number, Case Id (15/18 char), Case URL,
+Lead Id, or pasted subject + body.
 
-Open, **untouched** tickets in the Freshdesk sidebar folder **SPM - Invoice
-Concerns**:
+When only email exists (no Case yet), run vetting and present the packet; skip
+SF writes unless the user links or creates a Case Id.
 
-```
-group_id:159000485013 AND status:2 AND type:'Invoice Support'
-```
-
-Skip tickets already tagged `sp-vetted`. Tickets tagged
-`spm-invoice-concerns-reviewed` from `vixxo-spm-invoice-concerns` are still
-in scope until `sp-vetted` is applied.
-
-### 3. AP Help (mailbox gate)
+## Freshdesk batch pull (AP Help only)
 
 ```
 group_id:159000485013 AND status:2
 ```
 
-Then apply the recipient gate below.
-
-Paginate all pages (`search_tickets` or REST `/api/v2/search/tickets`).
+Then apply the recipient gate below. Paginate all pages (`search_tickets` or
+REST `/api/v2/search/tickets`).
 
 For each candidate, `get_ticket` + conversations when body is thin.
 
-### Recipient gate (aphelp only)
+### Recipient gate (aphelp)
 
-Keep only tickets sent to a target mailbox. Match on any of:
+Keep only tickets sent to `aphelp@vixxo.com`. Match on any of:
 
 - `to_emails` / support email on the ticket
 - `cc_emails`
@@ -57,59 +57,86 @@ Keep only tickets sent to a target mailbox. Match on any of:
 - forwarded-message headers in body (`To:`, `Delivered-To:`, `X-Forwarded-To:`)
 - body-visible recipient lines
 
-Target addresses (case-insensitive):
+Target address (case-insensitive): `aphelp@vixxo.com`
 
-- `aphelp@vixxo.com`
-- `ksonboarding@vixxo.com` (when using the broad SPM search + mailbox filter)
+## Payment/AP detection (SF queues)
 
-**Invoice Concerns** and **KS Onboarding** type-filtered pulls do **not**
-require the recipient gate.
+Before vetting, scan subject and body for payment/AP signals from the routing
+table in [queues.md](queues.md). When matched:
+
+1. Still run full Gateway + Salesforce identity vetting.
+2. Set packet **Routing** = `Recommend forward to AP Help`.
+3. Include draft forward recommendation in the SF Case Task — **do not send**.
+
+Examples: "status of payment for invoice 12345", "haven't received check",
+"AP hold on my account", "duplicate payment".
 
 ## Dedupe and exclusions
 
 | Condition | Action |
 | --- | --- |
-| Tagged `sp-vetted` | Skip — unless user says `re-vet` or names the ticket id |
+| SF Case already has vetting Task | Skip — unless `re-vet` or Case id named |
+| Freshdesk tagged `sp-vetted` | Skip — unless `re-vet` or ticket id named |
 | Subject includes `New voicemail` | Skip — use `sp-voicemail-triage` |
 | User says `include voicemails` | Process anyway |
-| Batch `all` | Dedupe by ticket id across queues |
+| Batch `all` | Dedupe by Case Id / ticket id across queues |
 
-**Ordering:** oldest-first by `created_at` unless the user asks newest-first.
+**Ordering:** oldest-first by `CreatedDate` / `created_at` unless user asks
+newest-first.
 
 ## Single-item intake
 
 Accept:
 
-- Freshdesk ticket id or URL
-- Outlook message id (when no Freshdesk ticket exists yet)
-- Pasted subject + body when the user is previewing one item
-
-When only Outlook mail exists, run vetting and present the packet; skip
-Freshdesk writes unless the user links or creates a ticket id.
+- Salesforce Case Number, Case Id, or URL
+- Salesforce Lead Id (ksonboarding)
+- Freshdesk ticket id or URL (AP Help)
+- Outlook message id (when no Case/ticket exists yet)
+- Pasted subject + body for preview
 
 ## Outlook secondary intake (optional)
 
-When the user asks to vet mail in a shared mailbox or their inbox:
+When the user asks to vet mail in a shared mailbox:
 
 1. `verify-login` on Microsoft 365 MCP.
 2. Search separately — do not combine `$search` and `$filter` on one Graph call:
    - Pass A: `$search="aphelp@vixxo.com"` with `receivedDateTime ge {window}`
    - Pass B: `$search="ksonboarding@vixxo.com"` with the same window
+   - Pass C: `$search="COI@vixxo.com"` / `$search="service.providermanagement@vixxo.com"`
 3. Default window: last 7 days; user may override.
-4. Dedupe against Freshdesk ticket ids when the message already spawned a ticket.
+4. Dedupe against Salesforce Case ids and Freshdesk ticket ids when mail
+   already spawned a record.
 
 ## Entity extraction (every item)
 
-From subject, body, requester, and attachments metadata extract:
+From Case/ticket subject, body, contact, and attachments metadata extract:
 
 | Field | Priority |
 | --- | --- |
-| Contact name | Freshdesk requester `name` (always capture for Gateway name search) |
-| SP number | Explicit `SP #`, `SP-`, `KS#####`, Siebel-style numbers in body |
-| Company name | Requester org, signature, subject, body, email domain |
-| Email | Requester email (Gateway `createdByUsername` search) |
-| Phone | Requester + body |
-| SR / invoice refs | Use to bootstrap Gateway / VixxoLink lookup when company is missing |
+| Contact name | SF Case contact / FD requester `name` |
+| SP number | Explicit `SP #`, `SP-`, `KS#####`, Siebel-style numbers |
+| Company name | Requester org, **email signature**, subject, body, email domain |
+| Email | `ContactEmail`, `SuppliedEmail`, or requester email |
+| Phone | Contact + body |
+| SR / invoice refs | Bootstrap Gateway / VixxoLink when company is missing |
+| Routing signals | Payment/AP vs COI/onboarding/SPM (see [queues.md](queues.md)) |
+
+### Email signature company (required when present)
+
+Parse the message body for SP legal names in closing signatures **before**
+falling back to generic mailbox display names.
+
+| Pattern | Example |
+| --- | --- |
+| `{Role} for {Company}` | `Bookkeeper for Brewer Lock & Safe Co, Inc.` |
+| Standalone line ending in LLC/Inc before phone/website | `FCS Facility Maintenance LLC` |
+
+When the requester display name is a generic mailbox label (`Workorders`,
+`Billing`, `Support`, etc.), prefer the signature company.
+
+**Subject-line company (COI / onboarding):** parse quoted or plain company names
+from subjects like `COI from "PEAK SEASON"`. Strip job title prefixes
+(`Account Manager-`, etc.) from signature rows.
 
 Normalize company names before search (strip punctuation; keep LLC/Inc when
 matching Siebel rows).

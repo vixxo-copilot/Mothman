@@ -5,15 +5,39 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from entity_extraction import company_search_variants, email_domain_search_tokens, is_internal_email
 from mcp_http import mcp_call, mcp_result_text
 
 GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
 VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
 
-INTERNAL_EMAIL_DOMAINS = (
-    "@vixxo.com",
-    "knowledgesync@vixxo.com",
+# Skip city-only / overly broad Gateway searchString tokens (noise, huge result sets).
+WEAK_GATEWAY_SEARCH_TOKENS = frozenset(
+    {
+        "youngstown",
+        "cleveland",
+        "columbus",
+        "cincinnati",
+        "toledo",
+        "akron",
+        "dayton",
+        "dallas",
+        "houston",
+        "chicago",
+        "phoenix",
+        "austin",
+    }
 )
+
+
+def _skip_gateway_search(term: str, *, last_name_only: bool = False) -> bool:
+    """Skip bare city tokens in last-name fallback only; never skip full company strings."""
+    norm = re.sub(r"[^\w\s]", "", (term or "").strip().lower())
+    if not norm or len(norm) < 3:
+        return True
+    if last_name_only and norm in WEAK_GATEWAY_SEARCH_TOKENS:
+        return True
+    return False
 
 
 def parse_json_blob(text: str) -> Any:
@@ -146,72 +170,206 @@ def pick_invoice_match(rows: list[dict], *, email: str | None = None, name: str 
     return sp_from_invoice_row(rows[0], "gateway_search_invoices(first-hit)")
 
 
-def is_internal_email(email: str) -> bool:
-    lower = (email or "").lower()
-    return any(token in lower for token in INTERNAL_EMAIL_DOMAINS)
+def _normalize_company_key(name: str) -> str:
+    return re.sub(r"[^\w\s]", "", (name or "").lower())
+
+
+def pick_invoice_company_match(rows: list[dict], company: str) -> dict | None:
+    """Pick invoice row whose SP name best matches the email-extracted company."""
+    if not rows:
+        return None
+
+    company_key = _normalize_company_key(company)
+    company_tokens = {t for t in company_key.split() if len(t) >= 3}
+    best_row: dict | None = None
+    best_score = 0
+
+    for row in rows:
+        sp_name = str(row.get("serviceProviderName") or "")
+        sp_key = _normalize_company_key(sp_name)
+        score = 0
+        if company_key and (company_key in sp_key or sp_key in company_key):
+            score += 5
+        if company_tokens:
+            overlap = sum(1 for token in company_tokens if token in sp_key)
+            score += overlap
+        if row.get("serviceProviderNumber"):
+            score += 1
+        if score > best_score:
+            best_score = score
+            best_row = row
+
+    if best_row and best_score >= 2:
+        return sp_from_invoice_row(
+            best_row,
+            f"gateway_search_invoices(company={company})",
+        )
+    if rows:
+        return sp_from_invoice_row(rows[0], f"gateway_search_invoices(company={company})")
+    return None
+
+
+def gateway_swm_get_provider(sp_number: str) -> dict | None:
+    """Resolve Siebel display name for a known SP / KS number."""
+    if not sp_number:
+        return None
+    resp = mcp_call(
+        GATEWAY_URL,
+        "gateway_swm_get_provider",
+        {"provider_number": sp_number, "sp_number": sp_number},
+    )
+    data = parse_json_blob(mcp_result_text(resp))
+    if not isinstance(data, dict) or not data:
+        return None
+    name = data.get("name") or data.get("displayName") or data.get("providerName")
+    num = data.get("number") or data.get("providerNumber") or sp_number
+    if not num and not name:
+        return None
+    return {
+        "sp_number": num,
+        "name": name,
+        "source": f"gateway_swm_get_provider({sp_number})",
+    }
+
+
+def _enrich_sp_hit(hit: dict | None) -> dict | None:
+    if not hit:
+        return None
+    sp_num = hit.get("sp_number")
+    if sp_num and (not hit.get("name") or str(sp_num).upper().startswith("KS")):
+        detail = gateway_swm_get_provider(str(sp_num))
+        if detail:
+            hit = {**hit, **detail, "source": f"{hit.get('source')} + {detail.get('source')}"}
+    return hit
+
+
+def _company_candidates(entities: dict) -> list[str]:
+    raw: list[str] = []
+    for key in ("company", "signature_company"):
+        value = entities.get(key) or ""
+        if value and value not in ("Not stated", ""):
+            raw.append(value)
+    seen: set[str] = set()
+    candidates: list[str] = []
+    for name in raw:
+        for variant in company_search_variants(name):
+            key = variant.lower()
+            if key not in seen:
+                seen.add(key)
+                candidates.append(variant)
+    return candidates
+
+
+def _gateway_find_sp_by_company(entities: dict) -> dict | None:
+    """After email vetting, search Gateway by extracted company name for SP #."""
+    candidates = _company_candidates(entities)
+    if not candidates:
+        return None
+
+    for variant in candidates:
+        if _skip_gateway_search(variant):
+            continue
+        rows = gateway_search_invoices(searchString=variant)
+        hit = pick_invoice_company_match(rows, variant)
+        hit = _enrich_sp_hit(hit)
+        if hit and hit.get("sp_number"):
+            return hit
+
+    ks = entities.get("ks_number")
+    if ks:
+        return _enrich_sp_hit(gateway_swm_get_provider(ks))
+
+    return None
 
 
 def gateway_find_sp(entities: dict) -> dict | None:
     ks = entities.get("ks_number")
     sr = entities.get("sr_number")
-    company = entities.get("company") or ""
-    email = entities.get("requester_email") or ""
-    contact_name = entities.get("contact_name") or ""
+    contact_name = entities.get("vetting_contact_name") or entities.get("contact_name") or ""
+    contact_emails = list(entities.get("contact_emails") or [])
+    requester = entities.get("requester_email") or ""
+    if requester and requester != "Not stated" and requester.lower() not in contact_emails:
+        contact_emails.insert(0, requester.lower())
 
     if sr:
-        hit = gateway_get_sr(sr)
+        hit = _enrich_sp_hit(gateway_get_sr(sr))
         if hit:
             return hit
-        hit = vixxolink_get_sr_sp(sr)
+        hit = _enrich_sp_hit(vixxolink_get_sr_sp(sr))
         if hit:
             return hit
 
     if ks:
         rows = gateway_search_invoices(serviceProviderNumber=ks)
-        hit = sp_from_invoice_row(rows[0], f"gateway_search_invoices(KS={ks})") if rows else None
+        hit = _enrich_sp_hit(
+            sp_from_invoice_row(rows[0], f"gateway_search_invoices(KS={ks})") if rows else None
+        )
+        if hit:
+            return hit
+        hit = _enrich_sp_hit(gateway_swm_get_provider(ks))
         if hit:
             return hit
 
-    if email and email != "Not stated" and not is_internal_email(email):
-        rows = gateway_search_invoices(searchString=email)
-        hit = pick_invoice_match(rows, email=email)
+    for email in contact_emails:
+        hit = _enrich_sp_hit(_gateway_find_sp_by_email(email))
         if hit:
             return hit
-        local = email.split("@", 1)[0]
-        if local and len(local) >= 4:
-            rows = gateway_search_invoices(searchString=local)
-            hit = pick_invoice_match(rows, email=email)
-            if hit:
-                hit["source"] = f"gateway_search_invoices(local-part={local})"
-                return hit
 
     if contact_name and contact_name not in ("Not stated", ""):
         rows = gateway_search_invoices(searchString=contact_name)
-        hit = pick_invoice_match(rows, name=contact_name)
+        hit = _enrich_sp_hit(
+            pick_invoice_match(rows, name=contact_name, email=requester if requester != "Not stated" else None)
+        )
         if hit:
             return hit
         parts = contact_name.split()
         if len(parts) >= 2:
             last = parts[-1]
-            if len(last) >= 3:
+            if len(last) >= 3 and not _skip_gateway_search(last, last_name_only=True):
                 rows = gateway_search_invoices(searchString=last)
-                hit = pick_invoice_match(rows, name=contact_name)
+                hit = _enrich_sp_hit(pick_invoice_match(rows, name=contact_name))
                 if hit:
                     hit["source"] = f"gateway_search_invoices(last-name={last})"
                     return hit
 
-    if company and company != "Not stated":
-        rows = gateway_search_invoices(searchString=company)
-        hit = sp_from_invoice_row(rows[0], f"gateway_search_invoices(company={company})") if rows else None
+    return _gateway_find_sp_by_company(entities)
+
+
+def gateway_health_check() -> dict:
+    """Verify Gateway MCP search path before batch runs."""
+    rows = gateway_search_invoices(serviceProviderNumber="KS69315")
+    if rows:
+        return {"ok": True, "probe": "gateway_search_invoices(KS69315)", "rows": len(rows)}
+    rows = gateway_search_invoices(searchString="KS69315")
+    if rows:
+        return {"ok": True, "probe": "gateway_search_invoices(searchString=KS69315)", "rows": len(rows)}
+    return {
+        "ok": False,
+        "error": "Gateway probe empty — use Cursor Gateway MCP (project-0-assistant-CGagner-gateway) or run enriched live_run --data",
+    }
+
+
+def _gateway_find_sp_by_email(email: str) -> dict | None:
+    if not email or email == "Not stated" or is_internal_email(email):
+        return None
+
+    rows = gateway_search_invoices(searchString=email)
+    hit = pick_invoice_match(rows, email=email)
+    if hit:
+        return hit
+
+    local = email.split("@", 1)[0]
+    if local and len(local) >= 4:
+        rows = gateway_search_invoices(searchString=local)
+        hit = pick_invoice_match(rows, email=email)
         if hit:
+            hit["source"] = f"gateway_search_invoices(local-part={local})"
             return hit
 
-    if email and "@" in email and not is_internal_email(email):
-        domain = email.split("@", 1)[1].split(".")[0]
-        if domain and len(domain) >= 4 and domain not in ("gmail", "yahoo", "aol", "hotmail", "icloud"):
-            rows = gateway_search_invoices(searchString=domain)
-            hit = sp_from_invoice_row(rows[0], f"gateway_search_invoices(domain={domain})") if rows else None
-            if hit:
-                return hit
+    for token in email_domain_search_tokens(email):
+        rows = gateway_search_invoices(searchString=token)
+        hit = sp_from_invoice_row(rows[0], f"gateway_search_invoices(domain={token})") if rows else None
+        if hit:
+            return hit
 
     return None

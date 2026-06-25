@@ -1,10 +1,19 @@
-"""Freshdesk queue definitions for sp-inbound-vetting batch runs."""
+"""Freshdesk queue definitions for sp-inbound-vetting batch runs.
+
+Salesforce-primary queues (ksonboarding, coi, spm) are documented in
+reference/queues.md — pull via Salesforce MCP SOQL, not this module.
+Freshdesk batch scripts currently target aphelp (primary) and legacy FD pulls.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 SPM_GROUP_ID = "159000485013"
+
+# SF queue keys — placeholders until discovery SOQL confirms DeveloperName/Id.
+# See reference/queues.md for SOQL templates and operator steps.
+SF_QUEUE_KEYS = ("ksonboarding", "coi", "spm")
 
 
 @dataclass(frozen=True)

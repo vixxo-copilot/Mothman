@@ -1,6 +1,6 @@
 name: sp-voicemail-triage
 title: "SP Voicemail Triage"
-description: "Auto-transcribes and triages SP voicemails from Freshdesk KSOnboarding and Outlook using local faster-whisper; vets companies across Siebel, Gateway, JDE, and Salesforce; automatically posts Freshdesk notes, forwards, resolves tickets, and adds Salesforce Lead notes."
+description: "Auto-transcribes and triages SP voicemails from Freshdesk KSOnboarding and Outlook VM folder using local faster-whisper; vets companies across Siebel, Gateway, JDE, and Salesforce (Lead, Case, Account, Contact); posts Freshdesk notes, SF Lead/Case Tasks, optional SF Cases, forwards, and resolves tickets."
 category: operations
 agents:
   - cursor

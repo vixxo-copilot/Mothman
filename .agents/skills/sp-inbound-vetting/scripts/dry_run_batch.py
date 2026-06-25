@@ -20,12 +20,27 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"))
 
 from batch_process_freshdesk import auth_headers, load_credentials, strip_html  # noqa: E402
+from entity_extraction import (  # noqa: E402
+    contact_search_name,
+    company_search_variants,
+    extract_body_company_mentions,
+    extract_body_emails,
+    extract_signature_company,
+    extract_signature_contact_name,
+    extract_subject_company,
+    is_generic_mailbox_name,
+    is_probable_person_name,
+    pick_best_company,
+    sanitize_company,
+    is_valid_company_string,
+)
 from gateway_vetting import gateway_find_sp  # noqa: E402
 from queue_config import VettingQueue, resolve_queues  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
 VOICEMAIL_RE = re.compile(r"\bnew voicemail\b", re.I)
 KS_RE = re.compile(r"\b(KS\d+)\b", re.I)
+SP_HASH_RE = re.compile(r"#(\d{4,6})\b")
 SR_RE = re.compile(r"\b(1-\d{9,10})\b")
 
 
@@ -80,24 +95,47 @@ def extract_company(ticket: dict) -> dict:
     cf_sp = cf.get("cf_sp")
 
     company = None
+    company_candidates: list[str] = []
+
+    subject_company = extract_subject_company(subject)
+    if subject_company:
+        company_candidates.append(subject_company)
+
     patterns = [
-        r"Invoice \d+ from (.+)$",
         r"COI - (.+?) - Vixxo",
         r"Your service with[\s\u00a0]*(.+?)[\s\u00a0]*-",
         r"^(KS\d+)\s*-",
         r"from (.+?) via",
-        r"Statement from (.+?)(?:\s|$)",
         r"Onboarding setup for (.+?)$",
         r"receipt from (.+?)(?:\.|$)",
         r"FlyLock Security Solutions",
         r"Invoice (.+?) from",
+        r"Invoice \d+ from (.+)$",
+        r"Your Invoice from (.+)$",
     ]
     for pat in patterns:
         m = re.search(pat, subject, re.I)
         if m:
-            company = m.group(1).strip() if m.lastindex else m.group(0).strip()
+            hit = m.group(1).strip() if m.lastindex else m.group(0).strip()
+            hit = sanitize_company(hit)
+            if hit:
+                company_candidates.append(hit)
             break
-    if not company and cf_sp and cf_sp not in ("Unknown", ""):
+
+    company_candidates.extend(extract_body_company_mentions(desc))
+
+    signature_company = extract_signature_company(desc, email)
+    if signature_company:
+        company_candidates.append(signature_company)
+
+    company = pick_best_company(company_candidates, email)
+    if company:
+        company = re.sub(r"\s*[-–—]\s*KS\d+\s*$", "", company, flags=re.I).strip()
+        company = re.sub(r"\s*,?\s*#\d{4,6}\s*$", "", company).strip()
+        company = re.sub(r"\s*-\s*KS\d+\s*$", "", company, flags=re.I).strip()
+    company = sanitize_company(company) or (company if company and is_valid_company_string(company) else None)
+
+    if not company and cf_sp and cf_sp not in ("Unknown", "") and is_valid_company_string(str(cf_sp)):
         company = str(cf_sp)
     if not company and "locksmith" in email.lower():
         company = "Texas Premier Locksmith"
@@ -110,17 +148,47 @@ def extract_company(ticket: dict) -> dict:
     if not company and "fastsigns.com" in email.lower():
         company = "FastSigns"
 
-    if not company and contact_name and contact_name.lower() not in ("team", "not stated"):
+    signature_contact_name = extract_signature_contact_name(desc)
+    contact_emails = extract_body_emails(desc, email)
+    vetting_contact_name = contact_search_name(contact_name, signature_contact_name)
+    if not company and signature_company:
+        company = signature_company
+    elif signature_company and is_generic_mailbox_name(contact_name):
+        company = signature_company
+
+    if (
+        not company
+        and contact_name
+        and not is_generic_mailbox_name(contact_name)
+        and not is_probable_person_name(contact_name)
+    ):
         company = contact_name
 
-    ks = KS_RE.search(f"{subject} {cf_sp or ''}")
-    sr = SR_RE.search(f"{subject} {desc}")
+    ks_match = KS_RE.search(f"{subject} {desc} {company or ''} {cf_sp or ''}")
+    ks_number = ks_match.group(1).upper() if ks_match else None
+    if not ks_number:
+        hash_match = SP_HASH_RE.search(f"{subject} {desc} {company or ''} {cf_sp or ''}")
+        if hash_match:
+            ks_number = f"KS{hash_match.group(1)}"
+
+    if company:
+        company = re.sub(r"\s*[-–—]\s*KS\d+\s*$", "", company, flags=re.I).strip()
+        company = re.sub(r"\s*,?\s*#\d{4,6}\s*$", "", company).strip()
+        company = sanitize_company(company) or (
+            company if is_valid_company_string(company) else None
+        )
+
+    sr_match = SR_RE.search(f"{subject} {desc}")
 
     return {
         "company": company or "Not stated",
+        "signature_company": signature_company,
         "contact_name": contact_name or "Not stated",
-        "ks_number": ks.group(1).upper() if ks else None,
-        "sr_number": sr.group(1) if sr else None,
+        "signature_contact_name": signature_contact_name,
+        "vetting_contact_name": vetting_contact_name or "Not stated",
+        "contact_emails": contact_emails,
+        "ks_number": ks_number,
+        "sr_number": sr_match.group(1) if sr_match else None,
         "requester_email": email or "Not stated",
         "cf_sp_current": cf_sp,
     }
@@ -150,52 +218,142 @@ def sf_query(soql: str) -> list[dict]:
 
 
 def salesforce_search(entities: dict) -> dict:
-    out: dict = {"lead": None, "case": None, "errors": []}
+    out: dict = {"lead": None, "case": None, "contact": None, "account": None, "errors": []}
     company = entities.get("company") or ""
     email = entities.get("requester_email") or ""
-    contact_name = entities.get("contact_name") or ""
+    contact_name = entities.get("vetting_contact_name") or entities.get("contact_name") or ""
+    contact_emails = entities.get("contact_emails") or []
+    if email and email != "Not stated" and email not in contact_emails:
+        contact_emails = [email.lower()] + list(contact_emails)
 
-    if company != "Not stated":
-        esc = company.replace("'", "\\'")
-        leads = sf_query(
-            "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
-            f"WHERE Company LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 3"
+    def _first_records(records: list[dict]) -> list[dict]:
+        if records and records[0].get("_error"):
+            out["errors"].append(records[0]["_error"])
+            return []
+        return records
+
+    def _lead_by_email(addr: str) -> dict | None:
+        esc = addr.replace("'", "\\'")
+        rows = _first_records(
+            sf_query(
+                "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+                f"WHERE Email = '{esc}' ORDER BY LastModifiedDate DESC LIMIT 3"
+            )
         )
-        if leads and not leads[0].get("_error"):
-            out["lead"] = leads[0]
-        elif leads and leads[0].get("_error"):
-            out["errors"].append(leads[0]["_error"])
+        return rows[0] if rows else None
+
+    def _contact_by_email(addr: str) -> dict | None:
+        esc = addr.replace("'", "\\'")
+        rows = _first_records(
+            sf_query(
+                "SELECT Id, Name, Email, AccountId FROM Contact "
+                f"WHERE Email = '{esc}' LIMIT 3"
+            )
+        )
+        return rows[0] if rows else None
+
+    def _case_by_email(addr: str) -> dict | None:
+        esc = addr.replace("'", "\\'")
+        rows = _first_records(
+            sf_query(
+                "SELECT Id, CaseNumber, Subject, Status FROM Case "
+                f"WHERE ContactEmail = '{esc}' ORDER BY CreatedDate DESC LIMIT 3"
+            )
+        )
+        return rows[0] if rows else None
+
+    # Email-first: every requester + signature/body address.
+    for addr in contact_emails:
+        if out.get("lead"):
+            break
+        out["lead"] = _lead_by_email(addr)
+
+    for addr in contact_emails:
+        if out.get("contact"):
+            break
+        out["contact"] = _contact_by_email(addr)
+
+    for addr in contact_emails:
+        if out.get("case"):
+            break
+        out["case"] = _case_by_email(addr)
+
+    # Corporate email domain → Lead rows on same domain.
+    if not out.get("lead"):
+        from entity_extraction import email_domain_search_tokens  # noqa: WPS433
+
+        seen_domains: set[str] = set()
+        for addr in contact_emails:
+            for token in email_domain_search_tokens(addr):
+                if token in seen_domains:
+                    continue
+                seen_domains.add(token)
+                esc = token.replace("'", "\\'")
+                rows = _first_records(
+                    sf_query(
+                        "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+                        f"WHERE Email LIKE '%@{esc}' OR Email LIKE '%@{esc}.%' "
+                        f"ORDER BY LastModifiedDate DESC LIMIT 3"
+                    )
+                )
+                if rows:
+                    out["lead"] = rows[0]
+                    break
+            if out.get("lead"):
+                break
+
+    if company != "Not stated" and not out.get("lead"):
+        seen_company: set[str] = set()
+        for variant in company_search_variants(company):
+            key = variant.lower()
+            if key in seen_company:
+                continue
+            seen_company.add(key)
+            esc = variant.replace("'", "\\'")
+            leads = _first_records(
+                sf_query(
+                    "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+                    f"WHERE Company LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 3"
+                )
+            )
+            if leads:
+                out["lead"] = leads[0]
+                break
 
     if contact_name not in ("Not stated", "") and not out.get("lead"):
         esc = contact_name.replace("'", "\\'")
-        leads = sf_query(
-            "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
-            f"WHERE Name LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 3"
+        leads = _first_records(
+            sf_query(
+                "SELECT Id, Name, Company, Status, Email, LastModifiedDate FROM Lead "
+                f"WHERE Name LIKE '%{esc}%' ORDER BY LastModifiedDate DESC LIMIT 3"
+            )
         )
-        if leads and not leads[0].get("_error"):
+        if leads:
             out["lead"] = leads[0]
 
-    if email not in ("Not stated", "") and not out.get("lead"):
-        esc = email.replace("'", "\\'")
-        leads = sf_query(
-            f"SELECT Id, Name, Company, Status, Email FROM Lead WHERE Email = '{esc}' LIMIT 3"
-        )
-        if leads and not leads[0].get("_error"):
-            out["lead"] = leads[0]
-
-    if email not in ("Not stated", ""):
-        esc = email.replace("'", "\\'")
-        cases = sf_query(
-            "SELECT Id, CaseNumber, Subject, Status FROM Case "
-            f"WHERE ContactEmail = '{esc}' ORDER BY CreatedDate DESC LIMIT 3"
-        )
-        if cases and not cases[0].get("_error"):
-            out["case"] = cases[0]
+    if company != "Not stated" and not out.get("account"):
+        seen_account: set[str] = set()
+        for variant in company_search_variants(company):
+            key = variant.lower()
+            if key in seen_account:
+                continue
+            seen_account.add(key)
+            esc = variant.replace("'", "\\'")
+            accounts = _first_records(
+                sf_query(
+                    "SELECT Id, Name, Type, Service_Provider_Number__c FROM Account "
+                    f"WHERE Name LIKE '%{esc}%' AND Type = 'Service Provider' "
+                    f"ORDER BY LastModifiedDate DESC LIMIT 3"
+                )
+            )
+            if accounts:
+                out["account"] = accounts[0]
+                break
 
     return out
 
 
-def posture(gw: dict | None, sf: dict) -> tuple[str, str]:
+def posture(gw: dict | None, sf: dict, entities: dict | None = None) -> tuple[str, str]:
     if gw and sf.get("lead"):
         return "Known SP + SF Lead", f"{gw.get('sp_number')} - {gw.get('name')}"
     if gw:
@@ -205,6 +363,9 @@ def posture(gw: dict | None, sf: dict) -> tuple[str, str]:
         return "Prospect (SF Lead only)", (sf["lead"] or {}).get("Company") or "Unknown"
     if sf.get("case"):
         return "Open SF Case", "Unknown"
+    company = (entities or {}).get("company") or ""
+    if company and is_valid_company_string(company):
+        return "Unknown / Not in systems", company
     return "Unknown / Not in systems", "Unknown"
 
 
@@ -226,9 +387,20 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
         entities = extract_company(ticket)
         gw = gateway_find_sp(entities)
         sf = salesforce_search(entities)
-        post, cf_target = posture(gw, sf)
+        if not gw and sf.get("account"):
+            sp_num = str((sf["account"] or {}).get("Service_Provider_Number__c") or "").strip()
+            if sp_num.upper().startswith("KS") and not entities.get("ks_number"):
+                entities["ks_number"] = sp_num.upper()
+                gw = gateway_find_sp(entities) or gw
+        post, cf_target = posture(gw, sf, entities)
         if entities.get("cf_sp_current") not in (None, "", "Unknown") and post == "Unknown / Not in systems":
-            cf_target = "(keep existing)"
+            current_cf = str(entities.get("cf_sp_current") or "")
+            if is_valid_company_string(current_cf):
+                cf_target = "(keep existing)"
+            elif is_valid_company_string(str(cf_target)):
+                pass  # overwrite invalid human/bot cf_sp with good extraction
+            else:
+                cf_target = "(keep existing)" if current_cf else "Unknown"
         items.append(
             {
                 "ticket_id": tid,
@@ -236,7 +408,10 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
                 "inbox_label": queue.inbox_label,
                 "subject": summary.get("subject"),
                 "company": entities["company"],
+                "signature_company": entities.get("signature_company"),
                 "contact_name": entities["contact_name"],
+                "vetting_contact_name": entities.get("vetting_contact_name"),
+                "contact_emails": entities.get("contact_emails"),
                 "ks_number": entities["ks_number"],
                 "sr_number": entities["sr_number"],
                 "requester": entities["requester_email"],
@@ -246,6 +421,7 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
                 "gateway_sp": gw,
                 "sf_lead": sf.get("lead"),
                 "sf_case": sf.get("case"),
+                "sf_account": sf.get("account"),
                 "errors": sf.get("errors", []),
             }
         )

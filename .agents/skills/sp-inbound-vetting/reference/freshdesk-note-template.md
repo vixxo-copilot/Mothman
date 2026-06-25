@@ -1,12 +1,16 @@
 # Freshdesk Internal Note Template
 
+Use for **AP Help (`aphelp`)** — Freshdesk-primary queue. SF-primary queues
+(ksonboarding, COI, spm) document via Salesforce Case Tasks per
+[salesforce-notes.md](salesforce-notes.md).
+
 Post via `create_ticket_note` with `"private": true`.
 
 ```markdown
 **SP Inbound Vetting — Freshdesk #{ticket_id}**
 
 **Processed:** {ISO date}
-**Inbox / queue:** {aphelp@vixxo.com | ksonboarding@vixxo.com | spm-invoice-concerns}
+**Inbox / queue:** {aphelp@vixxo.com}
 **Requester:** {name} <{email}>
 **Contact name searched:** {contact name from requester}
 **Extracted company:** {company or Not stated}

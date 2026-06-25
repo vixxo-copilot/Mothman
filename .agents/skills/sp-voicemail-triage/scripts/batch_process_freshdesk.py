@@ -72,6 +72,26 @@ SKIP_FORWARD_CATEGORIES = {
 
 CATEGORY_RULES: list[tuple[str, list[str], str]] = [
     ("COI / Compliance", ["coi", "certificate of insurance", "insurance", "acord", "additional insured"], "COI@vixxo.com"),
+    (
+        "Sourcing / Account Team",
+        [
+            "sourcing",
+            "procurement",
+            "sourcing team",
+            "speak with",
+            "talk to someone",
+            "talk to a member",
+            "work opportunities",
+            "more work",
+            "any losses",
+            "losses for us",
+            "losses for us this week",
+            "check in with you",
+            "account manager",
+            "program manager",
+        ],
+        "service.providermanagement@vixxo.com",
+    ),
     ("Payment Information", ["payment", "paid", "check", "remittance", "ach", "wire", "when paid", "haven't received payment"], "aphelp@vixxo.com"),
     ("Billing / Invoice Support", ["invoice", "billing", "rejected", "submit invoice", "resubmit"], "aphelp@vixxo.com"),
     ("VixxoLink Support", ["vixxolink", "portal", "login", "password", "app", "dispatch board", "accept work"], "service.providermanagement@vixxo.com"),
@@ -303,12 +323,34 @@ def detect_skip_forward(
     return False, ""
 
 
+def detect_sourcing_intent(transcript: str) -> bool:
+    text = transcript.lower()
+    sourcing_keywords = [
+        "sourcing",
+        "procurement",
+        "sourcing team",
+        "speak with",
+        "talk to someone",
+        "talk to a member",
+        "work opportunities",
+        "more work",
+        "any losses",
+        "losses for us",
+        "check in with you",
+        "account manager",
+        "program manager",
+    ]
+    return any(_keyword_in_text(k, text) for k in sourcing_keywords)
+
+
 def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
     text = transcript.lower()
     sr = None
     sm = SR_RE.search(transcript)
     if sm:
         sr = sm.group(1)
+    if detect_sourcing_intent(transcript):
+        return "Sourcing / Account Team", "service.providermanagement@vixxo.com", sr or ""
     if "audio attachment only" in text or "[inaudible]" in text:
         return "General Inquiry", "service.providermanagement@vixxo.com", sr or ""
     for category, keywords, route in CATEGORY_RULES:
@@ -319,6 +361,8 @@ def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
                 return category, "service.providermanagement@vixxo.com", ""
             if route == "ONBOARDING_BRANCH":
                 return category, "spm-recruitment@vixxo.com", ""
+            if route == "aphelp@vixxo.com" and detect_sourcing_intent(transcript):
+                return "Sourcing / Account Team", "service.providermanagement@vixxo.com", sr or ""
             return category, route, sr or ""
     if meta.get("caller", "").upper() == "WIRELESS CALLER":
         return "General Inquiry", "service.providermanagement@vixxo.com", sr or ""

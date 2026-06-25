@@ -45,6 +45,9 @@ includes `New voicemail`. Do not use body or thread text for inclusion.
 
 ## Outlook
 
+**Folder:** {{employee_name}}'s Outlook subfolder **`VM`** (voicemail rule target).
+Do not scan Inbox only — messages land in **VM** after the rule runs.
+
 Same rule: **subject must include** `New voicemail` (case-insensitive).
 
 Do not include messages that only mention voicemail, ACH, or payment in the
