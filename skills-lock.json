@@ -367,6 +367,12 @@
       "skillPath": "skills/slx-needs-review/SKILL.md",
       "computedHash": "cc3a1f18a7f6246837877337ebf76a7702c1585421efdec7ffec0a37120b0430"
     },
+    "sp-fd-sf-duplicate-bridge": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sp-fd-sf-duplicate-bridge/SKILL.md",
+      "computedHash": "d315113d15fe00ac3295580d1a48382b4e2c07c50d3ff29dcca25c6525595915"
+    },
     "sr-post-completion-review": {
       "source": "vixxo-copilot/agent-skills",
       "sourceType": "github",
@@ -450,6 +456,12 @@
       "sourceType": "github",
       "skillPath": "skills/vixxo-sp-performance-monitor/SKILL.md",
       "computedHash": "0db5ce7acca1bbdd772f108888498623a076df8ebd5e82f594a1e12abaa9262c"
+    },
+    "service-provider-vetting-analyst": {
+      "source": "vixxo-copilot/HABLADORA",
+      "sourceType": "github",
+      "skillPath": ".cursor/skills/service-provider-vetting-analyst/SKILL.md",
+      "computedHash": "d69f626439967d13cd18a17d8e0865c889ad44177644a52b622ff6a6f202fa61"
     }
   }
 }

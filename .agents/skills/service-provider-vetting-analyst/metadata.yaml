@@ -1,0 +1,15 @@
+name: service-provider-vetting-analyst
+title: "Service Provider Vetting Analyst"
+description: "Investigates named companies, vendors, contractors, and potential Vixxo SPs using source-backed web research. Produces structured vetting reports covering registration, licensing, addresses, reviews, digital footprint, subcontracting, and vendor risk grades."
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: vixxo-copilot
+version: "1.0.0"
+tags: [service-provider, vetting, vendor, due-diligence, licensing, bbb, research, onboarding]
+status: approved
+requires_mcp: []
+source: vixxo
+provenance: vixxo-copilot/HABLADORA
+upstream_repo: vixxo-copilot/HABLADORA
