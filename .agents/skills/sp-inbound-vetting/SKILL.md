@@ -74,7 +74,13 @@ Freshdesk forwards unless {{employee_name}} explicitly approves
 - Single Case: "vet Salesforce Case 00012345"
 - Single ticket: "vet Freshdesk #51234"
 
-**Use `sp-voicemail-triage`** for subject `New voicemail` items.
+**Use `sp-voicemail-triage`** for subject `New voicemail` items with full SF Task
+writes and Outlook intake.
+
+**Use `sp-voicemail-triage-fast`** (agent tier) to **lite-vet** KSOnboarding
+voicemails after transcription — load this skill via Skills MCP
+(`get_skill("sp-inbound-vetting")`) for Gateway/SF identity + routing-table reroute
+before Freshdesk forward/resolve; skip SF Task writes on that path.
 
 **Use `vixxo-spm-invoice-concerns`** for invoice/payment Gateway analysis,
 proposed resolutions, and invoice workflow tags on Freshdesk Invoice Concerns.
@@ -84,6 +90,10 @@ bucket classification, and provider reply drafting.
 
 **Use `vixxo-coi-review`** for COI certificate field compliance after identity
 vetting on COI queue items.
+
+**Use `sp-fd-sf-duplicate-bridge`** to detect Freshdesk ↔ Salesforce duplicate
+pairs, scan a time window for dual-intake, or sync FD attachments to a paired SF
+Case (KS onboarding mirrors, voicemail follow-up file gaps).
 
 ## Operating modes
 

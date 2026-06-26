@@ -167,5 +167,6 @@ Salesforce (Case from triage forward or Email-to-Case). Always:
 2. Link FD `#` in Case Description / Task body
 3. Note the paired id in the internal note (**SF Case:** 0000xxxx ↔ **FD:** #nnnnn)
 
-See [sp-inbound-vetting/.tmp/fd-sf-duplicate-report-widened-20260625.md](../../sp-inbound-vetting/.tmp/fd-sf-duplicate-report-widened-20260625.md)
-for the voicemail dual-intake pattern.
+See **`sp-fd-sf-duplicate-bridge`** ([SKILL.md](../../sp-fd-sf-duplicate-bridge/SKILL.md),
+[examples.md](../../sp-fd-sf-duplicate-bridge/reference/examples.md)) for voicemail
+dual-intake detection, batch scan, and FD → SF attachment sync.

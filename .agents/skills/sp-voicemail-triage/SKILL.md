@@ -15,7 +15,7 @@ description: >-
   without outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
   webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`. For
   scheduled automation with Whisper transcription and no external vetting, use
-  sibling skill `sp-voicemail-triage-fast`.
+  sibling skill `sp-voicemail-triage-fast` (agent tier loads `sp-inbound-vetting` via Skills MCP for lite reroute).
 ---
 
 # SP Voicemail Triage
