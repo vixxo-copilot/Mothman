@@ -703,14 +703,14 @@ def main() -> int:
     skip_vetting = "--skip-vetting" in sys.argv
     transcribe = "--no-transcribe" not in sys.argv
     api_key = load_credentials()
-    if transcribe:
+    tickets, skipped = search_voicemail_tickets(api_key)
+    if transcribe and tickets:
         from transcribe_voicemail import get_whisper_model  # noqa: PLC0415
 
         try:
             get_whisper_model()
         except RuntimeError as exc:
             raise SystemExit(f"ERROR: {exc}") from exc
-    tickets, skipped = search_voicemail_tickets(api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     results: list[Result] = []
