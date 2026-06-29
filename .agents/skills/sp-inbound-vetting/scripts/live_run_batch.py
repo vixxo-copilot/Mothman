@@ -62,9 +62,30 @@ def sf_lead_row(item: dict) -> tuple[str, str]:
     return "No", "No match"
 
 
-def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[str], sf_task: str) -> str:
+def sf_case_row(item: dict) -> tuple[str, str]:
+    case = item.get("sf_case")
+    if case:
+        identifier = case.get("CaseNumber") or case.get("Id") or "Unknown case"
+        status = case.get("Status") or "Unknown"
+        subject = case.get("Subject")
+        detail = f"{identifier} — {status}"
+        if subject:
+            detail = f"{detail} — {subject}"
+        return "Yes", detail
+    return "No", "No match"
+
+
+def build_note(
+    tid: int,
+    item: dict,
+    cf_sp_applied: str | None,
+    tag_list: list[str],
+    lead_task: str,
+    case_task: str,
+) -> str:
     gw_yes, gw_id = gateway_row(item)
     lead_yes, lead_id = sf_lead_row(item)
+    case_yes, case_id = sf_case_row(item)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     inbox = item.get("inbox_label") or "spm-intake"
     cf_line = cf_sp_applied if cf_sp_applied is not None else "(keep existing — not overwritten)"
@@ -87,7 +108,7 @@ def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[s
 | --- | --- | --- |
 | Gateway SP | {gw_yes} | {gw_id} |
 | Salesforce Lead | {lead_yes} | {lead_id} |
-| Salesforce Case | No | No match |
+| Salesforce Case | {case_yes} | {case_id} |
 
 **Entity posture:** {item['posture']}
 
@@ -102,8 +123,8 @@ def build_note(tid: int, item: dict, cf_sp_applied: str | None, tag_list: list[s
 
 **Salesforce notes**
 
-- **Lead Task:** {sf_task}
-- **Case Task:** N/A
+- **Lead Task:** {lead_task}
+- **Case Task:** {case_task}
 
 ---
 
@@ -160,6 +181,44 @@ def create_sf_lead_task(tid: int, item: dict, lead_id: str) -> str:
         return f"{lead_id} — posted"
 
 
+def create_sf_case_task(tid: int, item: dict, case_id: str) -> str:
+    inbox = item.get("inbox_label") or "spm-intake"
+    case = item.get("sf_case") or {}
+    case_number = case.get("CaseNumber") or case_id
+    desc = (
+        f"Freshdesk #{tid} ({inbox}). Case: {case_number}. Posture: {item['posture']}. "
+        f"Company: {item.get('company')}. cf_sp target: {item.get('cf_sp_target')}. "
+        f"Link: {FD_LINK.format(tid=tid)}. "
+        f"Processed: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}"
+    )
+    subject = f"SP Inbound Vetting — Case {case_number}"
+    cmd = [
+        sf_bin(),
+        "data",
+        "create",
+        "record",
+        "--sobject",
+        "Task",
+        "--target-org",
+        "vixxo",
+        "--json",
+        "--values",
+        f"Subject='{subject}' Description='{desc}' WhatId='{case_id}' Status='Completed' Priority='Normal'",
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except FileNotFoundError:
+        return "failed — sf CLI not found"
+    if proc.returncode != 0:
+        return f"failed — {(proc.stderr or proc.stdout or '')[:200].strip()}"
+    try:
+        payload = json.loads(proc.stdout)
+        rec = (payload.get("result") or {}).get("id") or payload.get("result")
+        return f"{case_id} — posted (Task {rec})"
+    except json.JSONDecodeError:
+        return f"{case_id} — posted"
+
+
 def apply_item(api_key: str, item: dict) -> dict:
     tid = int(item["ticket_id"])
     out: dict = {
@@ -170,6 +229,8 @@ def apply_item(api_key: str, item: dict) -> dict:
         "cf_sp": None,
         "tags": None,
         "sf_task": "N/A",
+        "sf_lead_task": "N/A",
+        "sf_case_task": "N/A",
         "error": None,
     }
     try:
@@ -186,12 +247,17 @@ def apply_item(api_key: str, item: dict) -> dict:
         new_tags = [t for t in new_tags if t != "unknown-sp"]
     cf_sp_value = resolve_cf_sp(item, current_cf)
 
-    sf_task = "N/A"
+    lead_task = "N/A"
     lead = item.get("sf_lead")
     if lead and lead.get("Id"):
-        sf_task = create_sf_lead_task(tid, item, lead["Id"])
+        lead_task = create_sf_lead_task(tid, item, lead["Id"])
 
-    note_body = build_note(tid, item, cf_sp_value, new_tags, sf_task)
+    case_task = "N/A"
+    case = item.get("sf_case")
+    if case and case.get("Id"):
+        case_task = create_sf_case_task(tid, item, case["Id"])
+
+    note_body = build_note(tid, item, cf_sp_value, new_tags, lead_task, case_task)
     try:
         http_json("POST", f"/api/v2/tickets/{tid}/notes", api_key, {"body": note_body, "private": True})
         out["note"] = "posted"
@@ -214,7 +280,9 @@ def apply_item(api_key: str, item: dict) -> dict:
             out["error"] = f"update:{exc.reason}"
         out["tags"] = f"failed:{exc.code}"
 
-    out["sf_task"] = sf_task
+    out["sf_task"] = lead_task
+    out["sf_lead_task"] = lead_task
+    out["sf_case_task"] = case_task
     return out
 
 
