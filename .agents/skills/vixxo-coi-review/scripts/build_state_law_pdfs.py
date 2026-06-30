@@ -72,6 +72,23 @@ def parse_table_row(line: str) -> list[str]:
     return [c.strip().replace("**", "") for c in line.strip().strip("|").split("|")]
 
 
+def _table_widths(pdf: ReferencePDF, header: list[str], compact: bool) -> list[float]:
+    cols = len(header)
+    if cols == 3 and header[0].lower() in {"situation", "tier"}:
+        return [pdf.epw * 0.36, pdf.epw * 0.14, pdf.epw * 0.50]
+    if cols == 3 and header[0].lower() == "states":
+        return [pdf.epw * 0.22, pdf.epw * 0.78]
+    if cols == 3:
+        return [pdf.epw * 0.24, pdf.epw * 0.34, pdf.epw * 0.42]
+    if cols == 2 and header[0].lower() in {"states", "state", "line", "provision"}:
+        return [pdf.epw * 0.20, pdf.epw * 0.80]
+    if cols == 2:
+        return [pdf.epw * 0.30, pdf.epw * 0.70]
+    if cols == 4:
+        return [pdf.epw * 0.07, pdf.epw * 0.26, pdf.epw * 0.20, pdf.epw * 0.47]
+    return [pdf.epw / cols] * cols
+
+
 def render_table(
     pdf: ReferencePDF,
     header: list[str],
@@ -83,17 +100,11 @@ def render_table(
     if col_count == 0:
         return
 
-    font_size = 5.5 if compact else 7
-    row_h = 3.6 if compact else 5.5
-    cell_h = 2.8 if compact else 4.2
+    font_size = 6.5 if compact else 7
+    row_h = 4.0 if compact else 5.5
+    cell_h = 3.2 if compact else 4.2
 
-    widths = [pdf.epw / col_count] * col_count
-    if col_count == 4:
-        widths = [pdf.epw * 0.07, pdf.epw * 0.26, pdf.epw * 0.20, pdf.epw * 0.47]
-    elif col_count == 3:
-        widths = [pdf.epw * 0.18, pdf.epw * 0.22, pdf.epw * 0.60]
-    elif col_count == 2:
-        widths = [pdf.epw * 0.28, pdf.epw * 0.72]
+    widths = _table_widths(pdf, header, compact)
 
     pdf.set_font("Helvetica", "B", font_size)
     pdf.set_fill_color(230, 230, 230)
@@ -138,9 +149,9 @@ def build_pdf(
     h2 = 4 if compact else 6
     h3 = 3.5 if compact else 5
     body = 3 if compact else 4.2
-    body_font = 6 if compact else 8.5
-    title_font = 10 if compact else 16
-    section_font = 7 if compact else 12
+    body_font = 6.5 if compact else 8.5
+    title_font = 11 if compact else 16
+    section_font = 8 if compact else 12
 
     lines = md_text.splitlines()
     i = 0
@@ -203,7 +214,7 @@ def build_pdf(
             write_block(pdf, line[2:], body)
         elif line.startswith("- "):
             pdf.set_font("Helvetica", "", body_font)
-            write_block(pdf, "  * " + line[2:].replace("**", ""), body)
+            write_block(pdf, "- " + line[2:].replace("**", ""), body)
         elif line.strip() == "---":
             pdf.ln(1)
         elif line.strip() == "":
