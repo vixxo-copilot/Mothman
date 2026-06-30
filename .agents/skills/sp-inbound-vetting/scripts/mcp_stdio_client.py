@@ -65,12 +65,15 @@ def mcp_stdio_call(base_url: str, tool_name: str, arguments: dict | None = None)
 
     responses: list[dict] = []
     stderr_chunks: list[str] = []
+    done = threading.Event()
 
     def reader() -> None:
         for raw in proc.stdout:
             msg = _parse_response_line(raw)
             if msg:
                 responses.append(msg)
+                if msg.get("id") == 2:
+                    done.set()
 
     def err_reader() -> None:
         assert proc.stderr
@@ -109,7 +112,8 @@ def mcp_stdio_call(base_url: str, tool_name: str, arguments: dict | None = None)
     )
     proc.stdin.close()
 
-    proc.wait(timeout=180)
+    done.wait(timeout=180)
+    proc.wait(timeout=30)
     t_out.join(timeout=5)
     t_err.join(timeout=5)
 

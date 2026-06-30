@@ -14,24 +14,44 @@ Usage
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import os
 import re
-import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-INBOUND_VETTING = SCRIPT_DIR.parents[1] / "sp-inbound-vetting" / "scripts"
-VOICEMAIL = SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"
-sys.path.insert(0, str(INBOUND_VETTING))
-sys.path.insert(0, str(VOICEMAIL))
+DOMAIN = os.environ.get("FRESHDESK_DOMAIN", "vixxo-helpdesk.freshdesk.com").strip()
+SPM_GROUP_ID = 159000485013
+USER_AGENT = "sp-fd-sf-duplicate-bridge/1.0"
 
-from batch_process_freshdesk import auth_headers, load_credentials  # noqa: E402
-from dry_run_batch import get_ticket, DOMAIN  # noqa: E402
-from queue_config import SPM_GROUP_ID  # noqa: E402
+
+def _basic_auth(api_key: str) -> str:
+    return "Basic " + base64.b64encode(f"{api_key}:X".encode()).decode()
+
+
+def auth_headers(api_key: str) -> dict[str, str]:
+    return {"Authorization": _basic_auth(api_key), "User-Agent": USER_AGENT}
+
+
+def load_credentials() -> str:
+    api_key = os.environ.get("FRESHDESK_API_KEY", "").strip()
+    token_path = Path.home() / ".vixxo" / "freshdesk_token"
+    if not api_key and token_path.is_file():
+        api_key = token_path.read_text(encoding="utf-8").strip()
+    if not api_key:
+        raise SystemExit("FRESHDESK_API_KEY not set and ~/.vixxo/freshdesk_token missing")
+    return api_key
+
+
+def get_ticket(api_key: str, ticket_id: int) -> dict:
+    url = f"https://{DOMAIN}/api/v2/tickets/{ticket_id}"
+    req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
+    with urllib.request.urlopen(req, timeout=90) as resp:
+        return json.loads(resp.read().decode())
 
 FD_TICKET_RE = re.compile(r"Freshdesk\s*#(\d+)", re.I)
 VIXXO_SKIP = re.compile(
@@ -170,10 +190,11 @@ def scan(
     enrich: bool,
 ) -> list[dict]:
     sf_by_email: dict[str, list[dict]] = {}
-    sf_by_fd_id: dict[str, dict] = {}
+    sf_by_fd_id: dict[str, list[dict]] = {}
     for c in sf_cases:
-        for m in FD_TICKET_RE.finditer(c.get("Description") or ""):
-            sf_by_fd_id[m.group(1)] = c
+        for field in ("Description", "Subject"):
+            for m in FD_TICKET_RE.finditer(c.get(field) or ""):
+                sf_by_fd_id.setdefault(m.group(1), []).append(c)
         for field in ("ContactEmail", "SuppliedEmail"):
             e = norm_email(c.get(field))
             if e:
@@ -188,8 +209,8 @@ def scan(
         req_email = requester_from_summary(summary, api_key)
 
         candidates: dict[str, dict] = {}
-        if str(tid) in sf_by_fd_id:
-            candidates[sf_by_fd_id[str(tid)]["Id"]] = sf_by_fd_id[str(tid)]
+        for c in sf_by_fd_id.get(str(tid), []):
+            candidates[c["Id"]] = c
         if req_email:
             for c in sf_by_email.get(req_email, []):
                 candidates[c["Id"]] = c
@@ -204,7 +225,11 @@ def scan(
             sim = jaccard(subject_tokens(subject), subject_tokens(sf_subj))
             reasons: list[str] = []
             desc = sf.get("Description") or ""
-            if f"Freshdesk #{tid}" in desc:
+            if any(
+                m.group(1) == str(tid)
+                for field in (desc, sf_subj)
+                for m in FD_TICKET_RE.finditer(field)
+            ):
                 reasons.append("fd_id_in_sf_description")
             if req_email and norm_email(sf.get("ContactEmail")) == req_email:
                 reasons.append("contact_email")
@@ -289,6 +314,8 @@ def main(argv: list[str] | None = None) -> int:
     if not window_start:
         raise SystemExit(f"Invalid --window-start: {args.window_start}")
     window_end = parse_dt(args.window_end) if args.window_end else datetime.now(timezone.utc)
+    if not window_end:
+        raise SystemExit(f"Invalid --window-end: {args.window_end}")
 
     api_key = load_credentials()
     sf_cases = load_sf_cases(args.sf_cache)

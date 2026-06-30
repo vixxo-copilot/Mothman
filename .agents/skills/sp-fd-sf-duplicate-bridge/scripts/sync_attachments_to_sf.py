@@ -68,10 +68,7 @@ def _fetch_ticket(domain: str, api_key: str, ticket_id: int) -> dict:
 def _fetch_conversations(domain: str, api_key: str, ticket_id: int) -> list[dict]:
     headers = {"Authorization": _basic_auth(api_key), "User-Agent": USER_AGENT}
     url = f"https://{domain}/api/v2/tickets/{ticket_id}/conversations"
-    try:
-        return _http_json(url, headers)
-    except urllib.error.HTTPError:
-        return []
+    return _http_json(url, headers)
 
 
 def _norm_att(att: dict, source: str) -> dict:
@@ -193,7 +190,7 @@ def _existing_titles(case_id: str, sf_cmd: str, org: str) -> dict[str, int]:
         check=False,
     )
     if proc.returncode != 0:
-        return {}
+        _die(f"SF existing files query failed: {proc.stderr or proc.stdout}")
     data = json.loads(proc.stdout)
     out: dict[str, int] = {}
     for rec in (data.get("result") or {}).get("records") or []:

@@ -36,7 +36,11 @@ def _preflight() -> int:
 if __name__ == "__main__":
     if "--skip-vetting" not in sys.argv:
         sys.argv.append("--skip-vetting")
+    if "--no-transcribe" in sys.argv:
+        sys.argv.remove("--no-transcribe")
     code = _preflight()
     if code != 0:
         raise SystemExit(code)
+    if "--skip-preflight" in sys.argv:
+        sys.argv.remove("--skip-preflight")
     raise SystemExit(main())
