@@ -6,7 +6,7 @@ agents:
   - cursor
   - claude-code
 author: "Maria Clavijo-Demchalk"
-version: "1.0.0"
+version: "1.2.0"
 tags: [coi, insurance, freshdesk, risk-compliance, service-providers, vixxo]
 status: approved
 requires_mcp: [freshdesk]

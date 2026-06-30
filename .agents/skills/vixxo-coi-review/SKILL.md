@@ -40,9 +40,11 @@ The authoritative list lives in `references/vixxo-requirements.md` — read it b
 - **Additional Insured endorsements** referenced by form number and edition:
   - General Liability: **CG 20 10 04/13** (or equivalent) **and** **CG 20 37 04/13** (or equivalent) — both are required (ongoing operations *and* completed operations).
   - Automobile Liability: **CA 20 48 10/13** (or equivalent).
-- **Primary and non-contributory** wording for the General Liability policy.
-- **Waiver of Subrogation** in favor of the Additional Insureds on **General Liability, Automobile Liability, and Workers' Compensation / Employers' Liability**.
-- **30 days' Notice of Cancellation** language.
+- **Primary and non-contributory** wording for the General Liability policy (endorsement equivalent: **CG 20 01 04/13**).
+- **Waiver of Subrogation** in favor of the Additional Insureds on **General Liability, Automobile Liability, and Workers' Compensation / Employers' Liability** (endorsement equivalents: **CG 24 04**, **CA 04 44**, **WC 00 03 13**).
+- **30 days' Notice of Cancellation** language (endorsement equivalents: **IL 01 03**, **CG 02 24**).
+
+  Full equivalent-form reference (ISO editions, blanket forms, carrier proprietary examples, umbrella forms): **`references/endorsement-equivalents.md`** and **`assets/endorsement-equivalents.pdf`**. Consult when an SP submits non-ISO or older-edition endorsements.
 - **Certificate Holder** must read:
   - Vixxo Corporation
   - 7580 N. Dobson Road, Suite 201
@@ -264,8 +266,8 @@ Keep the tone professional, neutral, and non-accusatory in both modes. Do not us
 ## Important rules
 
 - **Never invent values.** If a field is illegible or absent on the COI, treat it as missing and ask for it in the email — do not guess limits or dates.
-- **Never mark something Compliant by inference.** If the COI does not actually show CG 20 37 04/13 (or equivalent), do not assume it is included just because CG 20 10 is present. They are separate endorsements.
-- **Waiver of Subrogation must apply to all three lines** (GL, Auto, WC/EL). Confirm each one individually; if only "Waiver of Subrogation applies" is written without specifying the lines, flag it as needs clarification.
+- **Never mark something Compliant by inference.** If the COI does not actually show CG 20 37 04/13 (or equivalent), do not assume it is included just because CG 20 10 is present. They are separate endorsements. Use `references/endorsement-equivalents.md` to decide whether a submitted form is an acceptable equivalent.
+- **Waiver of Subrogation must apply to all three lines** (GL, Auto, WC/EL). Confirm each one individually; if only "Waiver of Subrogation applies" is written without specifying the lines, flag it as needs clarification. For WC WOS, consult `references/state-law-quick-reference.md` — several states prohibit or limit WC waivers (KY, NH, monopolistic fund states, construction bans in MO/OR/KS).
 - **The Additional Insured wording is exact.** The Vixxo language is long and specific (see `references/vixxo-requirements.md` for the verbatim text). If the SP's COI uses generic "Vixxo Corporation is named as Additional Insured," flag it as deficient and request the full wording.
 - **Certificate Holder address must match exactly.** A different suite number, misspelled street, or wrong ZIP is a deficiency.
 - **If the COI is expired or expires within 30 days**, flag the dates and request a renewal certificate.
@@ -274,6 +276,12 @@ Keep the tone professional, neutral, and non-accusatory in both modes. Do not us
 ## Reference files
 
 - `references/vixxo-requirements.md` — Full verbatim Vixxo additional insured language, required endorsement form numbers and editions, certificate holder address, and a per-requirement checklist. Read this file at the start of every review.
+- `references/endorsement-equivalents.md` — Endorsement equivalents map for every Sample COI 2026 Description of Operations provision (AI ongoing/completed, auto AI, primary/non-contributory, WOS by line, notice of cancellation, umbrella forms, carrier proprietary examples). Read when evaluating non-ISO or older-edition endorsements.
+- `references/state-law-cancellation-wos.md` — State law analysis for cancellation notices and WC waiver of subrogation (prohibited states, partial-protection states, monopolistic fund states, COI review actions).
+- `references/state-law-quick-reference.md` — One-page reviewer quick reference (tier tables, decision shortcuts, endorsement lookup).
+- `assets/endorsement-equivalents.pdf` — PDF export of the endorsement equivalents reference (regenerate with `scripts/build_endorsement_equivalents_pdf.py`).
+- `assets/state-law-cancellation-wos.pdf` — PDF export of the full state law analysis (regenerate with `scripts/build_state_law_pdfs.py`).
+- `assets/state-law-quick-reference.pdf` — One-page landscape PDF quick reference (regenerate with `scripts/build_state_law_pdfs.py`).
 - `assets/email-template.md` — Standalone email skeleton for **Mode A** (ad-hoc COI review outside Freshdesk). Includes copy-paste deficiency phrasings.
 - `assets/freshdesk-reply-deficient.md` — **Mode B** public reply template for COI tickets with deficiencies. No subject line (Freshdesk inherits it); no BCC; addresses the requester via the existing thread.
 - `assets/freshdesk-reply-compliant.md` — **Mode B** public reply template for COI tickets where the certificate is fully compliant.

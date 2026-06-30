@@ -53,13 +53,17 @@ A generic "Vixxo Corporation is listed as Additional Insured" is **not** suffici
 
 All three are required. CG 20 10 alone does not satisfy the requirement — CG 20 37 must also be present for completed operations.
 
+For the full list of ISO and carrier-proprietary equivalents (primary/non-contributory, waiver of subrogation, notice of cancellation, umbrella forms, and acceptance notes), see **`endorsement-equivalents.md`** and **`assets/endorsement-equivalents.pdf`**. For state-law constraints on cancellation notices and WC WOS, see **`state-law-quick-reference.md`** and **`state-law-cancellation-wos.md`**.
+
 ---
 
 ## 4. Other required provisions
 
-- **Primary and non-contributory** — the General Liability policy must be primary to any other insurance available to Vixxo.
-- **Waiver of Subrogation** — must apply on all three of: General Liability, Automobile Liability, and Workers' Compensation / Employers' Liability, in favor of the Additional Insureds.
-- **Notice of Cancellation** — 30 days' notice required.
+These provisions appear in the Sample COI Description of Operations and must be satisfied on the certificate. Each maps to one or more policy endorsements — see `endorsement-equivalents.md` for form numbers.
+
+- **Primary and non-contributory** — the General Liability policy must be primary to any other insurance available to Vixxo. ISO form: **CG 20 01 04/13** (or equivalent).
+- **Waiver of Subrogation** — must apply on all three of: General Liability, Automobile Liability, and Workers' Compensation / Employers' Liability, in favor of the Additional Insureds. ISO forms: **CG 24 04** (GL), **CA 04 44** (Auto), **WC 00 03 13** (WC/EL), each or equivalent.
+- **Notice of Cancellation** — 30 days' notice required. ISO forms: **IL 01 03** or **CG 02 24** (or equivalent).
 
 ---
 

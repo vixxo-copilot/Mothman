@@ -103,7 +103,7 @@ Parse that line to find the manifest from automation.
 1. Run the script.
 2. Read `manifest.json` to get the requester (for the public reply addressee), conversation thread, and list of attachment `saved_path`s.
 3. For each PDF/image `saved_path`, call the agent's `Read` tool — PDFs auto-extract to text, images come through as visual content.
-4. Run the standard COI review against `references/vixxo-requirements.md`.
+4. Run the standard COI review against `references/vixxo-requirements.md` (and `references/endorsement-equivalents.md` when evaluating non-ISO endorsements).
 5. Draft the three artifacts (internal note, public reply, ticket actions) and wait for operator approval.
 
 ## Troubleshooting
@@ -117,6 +117,36 @@ Parse that line to find the manifest from automation.
 | `download failed` on a specific attachment in the manifest | The Freshdesk presigned S3 URL expired (5-min default) before the script reached it | Re-run the script — each run gets fresh presigned URLs |
 | Manifest has the PDF but `Read` returns no text | Image-only/scanned PDF (no embedded text layer) | Flag the ticket `coi-blocked` and request the SP resubmit a text-searchable PDF, OR run a local OCR pass and feed that text in manually |
 | `SSL: CERTIFICATE_VERIFY_FAILED` on corporate VPN | Vixxo proxy intercepting TLS | Run from off-VPN, or have IT add the proxy CA to the system trust store |
+
+---
+
+# `build_endorsement_equivalents_pdf.py`
+
+Regenerates `assets/endorsement-equivalents.pdf` from `references/endorsement-equivalents.md`. Requires `fpdf2` (`pip install fpdf2`).
+
+## Usage
+
+```powershell
+python .agents\skills\vixxo-coi-review\scripts\build_endorsement_equivalents_pdf.py
+```
+
+Output: `.agents/skills/vixxo-coi-review/assets/endorsement-equivalents.pdf`
+
+---
+
+# `build_state_law_pdfs.py`
+
+Regenerates state-law PDFs from markdown references. Requires `fpdf2` (`pip install fpdf2`).
+
+## Usage
+
+```powershell
+python .agents\skills\vixxo-coi-review\scripts\build_state_law_pdfs.py
+```
+
+Output:
+- `.agents/skills/vixxo-coi-review/assets/state-law-cancellation-wos.pdf` (full analysis)
+- `.agents/skills/vixxo-coi-review/assets/state-law-quick-reference.pdf` (one-page landscape quick reference)
 
 ## Security notes
 
