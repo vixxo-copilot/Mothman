@@ -26,7 +26,7 @@
     },
     "freshdesk": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshdesk-mcp.cmd",
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-freshdesk-mcp.cmd",
       "env": {
         "FRESHDESK_DOMAIN": "vixxo-helpdesk.freshdesk.com",
         "NODE_ENV": "production"
@@ -35,7 +35,7 @@
     "freshservice": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshservice-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-freshservice-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe",
       "env": {
@@ -53,7 +53,7 @@
     "github": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-github-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-github-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
@@ -88,7 +88,7 @@
     "ms365": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-ms365-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-ms365-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
@@ -102,7 +102,7 @@
     },
     "salesforce": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-salesforce-mcp.cmd"
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-salesforce-mcp.cmd"
     },
     "skills": {
       "args": [
@@ -113,7 +113,7 @@
     },
     "smartsheet": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-smartsheet-mcp.cmd"
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-smartsheet-mcp.cmd"
     },
     "vixxolink": {
       "args": [

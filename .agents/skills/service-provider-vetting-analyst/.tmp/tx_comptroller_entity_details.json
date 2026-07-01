@@ -1,0 +1,71 @@
+{
+  "EXECUTIVE DOORS LLC": {
+    "success": true,
+    "data": {
+      "taxpayerId": "32067800196",
+      "feiNumber": "830796855",
+      "name": "EXECUTIVE DOORS LLC",
+      "dbaName": null,
+      "mailingAddressStreet": "151 S DOOLEY ST STE 102",
+      "mailingAddressCity": "GRAPEVINE",
+      "mailingAddressState": "TX",
+      "mailingAddressZip": "76051",
+      "mailingAddressZip4": "5476",
+      "rightToTransactTX": "ACTIVE",
+      "rightToTransactTXLink": null,
+      "stateOfFormation": " TX",
+      "sosRegistrationStatus": "ACTIVE",
+      "effectiveSosRegistrationDate": "07/16/2018",
+      "sosFileNumber": "0803068261",
+      "registeredAgentName": "JOEY CASELLA",
+      "registeredOfficeAddressStreet": "151 S DOOLEY STREET SUITE 102",
+      "registeredOfficeAddressCity": "SOUTHLAKE",
+      "registeredOfficeAddressState": "TX",
+      "registeredOfficeAddressZip": "76051",
+      "taxId": 13,
+      "lastUpdated": "2026-06-29T19:39:53.651Z",
+      "reportYear": "2024",
+      "officerInfo": [
+        {
+          "AGNT_NM": "JOEY CASELLA",
+          "AGNT_TITL_TX": "GOVERNING",
+          "AGNT_ACTV_YR": "2024",
+          "AD_STR_POB_TX": "2105 PASO ROBLES TRAIL",
+          "CITY_NM": "SOUTHLAKE",
+          "ST_CD": "TX",
+          "AD_ZP": "76092",
+          "SOURCE": "SOS"
+        }
+      ]
+    }
+  },
+  "JC DOORS LLC": {
+    "success": true,
+    "data": {
+      "taxpayerId": "32105525532",
+      "feiNumber": "394008887",
+      "name": "JC DOORS LLC",
+      "dbaName": null,
+      "mailingAddressStreet": "151 S DOOLEY ST STE 102",
+      "mailingAddressCity": "GRAPEVINE",
+      "mailingAddressState": "TX",
+      "mailingAddressZip": "76051",
+      "mailingAddressZip4": "5476",
+      "rightToTransactTX": "ACTIVE",
+      "rightToTransactTXLink": null,
+      "stateOfFormation": " TX",
+      "sosRegistrationStatus": "ACTIVE",
+      "effectiveSosRegistrationDate": "04/18/2026",
+      "sosFileNumber": "0806554427",
+      "registeredAgentName": "JOEY ALAN CASELLA",
+      "registeredOfficeAddressStreet": "151 S DOOLEY ST STE 102",
+      "registeredOfficeAddressCity": "GRAPEVINE",
+      "registeredOfficeAddressState": "TX",
+      "registeredOfficeAddressZip": "76051",
+      "taxId": 13,
+      "lastUpdated": "2026-06-29T19:39:53.651Z",
+      "reportYear": "",
+      "officerInfo": []
+    }
+  }
+}

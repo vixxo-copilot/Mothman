@@ -1,0 +1,854 @@
+[
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "500TS00000nmtkLYAQ",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "name": "INVALID_FIELD_FOR_INSERT_UPDATE",
+      "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+      "exitCode": 1,
+      "context": "Update",
+      "data": {
+        "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+        "errorCode": "INVALID_FIELD_FOR_INSERT_UPDATE",
+        "fields": [
+          "ParentId"
+        ]
+      },
+      "stack": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at SfCommandError.from (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/SfCommandError.js:48:16)\n    at Update.catch (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/sfCommand.js:332:47)\n    at Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:187:29)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1",
+      "cause": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at HttpApi.getError (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:315:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:127:33\n    at async Update.run (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/plugin-data/lib/commands/data/update/record.js:82:28)\n    at async Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:183:22)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1 {\n  data: {\n    message: 'Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.',\n    errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE',\n    fields: [ 'ParentId' ]\n  },\n  errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE'\n}",
+      "warnings": [],
+      "code": "1",
+      "status": 1,
+      "commandName": "Update"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "name": "INVALID_FIELD_FOR_INSERT_UPDATE",
+      "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+      "exitCode": 1,
+      "context": "Update",
+      "data": {
+        "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+        "errorCode": "INVALID_FIELD_FOR_INSERT_UPDATE",
+        "fields": [
+          "ParentId"
+        ]
+      },
+      "stack": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at SfCommandError.from (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/SfCommandError.js:48:16)\n    at Update.catch (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/sfCommand.js:332:47)\n    at Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:187:29)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1",
+      "cause": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at HttpApi.getError (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:315:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:127:33\n    at async Update.run (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/plugin-data/lib/commands/data/update/record.js:82:28)\n    at async Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:183:22)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1 {\n  data: {\n    message: 'Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.',\n    errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE',\n    fields: [ 'ParentId' ]\n  },\n  errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE'\n}",
+      "warnings": [],
+      "code": "1",
+      "status": 1,
+      "commandName": "Update"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "name": "INVALID_FIELD_FOR_INSERT_UPDATE",
+      "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+      "exitCode": 1,
+      "context": "Update",
+      "data": {
+        "message": "Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.",
+        "errorCode": "INVALID_FIELD_FOR_INSERT_UPDATE",
+        "fields": [
+          "ParentId"
+        ]
+      },
+      "stack": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at SfCommandError.from (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/SfCommandError.js:48:16)\n    at Update.catch (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/sf-plugins-core/lib/sfCommand.js:332:47)\n    at Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:187:29)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1",
+      "cause": "INVALID_FIELD_FOR_INSERT_UPDATE: Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.\n    at HttpApi.getError (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:315:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@jsforce\\jsforce-node\\lib\\http-api.js:127:33\n    at async Update.run (file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/node_modules/@salesforce/plugin-data/lib/commands/data/update/record.js:82:28)\n    at async Update._run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\command.js:183:22)\n    at async Config.runCommand (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\config\\config.js:445:25)\n    at async run (C:\\Users\\CGagner\\AppData\\Roaming\\npm\\node_modules\\@salesforce\\cli\\node_modules\\@oclif\\core\\lib\\main.js:97:16)\n    at async file:///C:/Users/CGagner/AppData/Roaming/npm/node_modules/@salesforce/cli/bin/run.js:15:1 {\n  data: {\n    message: 'Unable to create/update fields: ParentId. Please check the security settings of this field and verify that it is read/write for your profile or permission set.',\n    errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE',\n    fields: [ 'ParentId' ]\n  },\n  errorCode: 'INVALID_FIELD_FOR_INSERT_UPDATE'\n}",
+      "warnings": [],
+      "code": "1",
+      "status": 1,
+      "commandName": "Update"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "query",
+      "--query",
+      "SELECT Id FROM ContentDocumentLink WHERE LinkedEntityId = '500TS00000nmtkLYAQ' AND ContentDocumentId = '069TS00000f5Xq9YAE' LIMIT 1"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "records": [],
+        "totalSize": 0,
+        "done": true
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "06ATS00000mBQWi2AO",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "query",
+      "--query",
+      "SELECT Id FROM ContentDocumentLink WHERE LinkedEntityId = '500TS00000nmtkLYAQ' AND ContentDocumentId = '069TS00000fJbpAYAS' LIMIT 1"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "records": [],
+        "totalSize": 0,
+        "done": true
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "06ATS00000mB7h92AC",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "sync_fd": 48695,
+    "code": 0,
+    "out": "FD #48695 -> SF Case 500TS00000nmtkLYAQ: 2 uploaded, 0 skipped, 0 failed\n  - E218920.pdf: uploaded\n  - E218920.pdf: uploaded\nREPORT: C:\\Users\\CGagner\\source\\assistant-CGagner\\.agents\\skills\\sp-fd-sf-duplicate-bridge\\.tmp\\sync-48695\\sync-report.json\n"
+  },
+  {
+    "sync_fd": 49414,
+    "code": 0,
+    "out": "FD #49414 -> SF Case 500TS00000nmtkLYAQ: 1 uploaded, 0 skipped, 0 failed\n  - ER12480.pdf: uploaded\nREPORT: C:\\Users\\CGagner\\source\\assistant-CGagner\\.agents\\skills\\sp-fd-sf-duplicate-bridge\\.tmp\\sync-49414\\sync-report.json\n"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "raw": "Successfully created record: 00TTS00000xeBOA2A2.",
+      "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "raw": "Successfully created record: 00TTS00000xdyCJ2AY.",
+      "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "raw": "Successfully created record: 00TTS00000xdz1w2AA.",
+      "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "raw": "Successfully created record: 00TTS00000xeSbe2AE.",
+      "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": false,
+    "data": {
+      "raw": "Successfully created record: 00TTS00000xdtsP2AQ.",
+      "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6.\nCreating record for Task... done"
+  },
+  {
+    "cmd": [
+      "data",
+      "create",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "00TTS00000xdxjC2AQ",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "500TS00000nZfYlYAK",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "500TS00000nWkRhYAK",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "update",
+      "record",
+      "--sobject"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "id": "500TS00000nnp8UYAQ",
+        "success": true,
+        "errors": []
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "fd": 48695,
+    "note": {
+      "ok": true,
+      "data": {
+        "body": "<div>Consolidated to SF Case #00005985. Cert synced to SF. FD duplicate closed.</div>",
+        "body_text": "Consolidated to SF Case #00005985. Cert synced to SF. FD duplicate closed.",
+        "structured_body": null,
+        "id": 159031814245,
+        "incoming": false,
+        "private": true,
+        "user_id": 159009179645,
+        "support_email": "coi@vixxo.com",
+        "ticket_id": 48695,
+        "to_emails": [],
+        "created_at": "2026-07-01T15:58:16Z",
+        "updated_at": "2026-07-01T15:58:16Z",
+        "attachments": []
+      }
+    },
+    "close": {
+      "ok": true,
+      "data": {
+        "cc_emails": [
+          "coi@vixxo.com"
+        ],
+        "fwd_emails": [
+          "clientcontactcenter@fedins.com"
+        ],
+        "reply_cc_emails": [
+          "coi@vixxo.com"
+        ],
+        "ticket_cc_emails": [
+          "coi@vixxo.com"
+        ],
+        "ticket_bcc_emails": [],
+        "spam": false,
+        "email_config_id": 159000229787,
+        "fr_escalated": false,
+        "group_id": 159000485013,
+        "priority": 1,
+        "requester_id": 159010073629,
+        "responder_id": 159010558972,
+        "source": 1,
+        "status": 5,
+        "subject": "FW: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002",
+        "company_id": null,
+        "custom_fields": {
+          "cf_type_of_request": null,
+          "cf_sr": null,
+          "cf_vixxo_link_type_of_request": null,
+          "cf_sp": "Angeles Plumbing, LLC - 91153",
+          "cf_sr_required": null,
+          "cf_customer": null,
+          "cf_amount": null
+        },
+        "description": "<div class=\"WordSection1\">\n<div class=\"MsoNormal\"><a rel=\"noreferrer\">\u00a0</a></div>\n<div class=\"MsoNormal\"><span style=\"mso-bookmark:_Hlk206054760\">\u00a0</span></div>\n<span style=\"mso-bookmark:_Hlk206054760\"></span>\n<div>\n<div class=\"MsoNormal\">\n<b><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#8E992D;mso-fareast-language:EN-GB'>Vanessa Pepin</span></b><b><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\\,Calibri\";color:#8E992D;mso-fareast-language:EN-GB'></span></b>\n</div>\n<div class=\"MsoNormal\">\n<span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4442;mso-fareast-language:EN-GB'>Sr Service Provider Specialist | Vixxo Facility Solutions</span><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4543;mso-fareast-language:EN-GB'></span>\n</div>\n<div class=\"MsoNormal\"><span lang=\"EN-GB\" style='font-size:8.0pt;font-family:\"Arial\",sans-serif;color:#3E4543;mso-fareast-language:EN-GB'>\u00a0</span></div>\n<div class=\"MsoNormal\">\n<span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4543;mso-fareast-language:EN-GB'>Direct:</span><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4543;mso-fareast-language:EN-GB'>\u00a0\n 844-468-4996,,,,,70548</span><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\\,Times New Roman\";color:#3E4543;mso-fareast-language:EN-GB'></span>\n</div>\n<div class=\"MsoNormal\">\n<span style=\"mso-ligatures:standardcontextual\"><a href=\"mailto:vanessa.pepin@vixxo.com\" rel=\"noreferrer\"><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#2C7B80;mso-ligatures:none;mso-fareast-language:EN-GB;text-decoration:none'>vanessa.pepin@vixxo.com</span></a></span><span style='font-size:11.0pt;font-family:\"Calibri\",sans-serif'></span>\n</div>\n<div class=\"MsoNormal\">\n<span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4442;mso-fareast-language:EN-GB'>Vixxo Corporation</span><span lang=\"EN-GB\" style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#3E4543;mso-fareast-language:EN-GB'></span>\n</div>\n<div class=\"MsoNormal\" style=\"margin-bottom:10.0pt;line-height:115%\"><span style='font-size:11.0pt;line-height:115%;font-family:\"Calibri\",sans-serif'>\u00a0</span></div>\n<div class=\"MsoNormal\">\n<b><span style='font-size:10.0pt;font-family:\"Arial\",sans-serif;mso-ligatures:standardcontextual'>Exciting News!\n</span></b><b><span style='font-size:10.0pt;font-family:\"Segoe UI Emoji\",sans-serif;mso-ligatures:standardcontextual'>&#127881;</span></b><b><span style='font-size:10.0pt;font-family:\"Arial\",sans-serif;mso-ligatures:standardcontextual'>\n</span></b>\n</div>\n<div class=\"MsoNormal\">\n<span style='font-size:10.0pt;font-family:\"Arial\",sans-serif;mso-ligatures:standardcontextual'>We've revamped our\n</span><span style=\"mso-ligatures:standardcontextual\"><a href=\"https://vixxo-helpdesk.freshdesk.com/support/solutions\" rel=\"noreferrer\"><span style='font-size:10.0pt;font-family:\"Arial\",sans-serif;color:#2C7B80'>Vixxo Help Center</span></a></span><span style='font-size:10.0pt;font-family:\"Arial\",sans-serif;mso-ligatures:standardcontextual'>\n with better categories, updated guides, and helpful videos for our service providers!</span>\n</div>\n<div class=\"MsoNormal\"><span style=\"mso-ligatures:standardcontextual\">\u00a0</span></div>\n<div class=\"MsoNormal\">\n<img width=\"353\" height=\"134\" style=\"width:3.677in;height:1.3958in\" id=\"Picture_x0020_2042576306\" src=\"https://attachment.freshdesk.com/inline/attachment?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTU5MDEzMTI3NzA0LCJkb21haW4iOiJ2aXh4by1oZWxwZGVzay5mcmVzaGRlc2suY29tIiwiYWNjb3VudF9pZCI6NDIwNDA5OX0.0F1eEL32oHqEqOjreY91KVFFVWkBqvEMRGRBlvxMIKM\" data-id=\"159013127704\"><span style=\"mso-ligatures:standardcontextual\"></span>\n</div>\n</div>\n<div class=\"MsoNormal\">\u00a0</div>\n<div>\n<div style=\"border:none;border-top:solid #E1E1E1 1.0pt;padding:3.0pt 0in 0in 0in\">\n<div class=\"MsoNormal\">\n<b><span style='font-size:11.0pt;font-family:\"Calibri\",sans-serif'>From:</span></b><span style='font-size:11.0pt;font-family:\"Calibri\",sans-serif'> FedCerts-DoNotReply@fedins.com &lt;FedCerts-DoNotReply@fedins.com&gt;\n<br>\n<b>Sent:</b> Monday, February 2, 2026 12:43 PM<br>\n<b>To:</b> COI &lt;COI@vixxo.com&gt;<br>\n<b>Subject:</b> Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002</span>\n</div>\n</div>\n</div>\n<div class=\"MsoNormal\">\u00a0</div>\n<div class=\"MsoNormal\" style=\"margin-bottom:12.0pt\">\n<br>\nPlease do not reply to this email. If you have further questions, please contact the Client Contact Center.<br>\n<br>\n<b><span style='font-family:\"Calibri\",sans-serif;color:#930000'>Client Contact Center</span></b><br>\n<span style='font-size:11.0pt;font-family:\"Calibri\",sans-serif;color:black'><a href=\"http://www.federatedinsurance.com/\" rel=\"noreferrer\"><span style=\"font-size:10.0pt;color:black\">Federated Insurance Companies</span></a></span><br>\n<span style='font-size:10.0pt;font-family:\"Calibri\",sans-serif;color:black'>Phone: 1-888-333-4949 | Fax: 507-446-4664 | Email:\n<a href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></span>\n</div>\n<div class=\"MsoNormal\" align=\"center\" style=\"text-align:center\"><img width=\"825\" height=\"302\" style=\"width:8.5937in;height:3.1458in\" id=\"_x0000_i1027\" src=\"https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png\"></div>\n<div class=\"MsoNormal\" style=\"margin-bottom:12.0pt\">\u00a0</div>\n<div class=\"MsoNormal\" align=\"center\" style=\"text-align:center\">\n<hr align=\"center\">\n</div>\n<div class=\"MsoNormal\"><span style='font-size:7.5pt;font-family:\"Arial\",sans-serif;color:gray'><br>\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.</span></div>\n</div>\n\n\n",
+        "description_text": "\r\n\r\nVanessa Pepin\r\nSr Service Provider Specialist | Vixxo Facility Solutions\r\n\r\nDirect:  844-468-4996,,,,,70548\r\nvanessa.pepin@vixxo.com<mailto:vanessa.pepin@vixxo.com>\r\nVixxo Corporation\r\n\r\nExciting News! ?\r\nWe've revamped our Vixxo Help Center<https://vixxo-helpdesk.freshdesk.com/support/solutions> with better categories, updated guides, and helpful videos for our service providers!\r\n\r\n[cid:image001.png@01DCEC68.390C65E0]\r\n\r\nFrom: FedCerts-DoNotReply@fedins.com <FedCerts-DoNotReply@fedins.com>\r\nSent: Monday, February 2, 2026 12:43 PM\r\nTo: COI <COI@vixxo.com>\r\nSubject: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002\r\n\r\n\r\nPlease do not reply to this email. If you have further questions, please contact the Client Contact Center.\r\n\r\nClient Contact Center\r\nFederated Insurance Companies<http://www.federatedinsurance.com/>\r\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com<mailto:clientcontactcenter@fedins.com>\r\n[https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png]\r\n\r\n________________________________\r\n\r\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.\r\n\r\n",
+        "id": 48695,
+        "type": "COIs",
+        "support_email": "vixxocomcoi@vixxo-helpdesk.freshdesk.com",
+        "to_emails": [
+          "COI <coi@vixxo.com>"
+        ],
+        "product_id": 159000026887,
+        "source_info": null,
+        "attachments": [
+          {
+            "id": 159013127705,
+            "content_type": "application/octet-stream",
+            "size": 199336,
+            "name": "E218920.pdf",
+            "attachment_url": "https://s3.amazonaws.com/cdn.freshdesk.com/data/helpdesk/attachments/production/159013127705/original/E218920.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAS6FNSMY2XLZULJPI%2F20260701%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260701T155817Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f143a48822959f5f61335d97f293b854007f80371328688446f3fcb4e1914397",
+            "created_at": "2026-05-25T21:02:16Z",
+            "updated_at": "2026-05-25T21:02:16Z"
+          }
+        ],
+        "is_escalated": false,
+        "tags": [
+          "COI",
+          "risk-compliance-routed",
+          "coi-reviewed",
+          "coi-blocked",
+          "coi-missing-attachment"
+        ],
+        "nr_escalated": false,
+        "created_at": "2026-05-25T21:02:16Z",
+        "updated_at": "2026-07-01T15:58:17Z",
+        "due_by": "2026-08-03T21:02:56Z",
+        "fr_due_by": "2026-05-26T13:02:16Z",
+        "nr_due_by": null,
+        "structured_description": null
+      }
+    }
+  },
+  {
+    "fd": 49414,
+    "note": {
+      "ok": true,
+      "data": {
+        "body": "<div>Consolidated to SF Case #00005985. Cert ER12480.pdf synced to SF. FD duplicate closed.</div>",
+        "body_text": "Consolidated to SF Case #00005985. Cert ER12480.pdf synced to SF. FD duplicate closed.",
+        "structured_body": null,
+        "id": 159031814250,
+        "incoming": false,
+        "private": true,
+        "user_id": 159009179645,
+        "support_email": "coi@vixxo.com",
+        "ticket_id": 49414,
+        "to_emails": [],
+        "created_at": "2026-07-01T15:58:18Z",
+        "updated_at": "2026-07-01T15:58:18Z",
+        "attachments": []
+      }
+    },
+    "close": {
+      "ok": true,
+      "data": {
+        "cc_emails": [],
+        "fwd_emails": [],
+        "reply_cc_emails": [],
+        "ticket_cc_emails": [],
+        "ticket_bcc_emails": [],
+        "spam": false,
+        "email_config_id": 159000229787,
+        "fr_escalated": false,
+        "group_id": 159000485013,
+        "priority": 1,
+        "requester_id": 159010073629,
+        "responder_id": 159010558972,
+        "source": 1,
+        "status": 5,
+        "subject": "Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 19~2026-05-27 07:09:13.0~00002",
+        "company_id": null,
+        "custom_fields": {
+          "cf_type_of_request": null,
+          "cf_sr": null,
+          "cf_vixxo_link_type_of_request": null,
+          "cf_sp": "Angeles Plumbing - 101659",
+          "cf_sr_required": null,
+          "cf_customer": null,
+          "cf_amount": null
+        },
+        "description": "<br>\nPlease do not reply to this email. If you have further questions, please contact the Client Contact Center.<br>\n<br>\n<b><span style='font-family:\"Calibri\",\"sans-sarif\";color:#930000'>Client Contact Center</span></b><br>\n<span style='font-size:11.0pt;font-family:\"Calibri\",\"sans-serif\";color:black'><a href=\"http://www.federatedinsurance.com/\" rel=\"noreferrer\"><span style='font-size:10.0pt;font-family:\"Calibri\",\"sans-serif\";color:black'>Federated Insurance Companies</span></a></span><br>\n<span style='font-size:10.0pt;font-family:\"Calibri\",\"sans-serif\";color:black'>Phone: 1-888-333-4949 | Fax: 507-446-4664 | Email:\n<a href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></span><br>\n<br>\n<div style=\"\"></div>\n<img src=\"https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png\">\n<br>\n<br>\n<hr>\n<font color=\"Gray\" size=\"1\"><br>\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.<br>\n</font>\n\n\n",
+        "description_text": "\r\n\r\n \r\n\r\n\r\n \r\nPlease do not reply to this email. If you have further questions, please contact the Client Contact Center. \r\n \r\nClient Contact Center \r\nFederated Insurance Companies \r\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email:\r\nclientcontactcenter@fedins.com \r\n \r\n \r\n \r\n \r\n \r\n \r\n \r\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\r\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\r\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\r\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\r\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail. \r\n\r\n \r\n\r\n",
+        "id": 49414,
+        "type": "COIs",
+        "support_email": "vixxocomcoi@vixxo-helpdesk.freshdesk.com",
+        "to_emails": [
+          "coi@vixxo.com"
+        ],
+        "product_id": 159000026887,
+        "source_info": null,
+        "attachments": [
+          {
+            "id": 159013213673,
+            "content_type": "application/octet-stream",
+            "size": 199298,
+            "name": "ER12480.pdf",
+            "attachment_url": "https://s3.amazonaws.com/cdn.freshdesk.com/data/helpdesk/attachments/production/159013213673/original/ER12480.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAS6FNSMY2XLZULJPI%2F20260701%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260701T155819Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e560b18a8a7b452162c5ab6734e0b469377b44b1f81b363d9032f666858c1b58",
+            "created_at": "2026-05-27T12:14:21Z",
+            "updated_at": "2026-05-27T12:14:21Z"
+          }
+        ],
+        "is_escalated": false,
+        "tags": [
+          "COI",
+          "risk-compliance-routed",
+          "coi-reviewed",
+          "coi-blocked",
+          "coi-missing-attachment"
+        ],
+        "nr_escalated": false,
+        "created_at": "2026-05-27T12:14:21Z",
+        "updated_at": "2026-07-01T15:58:18Z",
+        "due_by": "2026-08-04T21:56:00Z",
+        "fr_due_by": "2026-05-27T16:14:21Z",
+        "nr_due_by": null,
+        "structured_description": null
+      }
+    }
+  },
+  {
+    "fd": 49190,
+    "note": {
+      "ok": true,
+      "data": {
+        "body": "<div>Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).</div>",
+        "body_text": "Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).",
+        "structured_body": null,
+        "id": 159031814253,
+        "incoming": false,
+        "private": true,
+        "user_id": 159009179645,
+        "support_email": "coi@vixxo.com",
+        "ticket_id": 49190,
+        "to_emails": [],
+        "created_at": "2026-07-01T15:58:19Z",
+        "updated_at": "2026-07-01T15:58:19Z",
+        "attachments": []
+      }
+    },
+    "close": {
+      "ok": true,
+      "data": {
+        "cc_emails": [],
+        "fwd_emails": [],
+        "reply_cc_emails": [],
+        "ticket_cc_emails": [],
+        "ticket_bcc_emails": [],
+        "spam": false,
+        "email_config_id": 159000229787,
+        "fr_escalated": false,
+        "group_id": 159000485013,
+        "priority": 1,
+        "requester_id": 159010120028,
+        "responder_id": 159010558972,
+        "source": 1,
+        "status": 5,
+        "subject": "Fwd: FW: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002 - Federated Insurance Auto Reply: Your request has been received",
+        "company_id": null,
+        "custom_fields": {
+          "cf_type_of_request": null,
+          "cf_sr": null,
+          "cf_vixxo_link_type_of_request": null,
+          "cf_sp": "Angeles Plumbing - 101659",
+          "cf_sr_required": null,
+          "cf_customer": null,
+          "cf_amount": null
+        },
+        "description": "<div style=\"\">Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949.<br>\n<br>\nDid you know, as a Federated customer, service requests can also be submitted online through\n<a href=\"https://myshield.federatedinsurance.com/\" rel=\"noreferrer\">mySHIELD</a><sup>\u00ae</sup>? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance.<br>\n<br>\nPlease review our enhanced Privacy Policy and your rights at <a href=\"https://www.federatedinsurance.com/\" rel=\"noreferrer\">\nwww.federatedinsurance.com</a>.<br>\n<br>\n<i>Please do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\n<a href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></i>\n</div>\n<div style=\"\"></div>\n<div style=\"\">\n<b style=\"font-size:16; font-family: Calibri; color: #9c301a\"><a href=\"http://www.federatedinsurance.com/\" rel=\"noreferrer\"><span style=\"color:#9c301a;text-decoration:none\">Federated Insurance</span></a></b><span style=\"font-size:16;color:black\">\n | <b>Client Contact Center</b></span><br>\nPO Box 328, Owatonna, MN 55060<br>\nO: 888-333-4949 | Fax :507-446-4664 | E: <u><a style=\"font-size:13; font-family: Calibri; color:#000000\" href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></u><br>\n</div>\n<img src=\"https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png\">\n<br>\n<br>\n<hr>\n<font color=\"Gray\" size=\"1\"><br>\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.<br>\n</font>\n\n\n",
+        "description_text": "\r\n\r\n \r\n\r\n\r\n Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\r\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949. \r\n \r\nDid you know, as a Federated customer, service requests can also be submitted online through\r\nmySHIELD\u00ae? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance. \r\n \r\nPlease review our enhanced Privacy Policy and your rights at \r\nwww.federatedinsurance.com. \r\n \r\nPlease do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\r\nclientcontactcenter@fedins.com \r\n \r\n Federated Insurance\r\n | Client Contact Center \r\nPO Box 328, Owatonna, MN 55060 \r\nO: 888-333-4949 | Fax :507-446-4664 | E: clientcontactcenter@fedins.com \r\n \r\n \r\n \r\n \r\n \r\n \r\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\r\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\r\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\r\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\r\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail. \r\n\r\n \r\n\r\n",
+        "id": 49190,
+        "type": "COIs",
+        "support_email": "vixxocomcoi@vixxo-helpdesk.freshdesk.com",
+        "to_emails": [
+          "coi@vixxo.com"
+        ],
+        "product_id": 159000026887,
+        "source_info": null,
+        "attachments": [],
+        "is_escalated": false,
+        "tags": [],
+        "nr_escalated": false,
+        "created_at": "2026-05-26T19:13:06Z",
+        "updated_at": "2026-07-01T15:58:19Z",
+        "due_by": "2026-07-08T19:13:06Z",
+        "fr_due_by": "2026-05-26T23:13:06Z",
+        "nr_due_by": null,
+        "structured_description": null
+      }
+    }
+  },
+  {
+    "fd": 58276,
+    "note": {
+      "ok": true,
+      "data": {
+        "body": "<div>Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).</div>",
+        "body_text": "Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).",
+        "structured_body": null,
+        "id": 159031814255,
+        "incoming": false,
+        "private": true,
+        "user_id": 159009179645,
+        "support_email": "coi@vixxo.com",
+        "ticket_id": 58276,
+        "to_emails": [],
+        "created_at": "2026-07-01T15:58:20Z",
+        "updated_at": "2026-07-01T15:58:20Z",
+        "attachments": []
+      }
+    },
+    "close": {
+      "ok": true,
+      "data": {
+        "cc_emails": [],
+        "fwd_emails": [],
+        "reply_cc_emails": [],
+        "ticket_cc_emails": [],
+        "ticket_bcc_emails": [],
+        "spam": false,
+        "email_config_id": 159000229787,
+        "fr_escalated": false,
+        "group_id": 159000485013,
+        "priority": 1,
+        "requester_id": 159010120028,
+        "responder_id": 159010558972,
+        "source": 1,
+        "status": 5,
+        "subject": "Fwd: FW: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002 - Federated Insurance Auto Reply: Your request has been received",
+        "company_id": null,
+        "custom_fields": {
+          "cf_type_of_request": null,
+          "cf_sr": null,
+          "cf_vixxo_link_type_of_request": null,
+          "cf_sp": "Angeles Plumbing - 101659",
+          "cf_sr_required": null,
+          "cf_customer": null,
+          "cf_amount": null
+        },
+        "description": "<div style=\"\">Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949.<br>\n<br>\nDid you know, as a Federated customer, service requests can also be submitted online through\n<a href=\"https://myshield.federatedinsurance.com/\" rel=\"noreferrer\">mySHIELD</a><sup>\u00ae</sup>? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance.<br>\n<br>\nPlease review our enhanced Privacy Policy and your rights at <a href=\"https://www.federatedinsurance.com/\" rel=\"noreferrer\">\nwww.federatedinsurance.com</a>.<br>\n<br>\n<i>Please do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\n<a href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></i>\n</div>\n<div style=\"\"></div>\n<div style=\"\">\n<b style=\"font-size:16; font-family: Calibri; color: #9c301a\"><a href=\"http://www.federatedinsurance.com/\" rel=\"noreferrer\"><span style=\"color:#9c301a;text-decoration:none\">Federated Insurance</span></a></b><span style=\"font-size:16;color:black\">\n | <b>Client Contact Center</b></span><br>\nPO Box 328, Owatonna, MN 55060<br>\nO: 888-333-4949 | Fax :507-446-4664 | E: <u><a style=\"font-size:13; font-family: Calibri; color:#000000\" href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></u><br>\n</div>\n<img src=\"https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png\">\n<br>\n<br>\n<hr>\n<font color=\"Gray\" size=\"1\"><br>\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.<br>\n</font>\n\n\n",
+        "description_text": "\r\n\r\n \r\n\r\n\r\n Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\r\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949. \r\n \r\nDid you know, as a Federated customer, service requests can also be submitted online through\r\nmySHIELD\u00ae? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance. \r\n \r\nPlease review our enhanced Privacy Policy and your rights at \r\nwww.federatedinsurance.com. \r\n \r\nPlease do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\r\nclientcontactcenter@fedins.com \r\n \r\n Federated Insurance\r\n | Client Contact Center \r\nPO Box 328, Owatonna, MN 55060 \r\nO: 888-333-4949 | Fax :507-446-4664 | E: clientcontactcenter@fedins.com \r\n \r\n \r\n \r\n \r\n \r\n \r\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\r\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\r\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\r\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\r\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail. \r\n\r\n \r\n\r\n",
+        "id": 58276,
+        "type": "COIs",
+        "support_email": "vixxocomcoi@vixxo-helpdesk.freshdesk.com",
+        "to_emails": [
+          "coi@vixxo.com"
+        ],
+        "product_id": 159000026887,
+        "source_info": null,
+        "attachments": [],
+        "is_escalated": false,
+        "tags": [],
+        "nr_escalated": false,
+        "created_at": "2026-06-23T19:08:46Z",
+        "updated_at": "2026-07-01T15:58:20Z",
+        "due_by": "2026-08-04T19:08:46Z",
+        "fr_due_by": "2026-06-23T23:08:46Z",
+        "nr_due_by": null,
+        "structured_description": null
+      }
+    }
+  },
+  {
+    "fd": 58573,
+    "note": {
+      "ok": true,
+      "data": {
+        "body": "<div>Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).</div>",
+        "body_text": "Duplicate merged to SF Case #00005985 (Angeles Plumbing consolidated COI).",
+        "structured_body": null,
+        "id": 159031814261,
+        "incoming": false,
+        "private": true,
+        "user_id": 159009179645,
+        "support_email": "coi@vixxo.com",
+        "ticket_id": 58573,
+        "to_emails": [],
+        "created_at": "2026-07-01T15:58:22Z",
+        "updated_at": "2026-07-01T15:58:22Z",
+        "attachments": []
+      }
+    },
+    "close": {
+      "ok": true,
+      "data": {
+        "cc_emails": [],
+        "fwd_emails": [],
+        "reply_cc_emails": [],
+        "ticket_cc_emails": [],
+        "ticket_bcc_emails": [],
+        "spam": false,
+        "email_config_id": 159000229787,
+        "fr_escalated": false,
+        "group_id": 159000485013,
+        "priority": 1,
+        "requester_id": 159010120028,
+        "responder_id": 159010558972,
+        "source": 1,
+        "status": 5,
+        "subject": "Fwd: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 21~2026-06-24 07:35:59.0~00002 - Federated Insurance Auto Reply: Your request has been received",
+        "company_id": null,
+        "custom_fields": {
+          "cf_type_of_request": null,
+          "cf_sr": null,
+          "cf_vixxo_link_type_of_request": null,
+          "cf_sp": "Angeles Plumbing - 101659",
+          "cf_sr_required": null,
+          "cf_customer": null,
+          "cf_amount": null
+        },
+        "description": "<div style=\"\">Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949.<br>\n<br>\nDid you know, as a Federated customer, service requests can also be submitted online through\n<a href=\"https://myshield.federatedinsurance.com/\" rel=\"noreferrer\">mySHIELD</a><sup>\u00ae</sup>? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance.<br>\n<br>\nPlease review our enhanced Privacy Policy and your rights at <a href=\"https://www.federatedinsurance.com/\" rel=\"noreferrer\">\nwww.federatedinsurance.com</a>.<br>\n<br>\n<i>Please do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\n<a href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></i>\n</div>\n<div style=\"\"></div>\n<div style=\"\">\n<b style=\"font-size:16; font-family: Calibri; color: #9c301a\"><a href=\"http://www.federatedinsurance.com/\" rel=\"noreferrer\"><span style=\"color:#9c301a;text-decoration:none\">Federated Insurance</span></a></b><span style=\"font-size:16;color:black\">\n | <b>Client Contact Center</b></span><br>\nPO Box 328, Owatonna, MN 55060<br>\nO: 888-333-4949 | Fax :507-446-4664 | E: <u><a style=\"font-size:13; font-family: Calibri; color:#000000\" href=\"mailto:clientcontactcenter@fedins.com\" rel=\"noreferrer\">clientcontactcenter@fedins.com</a></u><br>\n</div>\n<img src=\"https://assets.federatedinsurance.com/images/fi_email_signature_with_wording.png\">\n<br>\n<br>\n<hr>\n<font color=\"Gray\" size=\"1\"><br>\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail.<br>\n</font>\n\n\n",
+        "description_text": "\r\n\r\n \r\n\r\n\r\n Thank you for contacting Federated Insurance. Your request is important to us. If additional information is required to handle your request, a representative will contact you. Your request\r\n will be processed in two business days. If this timeline will not meet your needs, please call us at 888-333-4949. \r\n \r\nDid you know, as a Federated customer, service requests can also be submitted online through\r\nmySHIELD\u00ae? Simply contact the mySHIELD User Admin at your business or call the Client Contact Center for registration assistance. \r\n \r\nPlease review our enhanced Privacy Policy and your rights at \r\nwww.federatedinsurance.com. \r\n \r\nPlease do not reply to this e-mail. This e-mail is generated automatically and is not monitored for responses. If you need to reply, please forward to\r\nclientcontactcenter@fedins.com \r\n \r\n Federated Insurance\r\n | Client Contact Center \r\nPO Box 328, Owatonna, MN 55060 \r\nO: 888-333-4949 | Fax :507-446-4664 | E: clientcontactcenter@fedins.com \r\n \r\n \r\n \r\n \r\n \r\n \r\nThis e-mail message and any attachments are confidential and meant for the exclusive use of the intended recipient or addressee. This message and any attachments, including any secure communications or attachments, are subject to monitoring, retention or decryption\r\n by Federated or its agents. The message may also contain personally identifiable information, both protected by state and federal law. If you have received this communication in error, please do not read it and notify the sender immediately by reply e-mail\r\n at the address above and permanently delete/destroy all copies of the message and all attachments. Unless authorized by Federated or the intended recipient to do so, any review, dissemination, distribution or copying of this message by any person other than\r\n the intended recipient(s) is strictly prohibited. E-mail messages may contain computer viruses or other defects, may not be accurately replicated on other systems, or may be intercepted, interfered with, or deleted without the knowledge of the sender or intended\r\n recipient. Federated makes no warranties related to the security or integrity of this message and will not accept liability for any damage caused by transmission of this e-mail. \r\n\r\n \r\n\r\n",
+        "id": 58573,
+        "type": "COIs",
+        "support_email": "vixxocomcoi@vixxo-helpdesk.freshdesk.com",
+        "to_emails": [
+          "coi@vixxo.com"
+        ],
+        "product_id": 159000026887,
+        "source_info": null,
+        "attachments": [],
+        "is_escalated": false,
+        "tags": [],
+        "nr_escalated": false,
+        "created_at": "2026-06-24T14:56:01Z",
+        "updated_at": "2026-07-01T15:58:22Z",
+        "due_by": "2026-08-05T14:56:01Z",
+        "fr_due_by": "2026-06-24T18:56:01Z",
+        "nr_due_by": null,
+        "structured_description": null
+      }
+    }
+  },
+  {
+    "cmd": [
+      "data",
+      "query",
+      "--query",
+      "SELECT ContentDocument.Title, ContentDocument.ContentSize FROM ContentDocumentLink WHERE LinkedEntityId = '500TS00000nmtkLYAQ' ORDER BY ContentDocument.Title"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "records": [
+          {
+            "attributes": {
+              "type": "ContentDocumentLink",
+              "url": "/services/data/v67.0/sobjects/ContentDocumentLink/06ATS00000mBfyk2AC"
+            },
+            "ContentDocument": {
+              "attributes": {
+                "type": "ContentDocument",
+                "url": "/services/data/v67.0/sobjects/ContentDocument/069TS00000fTScdYAG"
+              },
+              "Title": "E218920.pdf",
+              "ContentSize": 199336
+            }
+          },
+          {
+            "attributes": {
+              "type": "ContentDocumentLink",
+              "url": "/services/data/v67.0/sobjects/ContentDocumentLink/06ATS00000mBhXW2A0"
+            },
+            "ContentDocument": {
+              "attributes": {
+                "type": "ContentDocument",
+                "url": "/services/data/v67.0/sobjects/ContentDocument/069TS00000fTViSYAW"
+              },
+              "Title": "E218920.pdf",
+              "ContentSize": 199336
+            }
+          },
+          {
+            "attributes": {
+              "type": "ContentDocumentLink",
+              "url": "/services/data/v67.0/sobjects/ContentDocumentLink/06ATS00000mBQWi2AO"
+            },
+            "ContentDocument": {
+              "attributes": {
+                "type": "ContentDocument",
+                "url": "/services/data/v67.0/sobjects/ContentDocument/069TS00000f5Xq9YAE"
+              },
+              "Title": "EP15270",
+              "ContentSize": 199358
+            }
+          },
+          {
+            "attributes": {
+              "type": "ContentDocumentLink",
+              "url": "/services/data/v67.0/sobjects/ContentDocumentLink/06ATS00000mBqcL2AS"
+            },
+            "ContentDocument": {
+              "attributes": {
+                "type": "ContentDocument",
+                "url": "/services/data/v67.0/sobjects/ContentDocument/069TS00000fTIA7YAO"
+              },
+              "Title": "ER12480.pdf",
+              "ContentSize": 199298
+            }
+          },
+          {
+            "attributes": {
+              "type": "ContentDocumentLink",
+              "url": "/services/data/v67.0/sobjects/ContentDocumentLink/06ATS00000mB7h92AC"
+            },
+            "ContentDocument": {
+              "attributes": {
+                "type": "ContentDocument",
+                "url": "/services/data/v67.0/sobjects/ContentDocument/069TS00000fJbpAYAS"
+              },
+              "Title": "ET19680",
+              "ContentSize": 251730
+            }
+          }
+        ],
+        "totalSize": 5,
+        "done": true
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  },
+  {
+    "cmd": [
+      "data",
+      "query",
+      "--query",
+      "SELECT Id, Subject, MessageDate FROM EmailMessage WHERE ParentId = '500TS00000nmtkLYAQ' ORDER BY MessageDate"
+    ],
+    "ok": true,
+    "data": {
+      "status": 0,
+      "result": {
+        "records": [
+          {
+            "attributes": {
+              "type": "EmailMessage",
+              "url": "/services/data/v67.0/sobjects/EmailMessage/02sTS00000lRF4kYAG"
+            },
+            "Id": "02sTS00000lRF4kYAG",
+            "Subject": "Fwd: FW: Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 17~2026-02-02 11:39:27.0~00002 - Federated Insurance Auto Reply: Your request has been received",
+            "MessageDate": "2026-06-29T14:36:10.000+0000"
+          }
+        ],
+        "totalSize": 1,
+        "done": true
+      },
+      "warnings": []
+    },
+    "stderr": "\u00c2\u00bb   Warning: @salesforce/cli update available from 2.138.6 to 2.140.6."
+  }
+]

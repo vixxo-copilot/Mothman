@@ -1,0 +1,1056 @@
+{
+  "generated": "2026-07-01T17:12:08.918982+00:00",
+  "window_start": "2026-06-26T00:00:00Z",
+  "total": 253,
+  "open_total": 212,
+  "coi_count": 17,
+  "coi_dupe_groups": 2,
+  "coi_excess": 2,
+  "shell_open_count": 112,
+  "fd_xref_count": 4,
+  "by_record_type": [
+    [
+      "Service Provider Support",
+      231
+    ],
+    [
+      "Recruitment Request",
+      11
+    ],
+    [
+      "Provider Onboarding",
+      4
+    ],
+    [
+      "Rate Negotiation",
+      4
+    ],
+    [
+      "Coverage Change",
+      3
+    ]
+  ],
+  "by_status": [
+    [
+      "New",
+      203
+    ],
+    [
+      "Closed",
+      36
+    ],
+    [
+      "Working",
+      7
+    ],
+    [
+      "Agreement Signed",
+      2
+    ],
+    [
+      "Pending Finance Approval",
+      1
+    ],
+    [
+      "Not Filled",
+      1
+    ],
+    [
+      "Enablement",
+      1
+    ],
+    [
+      "On Hold",
+      1
+    ],
+    [
+      "Compliance In Progress",
+      1
+    ]
+  ],
+  "open_by_rt": {
+    "Service Provider Support": 195,
+    "Recruitment Request": 10,
+    "Rate Negotiation": 4,
+    "Coverage Change": 2,
+    "Provider Onboarding": 1
+  },
+  "coi_duplicates": [
+    {
+      "policy_id": "150-339-0",
+      "req_id": "201",
+      "provider": "CECCO, Inc.",
+      "case_count": 2,
+      "open_count": 1,
+      "primary": {
+        "CaseNumber": "00006053",
+        "Status": "Working",
+        "Account": "KS - Bluefield Glass & Interiors",
+        "Owner": "Andrea Heppler"
+      },
+      "cases": [
+        {
+          "CaseNumber": "00006053",
+          "Status": "Working",
+          "Account": "KS - Bluefield Glass & Interiors",
+          "Owner": "Andrea Heppler",
+          "CreatedDate": "2026-06-30T04:37:41.000+0000",
+          "Subject": "Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 201~2026-06-29 23:19:10.0~0",
+          "is_primary": true,
+          "shell_account": false
+        },
+        {
+          "CaseNumber": "00006107",
+          "Status": "Closed",
+          "Account": "KS - Bluefield Glass & Interiors",
+          "Owner": "Andrea Heppler",
+          "CreatedDate": "2026-06-30T20:40:37.000+0000",
+          "Subject": "RE: Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 201~2026-06-29 23:19:10",
+          "is_primary": false,
+          "shell_account": false
+        }
+      ]
+    },
+    {
+      "policy_id": "365-728-5",
+      "req_id": "365",
+      "provider": "Smelscer Plumbing, Inc.",
+      "case_count": 2,
+      "open_count": 2,
+      "primary": {
+        "CaseNumber": "00005986",
+        "Status": "New",
+        "Account": "Service Provider Support Shell Account",
+        "Owner": "Andrea Heppler"
+      },
+      "cases": [
+        {
+          "CaseNumber": "00005986",
+          "Status": "New",
+          "Account": "Service Provider Support Shell Account",
+          "Owner": "Andrea Heppler",
+          "CreatedDate": "2026-06-29T14:38:30.000+0000",
+          "Subject": "Fwd: FW: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 Req 365~20",
+          "is_primary": true,
+          "shell_account": true
+        },
+        {
+          "CaseNumber": "00006007",
+          "Status": "New",
+          "Account": "Service Provider Support Shell Account",
+          "Owner": "Crystal Gagner",
+          "CreatedDate": "2026-06-29T17:14:43.000+0000",
+          "Subject": "Fw: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 Req 365~2026-02",
+          "is_primary": false,
+          "shell_account": true
+        }
+      ]
+    }
+  ],
+  "shell_open": [
+    {
+      "CaseNumber": "00005906",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "RE: GL and WC COI from Denair HVAC",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005907",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for Peak Season, Inc.",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005915",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 200~2026-06-26 09",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005920",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "RE: new vendor",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005922",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Re: Re: Profi Facilities Maintenance LLC - Ks - Insurance",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005923",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "Re: Vixxo Kansas Invoice Pay outs",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005926",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "RE: Plaza Retail, Andy's Ace Hardware COI",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005928",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "Re: DesignTeam Inc - Service Provider number KS102207 - Your account V",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005930",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "RE: Onboarding with Vixxo",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005933",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Plaza Retail, Andy's ACE",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005934",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "ASAP Sands Outdoor Services Inc. - Renewal COI",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005937",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "SR#: 1-6579093301 | WO# | Stryker (Howmedica)-Cushman & Wakefield - Ha",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005940",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "[Request received] Fwd: Glassma LLC has updated their business insuran",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005942",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "[Request received] Fwd: Glassma LLC has updated their business insuran",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005945",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: No ETA has been entered - Academy Sports - Wilmington/NC - 0290",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005955",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for Legacy Electric, LLC",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005956",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "One Call Retail Services Inc. Certificate",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005957",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Certificate - Vixxo Kansas, LLC",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005959",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "RE: RE: SR#: 1-6575922302 | WO# 352266755 | Ulta Beauty - Pearl City/H",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005960",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "2026-27 Renewal Certificate | Christenson Electric, Inc.",
+      "CreatedDate": "2026-06-26"
+    },
+    {
+      "CaseNumber": "00005962",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate(s) of Insurance from Aon",
+      "CreatedDate": "2026-06-27"
+    },
+    {
+      "CaseNumber": "00005970",
+      "Status": "New",
+      "Owner": "Christopher Ferri",
+      "Subject": "Re: Rate change KS68874",
+      "CreatedDate": "2026-06-28"
+    },
+    {
+      "CaseNumber": "00005977",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Proof of Insurance for Palmetto Topco L.P. and Subsidiaries Commercial",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005979",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for Palmetto Topco L.P. and Subsidiaries Commercial",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005980",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005981",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Proof of Insurance for All Coffee Concepts Sales & Service LLC",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005983",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Fwd: FW: Certificate Of Insurance - Superior Mechanical Services, Inc.",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005986",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Fwd: FW: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 ",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005987",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "C & L Locksmith COI with all endorsements Attn: Andrea Heppler",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005990",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "RE: KINNEENG-COI",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005991",
+      "Status": "Working",
+      "Owner": "Sheyanne Torallo",
+      "Subject": "Re: Issues with Vixxo Link",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005994",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Fwd: Message from 2nd floor - Federated Insurance Auto Reply: Your req",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005997",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00005998",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Updated COI",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006003",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Fwd: Message from 2nd floor - Federated Insurance Auto Reply: Your req",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006005",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Re: FW: COI",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006007",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Fw: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 Req 3",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006008",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Renewal Certificate of Insurance for J-Hawk Plumbing",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006010",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Fwd: Message from 2nd floor - Federated Insurance Auto Reply: Your req",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006011",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "Re: MI-HVAC- Vendor onboarding- Detroit\u2019s Finest Mechanical Contractor",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006013",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "Vixxo Link - No Data Found",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006015",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Certificate Of Insurance - Superior Mechanical Services, Inc. 392-690-",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006018",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "SECURITY CENTRAL, INC. Certificate Requested",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006020",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Corrected Renewal COI for J-Hawk Plumbing",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006021",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "HSLS Houston LLC invoice is past due",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006023",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "RE: Message from 2nd floor",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006024",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate of Insurance Requested for APi Group Life Safety USA LLC D",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006025",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Certificate of Insurance Requested for APi Group Life Safety USA LLC D",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006028",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: SR 1-6576030752 4718 - Sam's Club Cafe - South Jordan",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006030",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "RE: Certificate of Insurance Requested for APi Group Life Safety USA L",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006032",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "DOGGIE DISTRICT.................WO#6589468372................INVOICE#5",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006033",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "DOGGIE DISTRIST...............WO#6582064512..............INVOICE#58052",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006034",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Estimate #8325 from Brown Aerobic Septic Specialists",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006038",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "FSVZ VIXXO Recorded Transaction Notification \u2013 Finance Alert  / Mon, J",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006039",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Automatic reply: Emailing: Pride Enterprises auto dec page",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006040",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Fwd: Certificate Of Insurance - Bergstrom Electric Inc 215-989-5 Req 2",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006041",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Fwd: Certificate Of Insurance - Water Treatment Technologies, Inc. 397",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006043",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for RoofConnect Logistics, Inc.",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006044",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Automatic reply: Updated COI, Plaza Retail, Andy's Ace Hardware",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006045",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Automatic reply: Fortney Refrigeration Company / 26/27 Eff 7/1/2026 Re",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006046",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Fwd: Certificate Of Insurance - J Noble Binns Plumbing Company Inc 309",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006047",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "RE: Message from 2nd floor",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006049",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Re: COI KNS Construction, inc",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006050",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate of Insurance for Preferred Electric, LLC",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006051",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "[Next Insurance] Re: [Action Required] Request for a Certificates of I",
+      "CreatedDate": "2026-06-29"
+    },
+    {
+      "CaseNumber": "00006058",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for Mark One Electric Co., Inc.",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006060",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "Subcontractor agreement. Summit HVAC- First Service Networks, Inc (Vix",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006065",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "RE: RE: Stryker - Houston",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006066",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "SR Number: 1-6590217722 for Coverage Review",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006068",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Vixxo.Com",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006070",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "RE: SR#: 1-6577056245 | WO# 351902724 | Columbia Sportswear Co. - Canu",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006071",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for DMR Mechanical, LLC",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006078",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "RE: FW: Proof of Insurance for Mark One Electric Co., Inc.",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006080",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "1-6594900882",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006081",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "Re: Issues with Vixxo Link",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006082",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287478 is due from Spears Services, Inc. - $864.61",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006083",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287512 is due from Spears Services, Inc. - $341.25",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006084",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287478 is due from Spears Services, Inc. - $864.61",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006085",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287512 is due from Spears Services, Inc. - $341.25",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006086",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate of Insurance - Hubbs Heating & Cooling",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006088",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Proof of Insurance for Fire Safety Systems, Inc.",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006090",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: SR 1-6576030752 4718 - Sam's Club Cafe - South Jordan",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006092",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Statement from: Overhead Door of Boise",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006094",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "New payment request from A Mobile Locksmith - invoice 108986",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006096",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Past Due  payment request from A Mobile Locksmith - invoice 108894",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006097",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "New payment request from A Mobile Locksmith - invoice 109610",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006099",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Revised COI for Martin Long DBA Long Home Improvement & Repair",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006100",
+      "Status": "New",
+      "Owner": "Adrienne Adams",
+      "Subject": "FW: Address change - Peak Season",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006102",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "Re: MI-HVAC- Vendor onboarding- Detroit\u2019s Finest Mechanical Contractor",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006109",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "RE: [EXTERNAL] Fwd: Advanced Mechanical Systems Inc - SP# 2990",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006110",
+      "Status": "New",
+      "Owner": "Shelby Hansard",
+      "Subject": "Stealth Services SoCal",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006112",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate of Insurance for Wind River Environmental, LLC",
+      "CreatedDate": "2026-06-30"
+    },
+    {
+      "CaseNumber": "00006115",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Renewal - Certificate of Insurance for NV5 Global, Inc.",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006117",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "New 30 days notice of cancellation approved for Brian Turner Commercia",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006120",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Automatic reply: Vixxo Monthly Business Summary \u0096(-) - June 2026",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006121",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Ticket Received - [EXTERNAL]  Vixxo Monthly Business Summary \u0096(-) - Ju",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006122",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Automatic reply: Vixxo Monthly Business Summary \u2013(-) - June 2026",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006123",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Evansville Handyman Insurance Changes 7/1/26",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006124",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Ticket Received - [EXTERNAL]  Vixxo Monthly Business Summary \u0096(-) - Ju",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006125",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Ticket Received - [EXTERNAL]  Vixxo Monthly Business Summary \u0096(-) - Ju",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006127",
+      "Status": "New",
+      "Owner": "Andrea Heppler",
+      "Subject": "Certificate Of Insurance - Bergstrom Electric Inc 215-989-5 Req 2620~2",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006129",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "New 30 days notice of cancellation approved for D.A Maintenance LLC",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006130",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: Vixxo Monthly Business Summary \u0096(-) - June 2026",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006131",
+      "Status": "New",
+      "Owner": "Crystal Gagner",
+      "Subject": "Certificate Of Insurance - Pannell Builders, LLC 440-947-0 Req 61~2026",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006134",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Fwd: Rate Changes",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006136",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Certificate Of Insurance - Water Treatment Technologies, Inc. 397-439-",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006137",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: *FOLLOW UP* Portal Inquiry from Pop A Lock",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006138",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287489 is due from Spears Services, Inc. - $331.00",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006139",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Reminder: Invoice 6287489 is due from Spears Services, Inc. - $331.00",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006140",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Re: Vixxo Monthly Business Summary \u0096(-) - June 2026",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006141",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Vixxo Facility Solutions",
+      "CreatedDate": "2026-07-01"
+    },
+    {
+      "CaseNumber": "00006143",
+      "Status": "New",
+      "Owner": "SP Support",
+      "Subject": "Erling Sales & Service LLC - Renewal Cert",
+      "CreatedDate": "2026-07-01"
+    }
+  ],
+  "fd_xrefs": [
+    {
+      "CaseNumber": "00005919",
+      "fd_ticket": "59559",
+      "Subject": "Fwd: New voicemail from Andrea Spicer via VENDOR RELATIONS"
+    },
+    {
+      "CaseNumber": "00005932",
+      "fd_ticket": "59653",
+      "Subject": "Fwd: New voicemail from Roberts Plumb via VENDOR RELATIONS"
+    },
+    {
+      "CaseNumber": "00005946",
+      "fd_ticket": "59717",
+      "Subject": "Fwd: New voicemail from WIRELESS CALLER via VENDOR RELATIONS"
+    },
+    {
+      "CaseNumber": "00005953",
+      "fd_ticket": "59724",
+      "Subject": "Fwd: New voicemail from ELECTRONIC RECY via VENDOR RELATIONS"
+    }
+  ],
+  "open_coi_list": [
+    {
+      "CaseNumber": "00006040",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "2603",
+      "provider": "Bergstrom Electric Inc"
+    },
+    {
+      "CaseNumber": "00006127",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Andrea Heppler",
+      "req_id": "2620",
+      "provider": "Bergstrom Electric Inc"
+    },
+    {
+      "CaseNumber": "00005915",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "200",
+      "provider": "CECCO, Inc."
+    },
+    {
+      "CaseNumber": "00006053",
+      "Status": "Working",
+      "Account": "KS - Bluefield Glass & Interiors",
+      "Owner": "Andrea Heppler",
+      "req_id": "201",
+      "provider": "CECCO, Inc."
+    },
+    {
+      "CaseNumber": "00006046",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Andrea Heppler",
+      "req_id": "1694",
+      "provider": "J Noble Binns Plumbing Company Inc"
+    },
+    {
+      "CaseNumber": "00006131",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "61",
+      "provider": "Pannell Builders, LLC"
+    },
+    {
+      "CaseNumber": "00005986",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Andrea Heppler",
+      "req_id": "365",
+      "provider": "Smelscer Plumbing, Inc."
+    },
+    {
+      "CaseNumber": "00006007",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "365",
+      "provider": "Smelscer Plumbing, Inc."
+    },
+    {
+      "CaseNumber": "00005983",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "217",
+      "provider": "Superior Mechanical Services, Inc."
+    },
+    {
+      "CaseNumber": "00006015",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Crystal Gagner",
+      "req_id": "222",
+      "provider": "Superior Mechanical Services, Inc."
+    },
+    {
+      "CaseNumber": "00006041",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "Andrea Heppler",
+      "req_id": "1",
+      "provider": "Water Treatment Technologies, Inc."
+    },
+    {
+      "CaseNumber": "00006136",
+      "Status": "New",
+      "Account": "Service Provider Support Shell Account",
+      "Owner": "SP Support",
+      "req_id": "12",
+      "provider": "Water Treatment Technologies, Inc."
+    }
+  ]
+}

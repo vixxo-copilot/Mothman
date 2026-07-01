@@ -1,0 +1,15 @@
+{
+  "fd_ticket_id": 59717,
+  "sf_case_id": "500TS00000neN6eYAE",
+  "sf_case_number": "00005946",
+  "policy": "ks-onboarding-reply",
+  "include_original_packet": true,
+  "dry_run": false,
+  "results": [
+    {
+      "title": "voicemail_15416214748_06-26-2026_15-56-13.wav",
+      "action": "uploaded",
+      "content_document_id": "069TS00000fOacGYAS"
+    }
+  ]
+}

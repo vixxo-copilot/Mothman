@@ -1,0 +1,93 @@
+{
+  "searches": [
+    {
+      "query": "Executive Doors",
+      "response": {
+        "success": true,
+        "data": [
+          {
+            "name": "EXECUTIVE DOORS LLC",
+            "taxpayerId": "32067800196",
+            "mailingAddressZip": "76051"
+          }
+        ],
+        "count": 1
+      }
+    },
+    {
+      "query": "Executive Doors LLC",
+      "response": {
+        "success": true,
+        "data": [
+          {
+            "name": "EXECUTIVE DOORS LLC",
+            "taxpayerId": "32067800196",
+            "mailingAddressZip": "76051"
+          }
+        ],
+        "count": 1
+      }
+    },
+    {
+      "query": "JC Doors",
+      "response": {
+        "success": true,
+        "data": [
+          {
+            "name": "JC DOORS LLC",
+            "taxpayerId": "32105525532",
+            "mailingAddressZip": "76051"
+          }
+        ],
+        "count": 1
+      }
+    },
+    {
+      "query": "JC Doors LLC",
+      "response": {
+        "success": true,
+        "data": [
+          {
+            "name": "JC DOORS LLC",
+            "taxpayerId": "32105525532",
+            "mailingAddressZip": "76051"
+          }
+        ],
+        "count": 1
+      }
+    },
+    {
+      "query": "Joey Casella",
+      "response": {
+        "success": true,
+        "data": [],
+        "count": 0
+      }
+    },
+    {
+      "query": "Quality Doors More",
+      "response": {
+        "success": true,
+        "data": [],
+        "count": 0
+      }
+    },
+    {
+      "query": "Quality Doors & More",
+      "response": {
+        "success": true,
+        "data": [],
+        "count": 0
+      }
+    },
+    {
+      "query": "Casella Doors",
+      "response": {
+        "success": true,
+        "data": [],
+        "count": 0
+      }
+    }
+  ],
+  "details": []
+}

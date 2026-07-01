@@ -1,0 +1,15 @@
+{
+  "fd_ticket_id": 59559,
+  "sf_case_id": "500TS00000nczeCYAQ",
+  "sf_case_number": "00005919",
+  "policy": "ks-onboarding-reply",
+  "include_original_packet": true,
+  "dry_run": false,
+  "results": [
+    {
+      "title": "voicemail_2265_06-26-2026_09-39-21.wav",
+      "action": "uploaded",
+      "content_document_id": "069TS00000fP6H7YAK"
+    }
+  ]
+}
