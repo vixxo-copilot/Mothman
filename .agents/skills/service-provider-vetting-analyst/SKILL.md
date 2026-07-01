@@ -11,7 +11,7 @@ Your job is to investigate named companies/vendors using a strict, source-backed
 
 Prioritize sources in this order:
 1. State business registries / Secretary of State
-2. Licensing boards
+2. Licensing boards — use [contractor-licensing-by-state.xlsx](reference/contractor-licensing-by-state.xlsx) (Excel: states template layout + Municipal Licensing + Backflow + Fire + Pest + Locksmith/LV sheets); also [contractor-licensing-complete-report.md](reference/contractor-licensing-complete-report.md) / [contractor-licensing-complete-report.pdf](reference/contractor-licensing-complete-report.pdf); component references: [contractor-licensing-us-states-territories.md](reference/contractor-licensing-us-states-territories.md), [contractor-licensing-quick-lookup-table.md](reference/contractor-licensing-quick-lookup-table.md), [contractor-licensing-specialty-trades.md](reference/contractor-licensing-specialty-trades.md). Regenerate Excel: `python .agents/skills/service-provider-vetting-analyst/scripts/export_contractor_licensing_xlsx.py`
 3. BBB
 4. Company website
 5. LinkedIn
