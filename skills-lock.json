@@ -271,6 +271,12 @@
       "skillPath": "skills/boyd-landlord-scope-check/SKILL.md",
       "computedHash": "090711200ef7862211041ab66e0c96328838f0b50bac14e8545ca0c3680d615e"
     },
+    "check-flagged-emails": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/check-flagged-emails/SKILL.md",
+      "computedHash": "c96f405effd0bf4be2c6653d0a3650b85743b1f03a056ea3a2a3e8a21c07e8ca"
+    },
     "daily-briefing": {
       "source": "vixxo-copilot/agent-skills",
       "sourceType": "github",
@@ -331,6 +337,12 @@
       "skillPath": "skills/one-on-one/SKILL.md",
       "computedHash": "d94140a02d19d0449a5f4b0da0a41c30354a4519ea598d4a61ad872cb2d336b3"
     },
+    "outlook-email-categorizer": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/outlook-email-categorizer/SKILL.md",
+      "computedHash": "0602c49a5ad6e7c1dc48d3f9a88369322abae608c90deab152cd158bab84b0a4"
+    },
     "outlook-email-formatter": {
       "source": "vixxo-copilot/agent-skills",
       "sourceType": "github",
@@ -343,6 +355,18 @@
       "skillPath": "skills/pm-survey-review/SKILL.md",
       "computedHash": "44155f807f70eff664a2bd65ef028e58251a8b160ea43c10b1aeacc3d5864519"
     },
+    "polyai": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/polyai/SKILL.md",
+      "computedHash": "7761afc869e8cff881fd774372ea91e3da92364e0e6b5714d35c7d7cd8c65064"
+    },
+    "polyai-conversation-audit": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/polyai-conversation-audit/SKILL.md",
+      "computedHash": "549dfa30f30998c66eac874529f5c7d400a87c382b951d872d355d67331d6bd5"
+    },
     "polyai-vixxo-bridge": {
       "source": "vixxo-copilot/agent-skills",
       "sourceType": "github",
@@ -354,6 +378,12 @@
       "sourceType": "github",
       "skillPath": "skills/review-teams-pulse/SKILL.md",
       "computedHash": "f9460f0467601215c322b2bb52190db21bd291304903e5f6f112125befcf0580"
+    },
+    "service-provider-vetting-analyst": {
+      "source": "vixxo-copilot/HABLADORA",
+      "sourceType": "github",
+      "skillPath": ".cursor/skills/service-provider-vetting-analyst/SKILL.md",
+      "computedHash": "d69f626439967d13cd18a17d8e0865c889ad44177644a52b622ff6a6f202fa61"
     },
     "slt-meeting-prep": {
       "source": "vixxo-copilot/agent-skills",
@@ -368,10 +398,40 @@
       "computedHash": "cc3a1f18a7f6246837877337ebf76a7702c1585421efdec7ffec0a37120b0430"
     },
     "sp-fd-sf-duplicate-bridge": {
-      "source": "vixxo-copilot/agent-skills",
+      "source": "vixxo-copilot/Mothman",
       "sourceType": "github",
-      "skillPath": "skills/sp-fd-sf-duplicate-bridge/SKILL.md",
-      "computedHash": "d315113d15fe00ac3295580d1a48382b4e2c07c50d3ff29dcca25c6525595915"
+      "skillPath": ".agents/skills/sp-fd-sf-duplicate-bridge/SKILL.md",
+      "computedHash": "6d0f9ae3f9106bc24430a7e0cc44a33c24cf5a08eedc4372d11d13772e7b55db"
+    },
+    "sp-inbound-vetting": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/sp-inbound-vetting/SKILL.md",
+      "computedHash": "e7800619371d00265af29f4caff18346b8f3858741c03de6522a9b9b62f0e2bd"
+    },
+    "sp-voicemail-triage": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/sp-voicemail-triage/SKILL.md",
+      "computedHash": "396241393e0520276b0f1d573c7ef87729898f0443ec4cfef98c272d295ef460"
+    },
+    "sp-voicemail-triage-fast": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/sp-voicemail-triage-fast/SKILL.md",
+      "computedHash": "66947d2af62bed9200c212157dfd9625353109e210b5e245e4c850b0f95f5b90"
+    },
+    "sp-voicemail-triage-no-email": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/sp-voicemail-triage-no-email/SKILL.md",
+      "computedHash": "91bfde88b617a1e9d33eca861a9c483cfc9cccc6b29069f262a671dbd203678d"
+    },
+    "sp-voicemail-triage-webhook": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/sp-voicemail-triage-webhook/SKILL.md",
+      "computedHash": "0e6980a899b6ef29d0c5abdf07e0799a1b3f709ade858ea84c094f03a7e2d87b"
     },
     "sr-post-completion-review": {
       "source": "vixxo-copilot/agent-skills",
@@ -402,6 +462,12 @@
       "sourceType": "github",
       "skillPath": "skills/todo-sweep/SKILL.md",
       "computedHash": "985e07fe2db928aff384673a5270316427aa2428db72e0efd671791cf4492bb7"
+    },
+    "vendor-quote-tracker": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/vendor-quote-tracker/SKILL.md",
+      "computedHash": "ced66b77d676fd8b49edb11b72d7dd13db055c1f67964c3462f1952b1841dc6f"
     },
     "vixxo-bmad-swarm": {
       "source": "vixxo-copilot/agent-skills",
@@ -451,17 +517,17 @@
       "skillPath": "skills/vixxo-recognition/SKILL.md",
       "computedHash": "a9c8de3fed30536b3b687439bb6d8f9dacad4da7c42ebf40b8cdd53fca0585fa"
     },
+    "vixxo-sign-scale-from-photo": {
+      "source": "vixxo-copilot/Mothman",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/vixxo-sign-scale-from-photo/SKILL.md",
+      "computedHash": "5e7247e747a3b0f50ba1a633c63aa213fe5a95afde94b50151d143f89e96387c"
+    },
     "vixxo-sp-performance-monitor": {
       "source": "vixxo-copilot/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/vixxo-sp-performance-monitor/SKILL.md",
       "computedHash": "0db5ce7acca1bbdd772f108888498623a076df8ebd5e82f594a1e12abaa9262c"
-    },
-    "service-provider-vetting-analyst": {
-      "source": "vixxo-copilot/HABLADORA",
-      "sourceType": "github",
-      "skillPath": ".cursor/skills/service-provider-vetting-analyst/SKILL.md",
-      "computedHash": "d69f626439967d13cd18a17d8e0865c889ad44177644a52b622ff6a6f202fa61"
     }
   }
 }
