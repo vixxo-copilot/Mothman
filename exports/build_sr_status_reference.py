@@ -93,18 +93,27 @@ def _parse_status_blob(data: Any) -> list[str]:
 def gateway_picklist_invoice_statuses() -> tuple[list[str], str]:
     """Fetch authoritative Gateway invoice.status picklist when OAuth bearer is present."""
     try:
-        _, parse_json_blob, _load_env, _token, mcp_call, mcp_result_text = _mcp_modules()
+        _, parse_json_blob, _load_env, _, mcp_call, mcp_result_text = _mcp_modules()
     except ImportError:
         return [], "mcp modules unavailable"
 
     _load_env()
-    if not _token():
-        return [], "no Gateway bearer token"
-
     resp = mcp_call(GATEWAY_URL, "gateway_list_invoice_statuses", {})
+    if isinstance(resp, dict) and resp.get("error"):
+        err = resp["error"]
+        return [], f"gateway_list_invoice_statuses: {err if isinstance(err, str) else json.dumps(err)[:120]}"
     text = mcp_result_text(resp)
-    if not text or "invalid_token" in text or text.startswith("HTTP 401"):
-        return [], "gateway_list_invoice_statuses unauthorized (Gateway OAuth bearer required)"
+    if not text or any(
+        marker in text
+        for marker in (
+            "invalid_token",
+            "HTTP 401",
+            "OAuth not configured",
+            "MCP stdio fallback failed",
+            "unauthorized",
+        )
+    ):
+        return [], f"gateway_list_invoice_statuses failed: {text[:120] if text else 'empty response'}"
 
     data = parse_json_blob(text)
     if data is None and text and not text.startswith("{"):
@@ -123,13 +132,11 @@ def gateway_picklist_invoice_statuses() -> tuple[list[str], str]:
 def gateway_sampled_invoice_statuses() -> tuple[list[dict], str]:
     """Sample invoice.status values from gateway_search_invoices."""
     try:
-        gateway_search_invoices, _, _load_env, _token, _, _ = _mcp_modules()
+        gateway_search_invoices, _, _load_env, _, _, _ = _mcp_modules()
     except ImportError:
         return [], "mcp modules unavailable"
 
     _load_env()
-    if not _token():
-        return [], "no Gateway bearer token"
 
     probes = [
         {"serviceProviderNumber": "KS69315", "pageSize": 50},
@@ -308,8 +315,8 @@ def ensure_invoice_tab(wb: Workbook, live_rows: list[dict], diagnostics: dict[st
             "Source: workspace-documented Gateway invoice.status values only. "
             f"Live Gateway MCP calls failed — picklist: {diagnostics.get('picklist', 'n/a')}; "
             f"sample: {diagnostics.get('sample', 'n/a')}. "
-            "Authenticate Gateway MCP in Cursor (OAuth) or set GATEWAY_API_TOKEN / "
-            "~/.vixxo/gateway_api_token, then re-run this script."
+            "Authenticate Gateway MCP in Cursor (Settings → MCP → gateway; OAuth, no API token) "
+            "or set GATEWAY_API_TOKEN / ~/.vixxo/gateway_api_token, then re-run this script."
         )
     ws["A2"] = note
     ws.merge_cells("A2:H2")
