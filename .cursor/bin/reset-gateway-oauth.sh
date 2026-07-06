@@ -15,6 +15,8 @@ pkill -f 'x-www-browser.*gateway/oauth' 2>/dev/null || true
 
 echo "Clearing ~/.mcp-auth ..."
 rm -rf "${HOME}/.mcp-auth"/*
+: > "${LOG}"
+: > "${OUT}"
 
 echo "Starting mcp-remote-client (callback http://127.0.0.1:${CALLBACK_PORT})..."
 tmux -f /exec-daemon/tmux.portal.conf kill-session -t "=${SESSION}" 2>/dev/null || true
