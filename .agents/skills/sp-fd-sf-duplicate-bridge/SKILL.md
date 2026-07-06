@@ -2,12 +2,13 @@
 name: sp-fd-sf-duplicate-bridge
 description: >-
   Detect and reconcile duplicate intake between Freshdesk and Salesforce
-  (voicemail dual-intake, email-to-case overlaps, KS onboarding mirrors).
-  Scan for FD/SF pairs, classify same-thread vs contact collision, sync FD
-  attachments to SF Cases with retention policy, and document cross-links.
-  Use when matching a Freshdesk ticket to a Salesforce Case, forwarding
-  attachments between systems, scanning duplicate pairs in a time window, or
-  bridging ProSite-style onboarding dual intake.
+  (voicemail dual-intake, email-to-case overlaps, KS onboarding mirrors,
+  Federated Insurance COI Req-id duplicates). Scan for FD/SF pairs, classify
+  same-thread vs contact collision, vet Federated COI by Req id and subject,
+  route updates to open SF Cases, sync FD attachments, and document cross-links.
+  Use when matching a Freshdesk ticket to a Salesforce Case, vetting Federated
+  COI notifications, forwarding attachments between systems, scanning duplicate
+  pairs in a time window, or bridging ProSite-style onboarding dual intake.
 ---
 
 # Freshdesk ↔ Salesforce Duplicate Bridge
@@ -30,6 +31,8 @@ Sibling skills:
 - "Forward attachments from FD #{id} to SF Case #{number}"
 - "Sync onboarding files to the SF Case" (KS onboarding mirror)
 - Reconcile voicemail **dual-intake** (FD `.wav` + SF triage Case)
+- **Vet Federated COI notification** — parse Req id, find open Case, avoid duplicate
+- **Route Federated update** to existing SF Case for same `{policy-id} Req {req_id}`
 
 ## Operating modes
 
@@ -38,6 +41,7 @@ Sibling skills:
 | **Single pair** | FD `#` + SF Case `#` (or one id + search) | Pair summary + optional attachment sync |
 | **Detect** | FD `#` only | SOQL search for SF Case with `Freshdesk #{id}` in Description |
 | **Batch scan** | Time window | JSON pair list + operator summary table |
+| **Federated COI vet** | Inbound cert / auto-reply subject | Req-id parse + open Case lookup + route (no new Case) |
 | **Dry-run** | Any sync with `dry-run` / `--dry-run` | Selected files only; no SF writes |
 
 ## Workflow — single pair
@@ -96,21 +100,47 @@ python scripts/scan_duplicates.py \
 3. Present summary: pair counts by `dup_type`, table with FD/SF links, attachment
    counts for `true_same_thread` pairs missing SF ContentDocumentLink files.
 
-Matching logic: [reference/detection.md](reference/detection.md).
+Matching logic: [reference/detection.md](reference/detection.md). Federated COI:
+[reference/federated-coi.md](reference/federated-coi.md).
+
+Use `--include-coi` when scanning Federated cert intake.
+
+## Workflow — Federated COI vet (single notification)
+
+1. **Parse subject** — extract `{provider}`, `{policy-id}`, `Req {req_id}` per
+   [reference/federated-coi.md](reference/federated-coi.md).
+2. **SOQL** — search SF Cases with same `{policy-id} Req {req_id}`; prefer open
+   status.
+3. **FD search** — same Req id string; prefer open ticket.
+4. **Route** — append to open Case/ticket; sync attachments if FD holds the cert.
+   Do **not** create a new SF Case when an open match exists.
+5. **Document** — SF Task noting Req id, source, and any duplicate Cases to close.
 
 ## Guardrails
 
 - **No outbound** email/forwards unless {{employee_name}} explicitly approves.
 - **Do not create duplicate SF Cases** when a pair already exists — sync to the
-  existing Case (see `sp-voicemail-triage` dedupe SOQL).
+  existing Case (see `sp-voicemail-triage` dedupe SOQL). For Federated COI, dedupe
+  on **`(policy_id, req_id)`** before creating Cases.
 - **Contact collisions** (batch COI senders, AP vs onboarding same email) are not
-  auto-synced.
+  auto-synced. **Same Req id with different ticket numbers is a duplicate** — merge
+  or route, do not treat as new intake.
 - Prefer **`--dry-run`** when policy or pair classification is uncertain.
 
 ## Examples
 
 [reference/examples.md](reference/examples.md) — ProSite FD #57142 ↔ SF #00005739,
-voicemail dual-intake, contact collision, batch scan.
+voicemail dual-intake, contact collision, batch scan, **Angeles Plumbing Federated
+COI Req-id duplicates**.
+
+## Reference
+
+| Doc | Purpose |
+| --- | --- |
+| [reference/detection.md](reference/detection.md) | Match signals, SOQL, batch scan |
+| [reference/federated-coi.md](reference/federated-coi.md) | Req-id parsing, vetting, routing |
+| [reference/attachment-sync.md](reference/attachment-sync.md) | FD → SF file sync policies |
+| [reference/examples.md](reference/examples.md) | Worked examples |
 
 ## Scripts
 

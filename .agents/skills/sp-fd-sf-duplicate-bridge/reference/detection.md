@@ -8,13 +8,37 @@
 | **Email dual-intake** | Same inbound email to FD mailbox and SF Email-to-Case within seconds | High — shared requester email + subject overlap ≥ 0.5 |
 | **KS onboarding mirror** | FD KSOnboarding ticket + manually or triage-created SF Case for same SP | Medium — company name + requester email; may lack cross-ref until bridged |
 | **Contact collision** | Same requester email, unrelated subjects (AP vs onboarding, batch COI sender) | Low — treat as **not** same thread |
+| **Federated COI dual-intake** | Same cert at **COI@vixxo.com** (FD) and SF Email-to-Case; or duplicate forwards/auto-replies on same Req | High — match **`{policy-id} Req {req_id}`** in subject; supporting: provider name |
+| **Federated COI re-forward** | `Fwd:` / `FW:` / Auto Reply on an existing Req id | High — same `(policy_id, req_id)` as an open Case/ticket |
 
+## Federated Insurance COI pairing
+
+Full vetting and routing workflow: [federated-coi.md](federated-coi.md).
+
+Federated batch certs share one noreply sender; each message is a **distinct
+request** identified by **Req id** in the subject. Pair and route on Req id first,
+not sender email.
+
+| Signal | Use for pairing / routing? |
+| --- | --- |
+| Shared `fedcerts-donotreply@fedins.com` | **No** — contact collision |
+| **`{policy-id} Req {req_id}`** in FD + SF subject | **Yes** — same Federated request (`true_same_thread`) |
+| Identical provider name only (Req id missing/unparsed) | **Maybe** — operator confirm |
+| `Freshdesk #{id}` in SF Description | **Yes** — if present (uncommon for COI) |
+
+**Subject pattern:** `Certificate Of Insurance - {Provider} {policy-id} Req {req_id}~{timestamp}~{suffix}`
+
+**Scan scope note:** batch scan defaults to Freshdesk **SPM group** only. Federated COI dual-intake often lands in the **COI Freshdesk queue** (`COI` tag / `COI@vixxo.com`) — use `--include-coi` or Req-id SOQL + FD subject search.
+
+**Routing note:** deficient COI outcomes (`coi-deficient`, status Resolved) **stay in COI workflow** — never forward to `aphelp@vixxo.com`. SP resubmission reopens the FD ticket. **Do not create a new SF Case** when an open Case already exists for the same `(policy_id, req_id)`.
 ## Match signals (priority order)
 
 1. **`Freshdesk #{ticket_id}` in SF Case Description or Subject** → `true_same_thread`
-2. **Shared external requester email** on FD contact and SF `ContactEmail` / `SuppliedEmail`
-3. **Subject token Jaccard similarity** ≥ 0.35 (supporting signal)
-4. **Manual pair** — operator supplies FD `#` + SF Case `#` (always allowed)
+2. **Federated COI `(policy_id, req_id)`** in both subjects → `true_same_thread` (see [federated-coi.md](federated-coi.md))
+3. **Shared external requester email** on FD contact and SF `ContactEmail` / `SuppliedEmail`
+4. **Subject token Jaccard similarity** ≥ 0.35 (supporting signal)
+5. **Federated COI provider name** in both subjects (when Req id absent) → `likely_same_thread`
+6. **Manual pair** — operator supplies FD `#` + SF Case `#` (always allowed)
 
 Skip internal addresses when matching email: `@vixxo.com`, `@8x8.com`, `@vixxo-helpdesk`, `@notification.intuit.com`.
 
@@ -22,9 +46,9 @@ Skip internal addresses when matching email: `@vixxo.com`, `@8x8.com`, `@vixxo-h
 
 | `dup_type` | Rule |
 | --- | --- |
-| `true_same_thread` | FD id in SF Description **or** subject similarity ≥ 0.5 with shared requester |
-| `likely_same_thread` | Shared requester + subject similarity 0.25–0.49 |
-| `contact_collision` | Shared requester only; subject similarity &lt; 0.25 |
+| `true_same_thread` | FD id in SF Description **or** Federated `(policy_id, req_id)` match **or** subject similarity ≥ 0.5 with shared requester |
+| `likely_same_thread` | Shared requester + subject similarity 0.25–0.49; or provider-name-only COI match |
+| `contact_collision` | Shared requester only; subject similarity &lt; 0.25; or fedcerts sender without Req-id/provider match |
 
 Only **`true_same_thread`** and **`likely_same_thread`** are candidates for attachment sync unless the operator explicitly pairs records.
 
@@ -46,6 +70,19 @@ WHERE CaseNumber = '{case_number}'
 ORDER BY CreatedDate DESC
 LIMIT 5
 ```
+
+**Federated COI — find open Case by Req id** (before creating a new Case):
+
+```sql
+SELECT Id, CaseNumber, Subject, Status, Account.Name, CreatedDate
+FROM Case
+WHERE Subject LIKE '%{policy_id} Req {req_id}~%'
+   OR Subject LIKE '%{policy_id} Req {req_id} %'
+ORDER BY CreatedDate DESC
+LIMIT 10
+```
+
+Filter to open statuses (`New`, `Working`, `Open`) in application logic.
 
 ### Window batch scan
 

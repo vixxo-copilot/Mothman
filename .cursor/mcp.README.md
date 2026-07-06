@@ -137,6 +137,18 @@ OAuth or extend the `mcp-remote` args with
 After auth changes, open **Cursor Settings → MCP** and restart the affected
 servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
 
+**OAuth troubleshooting (`Connection closed` / port 37882):** VixxoLink uses
+Cursor OAuth via `mcp-remote`. A failed or interrupted sign-in can leave a stale
+listener on `localhost:37882`, which blocks reconnects with `MCP error -32000:
+Connection closed`. Fix without a bearer token:
+
+1. Run `.cursor/bin/repair-vixxolink-oauth.cmd` (kills the stale listener and
+   removes the OAuth lock under `~/.mcp-auth/`).
+2. **Cursor Settings → MCP → vixxolink → Reconnect** and complete the browser
+   OAuth flow.
+3. Confirm `~/.mcp-auth/mcp-remote-*/86f3d1e19*_tokens.json` appears after
+   sign-in.
+
 **Verify:**
 
 ```bash

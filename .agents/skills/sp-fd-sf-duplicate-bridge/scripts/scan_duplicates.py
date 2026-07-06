@@ -54,6 +54,16 @@ def get_ticket(api_key: str, ticket_id: int) -> dict:
         return json.loads(resp.read().decode())
 
 FD_TICKET_RE = re.compile(r"Freshdesk\s*#(\d+)", re.I)
+FEDERATED_COI_RE = re.compile(
+    r"Certificate\s+Of\s+Insurance\s*-\s*(.+?)\s+(\d+-\d+-\d+)\s+Req\s+(\d+)"
+    r"(?:~([^~]+))?(?:~(\d+))?",
+    re.I,
+)
+FEDCOI_PREFIX_RE = re.compile(r"^(?:re|fw|fwd):\s*", re.I)
+FEDCOI_AUTOREPLY_RE = re.compile(
+    r"\s*-\s*Federated Insurance Auto Reply:.*$", re.I
+)
+FEDCERTS_SENDER = "fedcerts-donotreply@fedins.com"
 VIXXO_SKIP = re.compile(
     r"@vixxo\.com$|@8x8\.com$|@notification\.intuit\.com$|@vixxo-helpdesk",
     re.I,
@@ -97,19 +107,78 @@ def format_search_query(expr: str) -> str:
     return f'"{trimmed}"'
 
 
-def search_fd_created_in_window(api_key: str, window_start: datetime, window_end: datetime) -> list[dict]:
+def clean_federated_coi_subject(subject: str) -> str:
+    s = FEDCOI_PREFIX_RE.sub("", subject.strip())
+    while FEDCOI_PREFIX_RE.match(s):
+        s = FEDCOI_PREFIX_RE.sub("", s.strip())
+    return FEDCOI_AUTOREPLY_RE.sub("", s).strip()
+
+
+def extract_federated_coi_fields(subject: str | None) -> dict | None:
+    """Return provider, policy_id, req_id, timestamp from Federated COI subject."""
+    if not subject:
+        return None
+    m = FEDERATED_COI_RE.search(clean_federated_coi_subject(subject))
+    if not m:
+        return None
+    return {
+        "provider": m.group(1).strip(),
+        "policy_id": m.group(2),
+        "req_id": m.group(3),
+        "timestamp": m.group(4) if m.lastindex and m.lastindex >= 4 else None,
+        "suffix": m.group(5) if m.lastindex and m.lastindex >= 5 else None,
+    }
+
+
+def coi_req_key(fields: dict | None) -> tuple[str, str] | None:
+    if not fields:
+        return None
+    return (fields["policy_id"], fields["req_id"])
+
+
+def extract_federated_coi_provider(subject: str | None) -> str | None:
+    """Return provider token from Federated COI subject, or None."""
+    fields = extract_federated_coi_fields(subject)
+    return fields["provider"] if fields else None
+
+
+def normalize_coi_provider(name: str) -> str:
+    s = name.lower()
+    s = re.sub(r"[,.'\"]", "", s)
+    s = re.sub(
+        r"\b(inc|llc|ltd|corp|corporation|company|co|services|service)\b",
+        "",
+        s,
+    )
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def is_federated_coi_subject(subject: str | None) -> bool:
+    return extract_federated_coi_provider(subject) is not None
+
+
+def is_fedcerts_requester(email: str | None) -> bool:
+    return (email or "").strip().lower() == FEDCERTS_SENDER
+
+
+def _search_fd_filter(
+    api_key: str,
+    window_start: datetime,
+    window_end: datetime,
+    filter_expr: str,
+) -> list[dict]:
     seen: set[int] = set()
     out: list[dict] = []
     day = window_start.date()
     end_day = window_end.date()
     while day <= end_day:
         next_day = day.fromordinal(day.toordinal() + 1)
-        filter_expr = (
+        day_filter = (
             f"created_at:>'{day.isoformat()}' AND created_at:<'{next_day.isoformat()}' "
-            f"AND group_id:{SPM_GROUP_ID}"
+            f"AND ({filter_expr})"
         )
         for page in range(1, 11):
-            params = {"query": format_search_query(filter_expr), "page": str(page)}
+            params = {"query": format_search_query(day_filter), "page": str(page)}
             url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
             req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
             try:
@@ -135,8 +204,44 @@ def search_fd_created_in_window(api_key: str, window_start: datetime, window_end
             if len(batch) < 30:
                 break
         day = next_day
-    out.sort(key=lambda x: x.get("created_at") or "")
     return out
+
+
+def search_fd_created_in_window(api_key: str, window_start: datetime, window_end: datetime) -> list[dict]:
+    return _search_fd_filter(
+        api_key,
+        window_start,
+        window_end,
+        f"group_id:{SPM_GROUP_ID}",
+    )
+
+
+def search_fd_coi_in_window(api_key: str, window_start: datetime, window_end: datetime) -> list[dict]:
+    """Pull Federated COI FD tickets by coi tag (SPM group). Subject filter applied client-side."""
+    merged: list[dict] = []
+    seen: set[int] = set()
+    for tag in ("COI", "coi"):
+        try:
+            batch = _search_fd_filter(
+                api_key,
+                window_start,
+                window_end,
+                f"group_id:{SPM_GROUP_ID} AND tag:'{tag}'",
+            )
+        except RuntimeError:
+            continue
+        for t in batch:
+            tid = int(t["id"])
+            if tid in seen:
+                continue
+            subj = t.get("subject") or ""
+            tags = [x.lower() for x in (t.get("tags") or [])]
+            if "coi" not in tags and not is_federated_coi_subject(subj):
+                continue
+            seen.add(tid)
+            merged.append(t)
+    merged.sort(key=lambda x: x.get("created_at") or "")
+    return merged
 
 
 def get_conversations(api_key: str, ticket_id: int) -> list[dict]:
@@ -181,6 +286,259 @@ def load_sf_cases(path: Path) -> list[dict]:
     if isinstance(data, list):
         return data
     raise ValueError(f"Unexpected SF cache shape in {path}")
+
+
+def merge_fd_summaries(*batches: list[dict]) -> list[dict]:
+    seen: set[int] = set()
+    out: list[dict] = []
+    for batch in batches:
+        for t in batch:
+            tid = int(t["id"])
+            if tid in seen:
+                continue
+            seen.add(tid)
+            out.append(t)
+    out.sort(key=lambda x: x.get("created_at") or "")
+    return out
+
+
+def build_fd_meta(
+    summary: dict,
+    api_key: str,
+    req_email: str | None,
+    enrich: bool,
+) -> dict:
+    subject = summary.get("subject") or ""
+    fd_meta: dict = {
+        "id": int(summary["id"]),
+        "subject": subject,
+        "created_at": summary.get("created_at"),
+        "status": summary.get("status"),
+        "queue": classify_queue(summary),
+        "requester": req_email,
+    }
+    provider = extract_federated_coi_provider(subject)
+    if provider:
+        fd_meta["coi_provider"] = provider
+    coi_fields = extract_federated_coi_fields(subject)
+    if coi_fields:
+        fd_meta["coi_policy_id"] = coi_fields["policy_id"]
+        fd_meta["coi_req_id"] = coi_fields["req_id"]
+        if coi_fields.get("timestamp"):
+            fd_meta["coi_req_timestamp"] = coi_fields["timestamp"]
+    if enrich:
+        ticket = get_ticket(api_key, int(summary["id"]))
+        try:
+            convs = get_conversations(api_key, int(summary["id"]))
+        except Exception:
+            convs = []
+        fd_meta["attachment_count"] = len(ticket.get("attachments") or [])
+        fd_meta["conversation_count"] = len(convs)
+        fd_meta["inline_images"] = len(
+            re.findall(r"<img\s", ticket.get("description") or "", re.I)
+        )
+        tags = ticket.get("tags") or []
+        if tags:
+            fd_meta["tags"] = tags
+    return fd_meta
+
+
+def pair_origin(summary: dict, sf: dict) -> str:
+    fd_created = parse_dt(summary.get("created_at"))
+    sf_created = parse_dt(sf.get("CreatedDate"))
+    if not fd_created or not sf_created:
+        return "unclear"
+    if sf_created < fd_created:
+        return "sf_first"
+    if fd_created < sf_created:
+        return "fd_first"
+    return "same_time"
+
+
+def make_pair_entry(
+    summary: dict,
+    sf: dict,
+    reasons: list[str],
+    dup_type: str,
+    sim: float,
+    api_key: str,
+    req_email: str | None,
+    enrich: bool,
+) -> dict:
+    subject = summary.get("subject") or ""
+    sf_subj = sf.get("Subject") or ""
+    desc = sf.get("Description") or ""
+    return {
+        "match_reasons": reasons,
+        "dup_type": dup_type,
+        "origin": pair_origin(summary, sf),
+        "subject_similarity": round(sim, 3),
+        "freshdesk": build_fd_meta(summary, api_key, req_email, enrich),
+        "salesforce": {
+            "id": sf["Id"],
+            "case_number": sf.get("CaseNumber"),
+            "subject": sf_subj,
+            "created_at": sf.get("CreatedDate"),
+            "status": sf.get("Status"),
+            "contact_email": sf.get("ContactEmail"),
+            "supplied_email": sf.get("SuppliedEmail"),
+            "description_snippet": (desc[:300] + "...") if len(desc) > 300 else desc,
+        },
+    }
+
+
+def apply_fedcerts_downgrade(pairs: list[dict]) -> None:
+    """Downgrade fedcerts-sender-only matches without Req-id or provider alignment."""
+    for pair in pairs:
+        if "coi_req_id_match" in pair["match_reasons"]:
+            continue
+        if "coi_provider_name_match" in pair["match_reasons"]:
+            continue
+        if "fd_id_in_sf_description" in pair["match_reasons"]:
+            continue
+        fd = pair["freshdesk"]
+        sf = pair["salesforce"]
+        fd_fields = extract_federated_coi_fields(fd.get("subject") or "")
+        sf_fields = extract_federated_coi_fields(sf.get("subject") or "")
+        if coi_req_key(fd_fields) and coi_req_key(fd_fields) == coi_req_key(sf_fields):
+            continue
+        fd_provider = normalize_coi_provider(fd.get("coi_provider") or "")
+        sf_provider = normalize_coi_provider(
+            extract_federated_coi_provider(sf.get("subject") or "") or ""
+        )
+        if fd_provider and sf_provider and fd_provider == sf_provider:
+            continue
+        req = fd.get("requester")
+        sf_emails = {
+            (sf.get("contact_email") or "").lower(),
+            (sf.get("supplied_email") or "").lower(),
+        }
+        if is_fedcerts_requester(req) and FEDCERTS_SENDER in sf_emails:
+            pair["dup_type"] = "contact_collision"
+            if "fedcerts_sender_collision" not in pair["match_reasons"]:
+                pair["match_reasons"].append("fedcerts_sender_collision")
+
+
+def add_coi_req_id_pairs(
+    fd_summaries: list[dict],
+    sf_cases: list[dict],
+    pairs: list[dict],
+    seen_pair: set[tuple[int, str]],
+    api_key: str,
+    enrich: bool,
+) -> None:
+    """Match FD ↔ SF Federated COI tickets by (policy_id, req_id) in subject."""
+    sf_by_req: dict[tuple[str, str], list[dict]] = {}
+    for c in sf_cases:
+        fields = extract_federated_coi_fields(c.get("Subject") or "")
+        key = coi_req_key(fields)
+        if not key:
+            continue
+        sf_by_req.setdefault(key, []).append(c)
+
+    for summary in fd_summaries:
+        subject = summary.get("subject") or ""
+        fd_fields = extract_federated_coi_fields(subject)
+        key = coi_req_key(fd_fields)
+        if not key:
+            continue
+        tid = int(summary["id"])
+        req_email = requester_from_summary(summary, api_key)
+        policy_id, req_id = key
+        for sf in sf_by_req.get(key, []):
+            pair_key = (tid, sf["Id"])
+            if pair_key in seen_pair:
+                for existing in pairs:
+                    if (
+                        existing["freshdesk"]["id"] == tid
+                        and existing["salesforce"]["id"] == sf["Id"]
+                    ):
+                        if "coi_req_id_match" not in existing["match_reasons"]:
+                            existing["match_reasons"].append("coi_req_id_match")
+                        existing["dup_type"] = "true_same_thread"
+                        for tag in ("fedcerts_sender_collision",):
+                            if tag in existing["match_reasons"]:
+                                existing["match_reasons"].remove(tag)
+                continue
+            seen_pair.add(pair_key)
+            sf_subj = sf.get("Subject") or ""
+            sim = jaccard(subject_tokens(subject), subject_tokens(sf_subj))
+            provider = fd_fields["provider"] if fd_fields else ""
+            reasons = [
+                "coi_req_id_match",
+                f"req:{policy_id} Req {req_id}",
+            ]
+            if provider:
+                reasons.append(f"provider:{provider}")
+            pairs.append(
+                make_pair_entry(
+                    summary,
+                    sf,
+                    reasons,
+                    "true_same_thread",
+                    sim,
+                    api_key,
+                    req_email,
+                    enrich,
+                )
+            )
+
+
+def add_coi_provider_pairs(
+    fd_summaries: list[dict],
+    sf_cases: list[dict],
+    pairs: list[dict],
+    seen_pair: set[tuple[int, str]],
+    api_key: str,
+    enrich: bool,
+) -> None:
+    """Match FD ↔ SF Federated COI tickets by provider name in subject."""
+    sf_by_provider: dict[str, list[dict]] = {}
+    for c in sf_cases:
+        provider = extract_federated_coi_provider(c.get("Subject") or "")
+        if not provider:
+            continue
+        key = normalize_coi_provider(provider)
+        sf_by_provider.setdefault(key, []).append(c)
+
+    for summary in fd_summaries:
+        subject = summary.get("subject") or ""
+        fd_provider = extract_federated_coi_provider(subject)
+        if not fd_provider:
+            continue
+        tid = int(summary["id"])
+        req_email = requester_from_summary(summary, api_key)
+        key = normalize_coi_provider(fd_provider)
+        for sf in sf_by_provider.get(key, []):
+            pair_key = (tid, sf["Id"])
+            if pair_key in seen_pair:
+                for existing in pairs:
+                    if (
+                        existing["freshdesk"]["id"] == tid
+                        and existing["salesforce"]["id"] == sf["Id"]
+                    ):
+                        if "coi_provider_name_match" not in existing["match_reasons"]:
+                            existing["match_reasons"].append("coi_provider_name_match")
+                        existing["dup_type"] = "true_same_thread"
+                        if "fedcerts_sender_collision" in existing["match_reasons"]:
+                            existing["match_reasons"].remove("fedcerts_sender_collision")
+                continue
+            seen_pair.add(pair_key)
+            sf_subj = sf.get("Subject") or ""
+            sim = jaccard(subject_tokens(subject), subject_tokens(sf_subj))
+            reasons = ["coi_provider_name_match", f"provider:{fd_provider}"]
+            pairs.append(
+                make_pair_entry(
+                    summary,
+                    sf,
+                    reasons,
+                    "true_same_thread",
+                    sim,
+                    api_key,
+                    req_email,
+                    enrich,
+                )
+            )
 
 
 def scan(
@@ -248,57 +606,225 @@ def scan(
             elif sim >= 0.25:
                 dup_type = "likely_same_thread"
 
-            fd_meta: dict = {
-                "id": tid,
-                "subject": subject,
+            pairs.append(
+                make_pair_entry(
+                    summary,
+                    sf,
+                    reasons,
+                    dup_type,
+                    sim,
+                    api_key,
+                    req_email,
+                    enrich,
+                )
+            )
+
+    apply_fedcerts_downgrade(pairs)
+    add_coi_req_id_pairs(fd_summaries, sf_cases, pairs, seen_pair, api_key, enrich)
+    add_coi_provider_pairs(fd_summaries, sf_cases, pairs, seen_pair, api_key, enrich)
+    return pairs
+
+
+def collect_intra_system_req_duplicates(
+    fd_summaries: list[dict],
+    sf_cases: list[dict],
+) -> dict:
+    """Group FD and SF records sharing the same Federated (policy_id, req_id)."""
+    fd_groups: dict[tuple[str, str], list[dict]] = {}
+    sf_groups: dict[tuple[str, str], list[dict]] = {}
+
+    for summary in fd_summaries:
+        fields = extract_federated_coi_fields(summary.get("subject") or "")
+        key = coi_req_key(fields)
+        if not key:
+            continue
+        fd_groups.setdefault(key, []).append(
+            {
+                "id": int(summary["id"]),
+                "subject": summary.get("subject"),
                 "created_at": summary.get("created_at"),
                 "status": summary.get("status"),
-                "queue": classify_queue(summary),
-                "requester": req_email,
+                "provider": fields["provider"] if fields else None,
             }
-            if enrich:
-                ticket = get_ticket(api_key, tid)
-                try:
-                    convs = get_conversations(api_key, tid)
-                except Exception:
-                    convs = []
-                fd_meta["attachment_count"] = len(ticket.get("attachments") or [])
-                fd_meta["conversation_count"] = len(convs)
-                fd_meta["inline_images"] = len(
-                    re.findall(r"<img\s", ticket.get("description") or "", re.I)
+        )
+
+    for c in sf_cases:
+        fields = extract_federated_coi_fields(c.get("Subject") or "")
+        key = coi_req_key(fields)
+        if not key:
+            continue
+        sf_groups.setdefault(key, []).append(
+            {
+                "case_number": c.get("CaseNumber"),
+                "id": c.get("Id"),
+                "subject": c.get("Subject"),
+                "created_at": c.get("CreatedDate"),
+                "status": c.get("Status"),
+                "provider": fields["provider"] if fields else None,
+            }
+        )
+
+    fd_dupes = {k: v for k, v in fd_groups.items() if len(v) > 1}
+    sf_dupes = {k: v for k, v in sf_groups.items() if len(v) > 1}
+    return {
+        "fd_intra_duplicates": [
+            {
+                "policy_id": k[0],
+                "req_id": k[1],
+                "tickets": v,
+            }
+            for k, v in sorted(fd_dupes.items(), key=lambda x: (x[0][0], int(x[0][1])))
+        ],
+        "sf_intra_duplicates": [
+            {
+                "policy_id": k[0],
+                "req_id": k[1],
+                "cases": v,
+            }
+            for k, v in sorted(sf_dupes.items(), key=lambda x: (x[0][0], int(x[0][1])))
+        ],
+    }
+
+
+def write_report_markdown(result: dict, path: Path) -> None:
+    pairs = result["pairs"]
+    coi_req_pairs = [
+        p
+        for p in pairs
+        if "coi_req_id_match" in p["match_reasons"]
+        and p["dup_type"] == "true_same_thread"
+    ]
+    coi_pairs = [
+        p
+        for p in pairs
+        if "coi_provider_name_match" in p["match_reasons"]
+        and p["dup_type"] == "true_same_thread"
+        and "coi_req_id_match" not in p["match_reasons"]
+    ]
+    lines = [
+        "# Freshdesk ↔ Salesforce Duplicate Scan (COI widened)",
+        "",
+        f"**Window:** {result['window_start']} → {result['window_end']}",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Count |",
+        "|--------|------:|",
+        f"| FD inbound | {result['fd_count']} |",
+        f"| SF Cases | {result['sf_count']} |",
+        f"| Duplicate pairs | {result['pair_count']} |",
+        f"| True same-thread | {result['true_same_thread']} |",
+        f"| Likely same-thread | {result['likely_same_thread']} |",
+        f"| Contact collision | {result['contact_collision']} |",
+        f"| COI Req-id matched | {result.get('coi_req_id_matched', 0)} |",
+        f"| COI provider-matched | {len(coi_pairs)} |",
+        "",
+    ]
+    intra = result.get("intra_system_req_duplicates") or {}
+    fd_intra = intra.get("fd_intra_duplicates") or []
+    sf_intra = intra.get("sf_intra_duplicates") or []
+    if fd_intra or sf_intra:
+        lines.extend(
+            [
+                "## Intra-system Req-id duplicates (route, do not re-create)",
+                "",
+            ]
+        )
+        if fd_intra:
+            lines.extend(["### Freshdesk — same Req id, multiple tickets", ""])
+            for g in fd_intra:
+                lines.append(
+                    f"**{g['policy_id']} Req {g['req_id']}** "
+                    f"({g['tickets'][0].get('provider') or '—'})"
                 )
-
-            fd_created = parse_dt(summary.get("created_at"))
-            sf_created = parse_dt(sf.get("CreatedDate"))
-            origin = "unclear"
-            if fd_created and sf_created:
-                if sf_created < fd_created:
-                    origin = "sf_first"
-                elif fd_created < sf_created:
-                    origin = "fd_first"
-                else:
-                    origin = "same_time"
-
-            pairs.append(
-                {
-                    "match_reasons": reasons,
-                    "dup_type": dup_type,
-                    "origin": origin,
-                    "subject_similarity": round(sim, 3),
-                    "freshdesk": fd_meta,
-                    "salesforce": {
-                        "id": sf["Id"],
-                        "case_number": sf.get("CaseNumber"),
-                        "subject": sf_subj,
-                        "created_at": sf.get("CreatedDate"),
-                        "status": sf.get("Status"),
-                        "contact_email": sf.get("ContactEmail"),
-                        "supplied_email": sf.get("SuppliedEmail"),
-                        "description_snippet": (desc[:300] + "...") if len(desc) > 300 else desc,
-                    },
-                }
+                for t in g["tickets"]:
+                    lines.append(
+                        f"- #{t['id']} — {t.get('status')} — "
+                        f"{(t.get('subject') or '')[:70]}"
+                    )
+                lines.append("")
+        if sf_intra:
+            lines.extend(["### Salesforce — same Req id, multiple Cases", ""])
+            for g in sf_intra:
+                lines.append(
+                    f"**{g['policy_id']} Req {g['req_id']}** "
+                    f"({g['cases'][0].get('provider') or '—'})"
+                )
+                for c in g["cases"]:
+                    lines.append(
+                        f"- {c.get('case_number')} — {c.get('status')} — "
+                        f"{(c.get('subject') or '')[:70]}"
+                    )
+                lines.append("")
+    if coi_req_pairs:
+        lines.extend(
+            [
+                "## Federated COI Req-id matched pairs (FD ↔ SF)",
+                "",
+                "| FD | Req id | Provider | SF Case | Origin |",
+                "|----|--------|----------|---------|--------|",
+            ]
+        )
+        for p in sorted(coi_req_pairs, key=lambda x: x["freshdesk"]["id"]):
+            fd = p["freshdesk"]
+            sf = p["salesforce"]
+            req_label = f"{fd.get('coi_policy_id')} Req {fd.get('coi_req_id')}"
+            provider = fd.get("coi_provider") or "—"
+            lines.append(
+                f"| [#{fd['id']}](https://{DOMAIN}/a/tickets/{fd['id']}) "
+                f"| {req_label} | {provider} | {sf.get('case_number')} | {p['origin']} |"
             )
-    return pairs
+        lines.append("")
+    if coi_pairs:
+        lines.extend(
+            [
+                "## Federated COI provider-matched pairs",
+                "",
+                "| FD | Provider | SF Case | Origin |",
+                "|----|----------|---------|--------|",
+            ]
+        )
+        for p in sorted(coi_pairs, key=lambda x: x["freshdesk"]["id"]):
+            fd = p["freshdesk"]
+            sf = p["salesforce"]
+            provider = fd.get("coi_provider") or "—"
+            lines.append(
+                f"| [#{fd['id']}](https://{DOMAIN}/a/tickets/{fd['id']}) "
+                f"| {provider} | {sf.get('case_number')} | {p['origin']} |"
+            )
+        lines.append("")
+
+    fedcerts_collisions = [
+        p
+        for p in pairs
+        if "fedcerts_sender_collision" in p.get("match_reasons", [])
+        or (
+            is_fedcerts_requester(p["freshdesk"].get("requester"))
+            and p["dup_type"] == "contact_collision"
+            and is_federated_coi_subject(p["freshdesk"].get("subject"))
+        )
+    ]
+    if fedcerts_collisions:
+        lines.extend(
+            [
+                "## Federated sender collisions (no provider match)",
+                "",
+                "| FD | FD provider | SF Case | SF subject |",
+                "|----|-------------|---------|------------|",
+            ]
+        )
+        for p in fedcerts_collisions[:20]:
+            fd = p["freshdesk"]
+            sf = p["salesforce"]
+            fd_provider = fd.get("coi_provider") or extract_federated_coi_provider(fd.get("subject") or "") or "—"
+            sf_subj = (sf.get("subject") or "")[:60]
+            lines.append(
+                f"| #{fd['id']} | {fd_provider} | {sf.get('case_number')} | {sf_subj} |"
+            )
+        lines.append("")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -307,6 +833,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--window-end", default=None, help="ISO8601 UTC; default now")
     parser.add_argument("--sf-cache", required=True, type=Path, help="SF Cases JSON export")
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--report", type=Path, default=None, help="Markdown report path (default: output .md)")
+    parser.add_argument("--include-coi", action="store_true", help="Also pull FD COI tickets by subject/tag")
     parser.add_argument("--no-enrich", action="store_true", help="Skip per-ticket FD API enrichment")
     args = parser.parse_args(argv)
 
@@ -319,24 +847,41 @@ def main(argv: list[str] | None = None) -> int:
 
     api_key = load_credentials()
     sf_cases = load_sf_cases(args.sf_cache)
-    fd_summaries = search_fd_created_in_window(api_key, window_start, window_end)
+    fd_spm = search_fd_created_in_window(api_key, window_start, window_end)
+    if args.include_coi:
+        fd_coi = search_fd_coi_in_window(api_key, window_start, window_end)
+        fd_summaries = merge_fd_summaries(fd_spm, fd_coi)
+    else:
+        fd_summaries = fd_spm
     pairs = scan(fd_summaries, sf_cases, api_key, enrich=not args.no_enrich)
+    intra = collect_intra_system_req_duplicates(fd_summaries, sf_cases)
 
     result = {
         "window_start": window_start.isoformat(),
         "window_end": window_end.isoformat(),
+        "include_coi": args.include_coi,
         "fd_count": len(fd_summaries),
         "sf_count": len(sf_cases),
         "pair_count": len(pairs),
         "true_same_thread": sum(1 for p in pairs if p["dup_type"] == "true_same_thread"),
         "likely_same_thread": sum(1 for p in pairs if p["dup_type"] == "likely_same_thread"),
         "contact_collision": sum(1 for p in pairs if p["dup_type"] == "contact_collision"),
+        "coi_req_id_matched": sum(
+            1 for p in pairs if "coi_req_id_match" in p["match_reasons"]
+        ),
+        "coi_provider_matched": sum(
+            1 for p in pairs if "coi_provider_name_match" in p["match_reasons"]
+        ),
+        "intra_system_req_duplicates": intra,
         "pairs": pairs,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    report_path = args.report or args.output.with_suffix(".md")
+    write_report_markdown(result, report_path)
     print(json.dumps({k: result[k] for k in result if k != "pairs"}, indent=2))
     print(f"OUTPUT: {args.output.resolve()}")
+    print(f"REPORT: {report_path.resolve()}")
     return 0
 
 
