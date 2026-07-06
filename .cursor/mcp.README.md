@@ -139,6 +139,17 @@ Optional static-token fallback (scripts only, not required for Cursor MCP):
 After auth changes, open **Cursor Settings → MCP** and restart the affected
 servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
 
+**Cloud agent / headless VM:** if `localhost` callback fails, the login page
+likely opened on your desktop instead of the agent VM. Reset and re-auth with
+the bundled helper (uses mcp-remote default callback port **3334**):
+
+```bash
+.cursor/bin/reset-gateway-oauth.sh
+```
+
+Complete sign-in in the **cloud-agent browser** so the redirect hits
+`http://localhost:3334/oauth/callback` on the VM.
+
 **Verify:**
 
 ```bash
