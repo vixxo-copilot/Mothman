@@ -1,11 +1,11 @@
 name: sp-fd-sf-duplicate-bridge
 title: "Freshdesk ↔ Salesforce Duplicate Bridge"
-description: "Detect duplicate intake between Freshdesk and Salesforce, classify same-thread vs contact collision, sync FD attachments to SF Cases with retention policy, and document cross-system links."
+description: "Detect duplicate intake between Freshdesk and Salesforce, vet Federated Insurance COI by Req id, classify same-thread vs contact collision, route updates to open SF Cases, sync FD attachments, and document cross-system links."
 category: operations
 agents: ["cursor", "claude-code"]
 author: "{{employee_name}}"
-version: "1.0.0"
-tags: ["freshdesk", "salesforce", "duplicate", "dual-intake", "attachments", "ksonboarding", "voicemail", "sp-intake", "routing"]
+version: "1.1.0"
+tags: ["freshdesk", "salesforce", "duplicate", "dual-intake", "attachments", "ksonboarding", "voicemail", "sp-intake", "routing", "coi", "federated-insurance", "req-id"]
 status: approved
 requires_mcp: ["freshdesk", "salesforce"]
 source: vixxo
@@ -13,4 +13,4 @@ provenance: user
 created_by: "crysgagner"
 created_at: "2026-06-26T15:20:39.962Z"
 last_updated_by: "crysgagner"
-last_updated_at: "2026-06-26T15:20:39.962Z"
+last_updated_at: "2026-07-01T00:00:00.000Z"
