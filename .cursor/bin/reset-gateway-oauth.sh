@@ -24,7 +24,7 @@ tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${SESSION}:0.0" \
 
 echo "Waiting for authorize URL..."
 for _ in $(seq 1 30); do
-  AUTH_URL=$(rg -o 'https://vixxonow.com/mcp/gateway/oauth/authorize[^ ]+' "${LOG}" "${OUT}" 2>/dev/null | tail -1 || true)
+  AUTH_URL=$(rg --no-filename -o 'https://vixxonow.com/mcp/gateway/oauth/authorize[^ ]+' "${LOG}" "${OUT}" 2>/dev/null | tail -1 || true)
   if [[ -n "${AUTH_URL}" ]]; then
   echo ""
   echo "Open this URL in the cloud-agent browser (NOT your local desktop):"
