@@ -1,0 +1,119 @@
+---
+description: Vixxo visual and document branding for generated work artifacts in the Mothman workspace
+globs: []
+alwaysApply: true
+---
+
+# Mothman Branding
+
+Applies when generating **externally shareable or copy-paste-ready work artifacts**
+— HTML pages, PDFs, Excel workbooks, slide decks, formatted reports, and
+browser-preview drafts for Outlook or Teams.
+
+Identity, tone, and outbound signing live in sibling rules:
+
+- `.cursor/rules/agent-identity.mdc`
+- `.cursor/rules/outbound-messaging-guardrail.mdc`
+- `.cursor/rules/teams-dm-formatting.mdc`
+
+This rule covers **visual presentation and corporate identity only**.
+
+## Workspace name
+
+**Mothman** is this repository's internal codename. Do **not** use "Mothman" in
+customer-facing copy, email bodies, ticket replies, or leadership comms. External
+artifacts carry **Vixxo** branding only.
+
+## Vixxo color palette
+
+Use these hex values for charts, headers, accents, and styled exports:
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| **Primary** | `#2C7B80` | Headings, key accents, chart series 1 |
+| **Accent** | `#FAB000` | Highlights, callouts, chart series 2 |
+| **Secondary** | `#8E992E` | Supporting accents, chart series 3 |
+| **Text** | `#3E4543` | Body copy on light backgrounds |
+| **Muted** | `#666666` | Captions, footnotes, secondary labels |
+| **Link** | `#0563C1` | Hyperlinks (Office/PDF convention) |
+| **Background** | `#FFFFFF` | Page and email body background |
+| **Header fill** | `#D9E1F2` | Excel/table header rows (light blue-gray) |
+
+Do not invent alternate brand colors. Do not use Cursor's dark-theme palette in
+artifacts meant for Outlook, Teams, PDF, or print.
+
+## Typography
+
+| Surface | Font | Size | Notes |
+| --- | --- | --- | --- |
+| **Outlook / Word / Excel** | Calibri | 11pt body; 14pt section titles | Matches Vixxo email defaults |
+| **HTML browser preview** | `Calibri, Arial, sans-serif` | 11pt body | White `#fff` background always |
+| **PDF body** | Helvetica or Calibri equivalent | 10–11pt | Dark text on white |
+| **Monospace (data only)** | `Consolas, monospace` | 10pt | IDs, JSON, CLI output in reports |
+
+Avoid decorative fonts, all-caps section headers, and heading tags that Outlook
+strips or restyles.
+
+## Corporate identity block
+
+When a formal footer, letterhead, or certificate-holder block is required, use
+the canonical Vixxo legal identity:
+
+```
+Vixxo Corporation
+7580 N. Dobson Road, Suite 201
+Scottsdale, AZ 85256
+```
+
+Use the full legal name **Vixxo Corporation** on first reference in formal
+documents; **Vixxo** is acceptable in running prose after that.
+
+Do not embed or fabricate logo image files. If a logo is required and no
+approved asset is available in the workspace, leave a text header and note the
+gap for {{employee_name}}.
+
+## HTML and Outlook constraints
+
+Follow the same constraints as the `outlook-email-formatter` skill:
+
+- Inline styles only — no `<style>` blocks or external stylesheets
+- Background `#fff`; body text `#000` or `#3E4543`
+- Links: `<a href="url">label</a>` or `color="#0563C1"` with underline for PDF
+- No emojis unless {{employee_name}} included them in the source draft
+
+## Excel and tabular exports
+
+When generating `.xlsx` reports programmatically:
+
+- Header row: fill `#D9E1F2`, bold black 11pt, centered, wrapped
+- Data cells: Calibri 11pt, `#000000`, top-aligned, wrap enabled
+- Hyperlinks: `#0563C1`, underlined
+- Thin borders on data tables
+- Sheet titles: bold 14pt in cell A1 when a cover row is needed
+
+## PDF exports
+
+- White page background; dark body text
+- Hyperlinks: `#0563C1` with underline
+- Page margins suitable for print (≥ 0.5 in)
+- Include document title and generation date in header or footer when the report
+  will be archived or shared externally
+
+## Voice and signing
+
+- **Drafted in {{employee_name}}'s voice:** no AI sign-off; reads as their words
+  (see outbound-messaging guardrail).
+- **Teams AI-assisted posts:** follow the inline sign-off in
+  `outbound-messaging-guardrail.mdc` — not "Mothman", not a mascot name.
+- **Email:** no AI sign-off; {{employee_name}}'s Outlook signature handles it.
+
+## Prohibited branding
+
+- "Mothman", mascot imagery, or folklore references in external artifacts
+- "AI transformation", "AI platform", or generic chatbot branding in Vixxo comms
+- Dark-background HTML copied from the Cursor chat UI
+- Unofficial colors, gradients, or stock imagery presented as Vixxo brand
+- Fabricated logos, taglines, or trademark symbols (®, ™) not sourced from
+  approved Vixxo materials
+
+<!-- Why: keeps generated artifacts on-brand and Outlook-safe without restating identity or outbound guardrails. -->

@@ -84,9 +84,10 @@ persona is required. Do not reference legacy multi-persona files.
 
 ## Related Rule Files
 
-Detail for outbound messaging, memory vault protection, Teams formatting, and
-email triage lives in sibling `.cursor/rules/*.mdc` files. See those files for
-payload shapes, approval workflow, and formatting rules.
+Detail for outbound messaging, memory vault protection, Teams formatting,
+email triage, and document branding lives in sibling `.cursor/rules/*.mdc`
+files. See those files for payload shapes, approval workflow, formatting rules,
+and Vixxo visual standards for generated artifacts.
 
 ## Key References
 
