@@ -43,11 +43,11 @@ QUEUES: dict[str, VettingQueue] = {
     ),
     "aphelp": VettingQueue(
         key="aphelp",
-        label="AP Help",
+        label="AP Help / QSI AP",
         freshdesk_view="AP Help (mailbox gate)",
         query=f"group_id:{SPM_GROUP_ID} AND status:2",
         inbox_label="aphelp@vixxo.com",
-        recipient_gate=("aphelp@vixxo.com",),
+        recipient_gate=("aphelp@vixxo.com", "qsiap@vixxo.com", "aphelp711@vixxo.com"),
     ),
 }
 
