@@ -295,21 +295,20 @@ def search_fd_qsiap_voicemail_in_window(
                 continue
             if not is_voicemail_ticket(row):
                 continue
-            ticket = row
-            if QSIAP not in ticket_routing_blob(row).lower():
-                ticket = get_ticket(api_key, tid)
+            ticket = resolve_ticket_for_qsiap(api_key, row)
             if not is_qsiap_ap_voicemail(ticket):
                 continue
             seen.add(tid)
-            merged.append(ticket if ticket is not row else row)
+            merged.append(ticket)
     merged.sort(key=lambda x: x.get("created_at") or "")
     return merged
 
 
-def _search_fd_open(api_key: str, filter_expr: str, max_pages: int = 15) -> list[dict]:
+def _search_fd_open(api_key: str, filter_expr: str, max_pages: int = 15) -> tuple[list[dict], bool]:
     """Freshdesk search without created_at bounds (open backlog scans)."""
     seen: set[int] = set()
     out: list[dict] = []
+    truncated = False
     for page in range(1, max_pages + 1):
         params = {"query": format_search_query(filter_expr), "page": str(page)}
         url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
@@ -333,33 +332,36 @@ def _search_fd_open(api_key: str, filter_expr: str, max_pages: int = 15) -> list
             out.append(row)
         if len(batch) < 30:
             break
-    return out
+        if page == max_pages:
+            truncated = True
+    return out, truncated
 
 
-def search_fd_qsiap_voicemail_open(api_key: str) -> list[dict]:
+def search_fd_qsiap_voicemail_open(api_key: str) -> tuple[list[dict], bool]:
     """All open qsiap AP voicemails — no created_at window (current backlog)."""
     merged: list[dict] = []
     seen: set[int] = set()
+    truncated = False
     queries = (
         f"group_id:{SPM_GROUP_ID} AND status:2 AND type:'Invoice Support'",
         f"group_id:{SPM_GROUP_ID} AND status:2 AND type:null",
     )
     for filter_expr in queries:
-        for row in _search_fd_open(api_key, filter_expr):
+        rows, slice_truncated = _search_fd_open(api_key, filter_expr)
+        truncated = truncated or slice_truncated
+        for row in rows:
             tid = int(row["id"])
             if tid in seen:
                 continue
             if not is_voicemail_ticket(row):
                 continue
-            ticket = row
-            if QSIAP not in ticket_routing_blob(row).lower():
-                ticket = get_ticket(api_key, tid)
+            ticket = resolve_ticket_for_qsiap(api_key, row)
             if not is_qsiap_ap_voicemail(ticket):
                 continue
             seen.add(tid)
-            merged.append(ticket if ticket is not row else row)
+            merged.append(ticket)
     merged.sort(key=lambda x: x.get("created_at") or "")
-    return merged
+    return merged, truncated
 
 
 def get_conversations(api_key: str, ticket_id: int) -> list[dict]:
@@ -391,6 +393,13 @@ def is_qsiap_ap_voicemail(ticket: dict) -> bool:
     if "accounts payable" in subject:
         return True
     return QSIAP in ticket_routing_blob(ticket).lower()
+
+
+def resolve_ticket_for_qsiap(api_key: str, row: dict) -> dict:
+    """Fetch full ticket when search summary lacks qsiap routing in blob."""
+    if QSIAP not in ticket_routing_blob(row).lower():
+        return get_ticket(api_key, int(row["id"]))
+    return row
 
 
 def classify_queue(t: dict) -> str:
@@ -451,12 +460,12 @@ def build_fd_meta(
     enrich: bool,
 ) -> dict:
     subject = summary.get("subject") or ""
+    queue_source = summary
     fd_meta: dict = {
         "id": int(summary["id"]),
         "subject": subject,
         "created_at": summary.get("created_at"),
         "status": summary.get("status"),
-        "queue": classify_queue(summary),
         "requester": req_email,
     }
     provider = extract_federated_coi_provider(subject)
@@ -470,6 +479,7 @@ def build_fd_meta(
             fd_meta["coi_req_timestamp"] = coi_fields["timestamp"]
     if enrich:
         ticket = get_ticket(api_key, int(summary["id"]))
+        queue_source = ticket
         try:
             convs = get_conversations(api_key, int(summary["id"]))
         except Exception:
@@ -488,6 +498,7 @@ def build_fd_meta(
                 fd_meta["caller"] = meta["caller"]
             if meta.get("phone"):
                 fd_meta["phone"] = meta["phone"]
+    fd_meta["queue"] = classify_queue(queue_source)
     return fd_meta
 
 
@@ -843,11 +854,13 @@ def collect_intra_fd_qsiap_voicemail_dupes(
     """Group qsiap AP voicemails by callback phone (repeat-caller merge candidates)."""
     groups: dict[str, list[dict]] = {}
     for summary in fd_summaries:
-        ticket = summary
-        if enrich or QSIAP not in ticket_routing_blob(summary).lower():
-            ticket = get_ticket(api_key, int(summary["id"]))
+        if not is_voicemail_ticket(summary):
+            continue
+        ticket = resolve_ticket_for_qsiap(api_key, summary)
         if not is_qsiap_ap_voicemail(ticket):
             continue
+        if ticket is summary:
+            ticket = get_ticket(api_key, int(summary["id"]))
         meta = extract_metadata(ticket)
         phone = meta.get("phone")
         if not phone:
@@ -913,6 +926,14 @@ def write_report_markdown(result: dict, path: Path) -> None:
         f"| QSI AP VM repeat-caller groups | {len(result.get('qsiap_voicemail_intra_duplicates') or [])} |",
         "",
     ]
+    if result.get("qsiap_open_search_truncated"):
+        lines.extend(
+            [
+                "> **Warning:** Open qsiap voicemail search hit the Freshdesk "
+                "pagination cap; backlog counts may be incomplete.",
+                "",
+            ]
+        )
     qsiap_intra = result.get("qsiap_voicemail_intra_duplicates") or []
     if qsiap_intra:
         lines.extend(
@@ -1073,11 +1094,15 @@ def main(argv: list[str] | None = None) -> int:
     sf_cases = load_sf_cases(args.sf_cache)
     fd_spm = search_fd_created_in_window(api_key, window_start, window_end)
     fd_batches = [fd_spm]
+    qsiap_open_search_truncated = False
     if args.include_coi:
         fd_batches.append(search_fd_coi_in_window(api_key, window_start, window_end))
     if args.include_qsiap_voicemail:
         if args.qsiap_open_all:
-            fd_batches.append(search_fd_qsiap_voicemail_open(api_key))
+            qsiap_open, qsiap_open_search_truncated = search_fd_qsiap_voicemail_open(
+                api_key
+            )
+            fd_batches.append(qsiap_open)
         else:
             fd_batches.append(
                 search_fd_qsiap_voicemail_in_window(api_key, window_start, window_end)
@@ -1086,7 +1111,11 @@ def main(argv: list[str] | None = None) -> int:
     enrich = not args.no_enrich
     pairs = scan(fd_summaries, sf_cases, api_key, enrich=enrich)
     intra = collect_intra_system_req_duplicates(fd_summaries, sf_cases)
-    qsiap_vms = [t for t in fd_summaries if is_qsiap_ap_voicemail(t)]
+    qsiap_vms = [
+        t
+        for t in fd_summaries
+        if is_qsiap_ap_voicemail(resolve_ticket_for_qsiap(api_key, t))
+    ]
     qsiap_intra = collect_intra_fd_qsiap_voicemail_dupes(
         fd_summaries,
         api_key,
@@ -1099,6 +1128,7 @@ def main(argv: list[str] | None = None) -> int:
         "include_coi": args.include_coi,
         "include_qsiap_voicemail": args.include_qsiap_voicemail,
         "qsiap_open_all": args.qsiap_open_all,
+        "qsiap_open_search_truncated": qsiap_open_search_truncated,
         "fd_count": len(fd_summaries),
         "qsiap_voicemail_count": len(qsiap_vms),
         "qsiap_voicemail_intra_duplicates": qsiap_intra,
