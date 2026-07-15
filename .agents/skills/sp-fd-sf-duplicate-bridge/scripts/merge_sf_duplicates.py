@@ -55,6 +55,7 @@ from sf_merge_primary import (
     is_actively_worked,
     is_new,
     is_open,
+    is_user_assigned,
     pick_best,
     pick_merge_primary,
 )
@@ -404,7 +405,7 @@ def load_plans_from_scan(
 def dedupe_plans(plans: list[dict]) -> list[dict]:
     """Keep highest-confidence plan per duplicate Case id."""
     by_dup: dict[str, dict] = {}
-    order = {"high": 0, "medium": 1, "low": 2}
+    order = {"high": 0, "medium": 1, "low": 2, "manual": 3}
     for plan in plans:
         for dup in plan.get("merge_candidates") or []:
             did = dup.get("id")
@@ -415,14 +416,22 @@ def dedupe_plans(plans: list[dict]) -> list[dict]:
                 existing["confidence"], 9
             ):
                 by_dup[did] = plan
-    seen: set[str] = set()
+    seen_gids: set[str] = set()
     out: list[dict] = []
-    for plan in plans:
-        gid = plan["group_id"]
-        if gid in seen:
-            continue
-        seen.add(gid)
-        out.append(plan)
+    if by_dup:
+        for plan in by_dup.values():
+            gid = plan["group_id"]
+            if gid in seen_gids:
+                continue
+            seen_gids.add(gid)
+            out.append(plan)
+    else:
+        for plan in plans:
+            gid = plan["group_id"]
+            if gid in seen_gids:
+                continue
+            seen_gids.add(gid)
+            out.append(plan)
     return sorted(out, key=lambda p: (p["bucket"], p.get("sp_name") or ""))
 
 
@@ -432,6 +441,12 @@ def resolve_coi_routing(plan: dict, org: str) -> dict:
         return plan
     sp = plan.get("sp_name") or plan.get("sp_key")
     if not sp or len(sp) < 3:
+        return plan
+
+    current_primary = plan.get("primary")
+    if current_primary and (
+        is_actively_worked(current_primary) or is_user_assigned(current_primary)
+    ):
         return plan
 
     hits = sf_query(coi_routing_soql(sp), org=org)
@@ -451,11 +466,17 @@ def resolve_coi_routing(plan: dict, org: str) -> dict:
         "target_subject": target.get("Subject"),
         "reason": "open_onboarding_or_lead_case",
     }
-    primary = dict(plan["primary"])
+    old_primary = current_primary
+    primary = dict(current_primary or {})
     primary["id"] = target["Id"]
     primary["case_number"] = target["CaseNumber"]
     primary["subject"] = target.get("Subject")
     plan["primary"] = primary
+    merge = [c for c in plan.get("merge_candidates") or [] if c.get("id") != target["Id"]]
+    old_id = old_primary.get("id") if old_primary else None
+    if old_id and old_id != target["Id"] and not any(c.get("id") == old_id for c in merge):
+        merge.append(old_primary)
+    plan["merge_candidates"] = merge
     plan["confidence"] = "medium"
     return plan
 
@@ -573,6 +594,9 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
 
     file_results = copy_case_files(dup["id"], primary["id"], org=org)
     result["steps"].append({"action": "copy_files", "results": file_results})
+    if not all(r.get("ok", True) for r in file_results):
+        result["ok"] = False
+        return result
 
     comment_r = post_case_comment(primary["id"], comment, org=org)
     result["steps"].append({"action": "case_comment_primary", "result": comment_r})
@@ -597,9 +621,13 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
     result["steps"].append({"action": "close_case", "result": close_r})
 
     result["ok"] = all(
-        s.get("result", {}).get("ok", True)
+        (
+            all(r.get("ok", True) for r in s.get("results") or [])
+            if s.get("action") == "copy_files"
+            else s.get("result", {}).get("ok", True)
+        )
         for s in result["steps"]
-        if "result" in s
+        if s.get("action") == "copy_files" or "result" in s
     )
     return result
 
