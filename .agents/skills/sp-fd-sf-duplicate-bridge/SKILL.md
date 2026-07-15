@@ -1,20 +1,31 @@
 ---
 name: sp-fd-sf-duplicate-bridge
 description: >-
-  Detect and reconcile duplicate intake between Freshdesk and Salesforce
-  (voicemail dual-intake, email-to-case overlaps, KS onboarding mirrors,
-  Federated Insurance COI Req-id duplicates). Scan for FD/SF pairs, classify
-  same-thread vs contact collision, vet Federated COI by Req id and subject,
-  route updates to open SF Cases, sync FD attachments, and document cross-links.
-  Use when matching a Freshdesk ticket to a Salesforce Case, vetting Federated
-  COI notifications, forwarding attachments between systems, scanning duplicate
-  pairs in a time window, or bridging ProSite-style onboarding dual intake.
+  Detect duplicate Salesforce Cases (Federated COI Req-id, same subject+email)
+  and cross-system Freshdesk↔SF intake. SF-only review, bucket-based merge/close
+  automation (COI, rate change, VixxoLink, voicemail), FD attachment sync, and
+  Federated COI routing to open Cases.
 ---
 
 # Freshdesk ↔ Salesforce Duplicate Bridge
 
-Work-only skill for **finding duplicate intake** across Freshdesk and Salesforce
-and **reconciling** paired records — especially attachment gaps on the SF Case.
+Work-only skill for **finding duplicate Cases in Salesforce** and **cross-system
+duplicate intake** with Freshdesk — especially Federated COI Req-id dupes and
+attachment gaps on SF Cases.
+
+## When to use
+
+**SF-only (default for duplicate review):**
+- "Review duplicate SF Cases" / "SF-only duplicate scan"
+- Federated COI created multiple Cases for the same Req id
+- Same subject + requester email landed twice in Email-to-Case
+
+**Cross-system (FD↔SF):**
+- "Find the Salesforce Case for Freshdesk #57142"
+- "Scan FD/SF duplicates since {date}"
+- Voicemail dual-intake, KS onboarding mirror, attachment sync
+- **Vet Federated COI notification** — parse Req id, find open Case, avoid duplicate
+- **Route Federated update** to existing SF Case for same `{policy-id} Req {req_id}`
 
 Sibling skills:
 
@@ -24,25 +35,72 @@ Sibling skills:
 | `sp-inbound-vetting` | SP identity vetting on SF queues + AP Help |
 | `vixxo-coi-review` | COI field compliance after pairing |
 
-## When to use
-
-- "Find the Salesforce Case for Freshdesk #57142"
-- "Scan FD/SF duplicates since {date}"
-- "Forward attachments from FD #{id} to SF Case #{number}"
-- "Sync onboarding files to the SF Case" (KS onboarding mirror)
-- Reconcile voicemail **dual-intake** (FD `.wav` + SF triage Case)
-- **Vet Federated COI notification** — parse Req id, find open Case, avoid duplicate
-- **Route Federated update** to existing SF Case for same `{policy-id} Req {req_id}`
-
 ## Operating modes
 
 | Mode | Trigger | Output |
 | --- | --- | --- |
+| **SF-only review** | Duplicate Cases in Salesforce | Per-SP table + merge/close list |
 | **Single pair** | FD `#` + SF Case `#` (or one id + search) | Pair summary + optional attachment sync |
 | **Detect** | FD `#` only | SOQL search for SF Case with `Freshdesk #{id}` in Description |
 | **Batch scan** | Time window | JSON pair list + operator summary table |
 | **Federated COI vet** | Inbound cert / auto-reply subject | Req-id parse + open Case lookup + route (no new Case) |
 | **Dry-run** | Any sync with `dry-run` / `--dry-run` | Selected files only; no SF writes |
+| **Merge plan** | Bucket duplicate groups | JSON plan + dry-run merge steps |
+| **Merge execute** | Operator approves plan | Files → primary, Case comment, close dupes |
+
+## Workflow — merge / close duplicates (bucket automation)
+
+Consolidate duplicate Cases into **one open ticket per bucket** (rate change,
+COI update, VixxoLink same-user, voicemail when SP captured). COI dupes may
+route into an **open onboarding Case** for that SP.
+
+1. Export SF Cases with **Description** (required for voicemail FD cross-ref).
+2. Run SF-only scan (below) or use existing scan JSON.
+3. Build merge plan (**dry-run default**). Plan JSON includes `manual_review[]`
+   for groups needing operator decision (multiple New queue-owned Cases):
+
+```bash
+python scripts/merge_sf_duplicates.py \
+  --sf-cache .tmp/sf-cases-window-{date}.json \
+  --scan-input .tmp/sf-duplicate-scan-{date}.json \
+  --buckets coi_federated,coi_update,rate_change,vixxolink_support,voicemail \
+  --resolve-coi-onboarding \
+  --output .tmp/sf-merge-plan-{date}.json \
+  --report .tmp/sf-merge-manual-review-{date}.md
+```
+
+4. Review auto-merge plan **and** manual-review report. Voicemail cross-routing
+   requires **matching request context** (Category/transcript bucket) plus an
+   actively-worked open Case — never closed, never `New` when an active Case
+   exists, and never rate → VixxoLink (or other bucket mismatches).
+5. Execute after explicit approval:
+
+```bash
+python scripts/merge_sf_duplicates.py \
+  --plan .tmp/sf-merge-plan-{date}.json \
+  --execute --sync-voicemail
+```
+
+Per merge: copy files to primary → Case comment on primary → **Case comment on
+duplicate** (Duplicate + primary Case #) → audit Task → close duplicate.
+Details: [reference/merge-automation.md](reference/merge-automation.md).
+
+## Workflow — SF-only duplicate review
+
+1. Export SF Cases (MCP SOQL) → `.tmp/sf-cases-window-{date}.json`
+2. Run:
+
+```bash
+python scripts/scan_sf_duplicates.py \
+  --sf-cache .tmp/sf-cases-window-{date}.json \
+  --output .tmp/sf-duplicate-scan-{date}.json \
+  --report .tmp/sf-duplicate-report-{date}.md
+```
+
+3. Present **one row per SP**: recommended primary Case, Cases to merge/close.
+4. Operator approves before any Case status change or merge.
+
+Logic: [reference/sf-intra-duplicates.md](reference/sf-intra-duplicates.md).
 
 ## Workflow — single pair
 
@@ -137,7 +195,9 @@ COI Req-id duplicates**.
 
 | Doc | Purpose |
 | --- | --- |
-| [reference/detection.md](reference/detection.md) | Match signals, SOQL, batch scan |
+| [reference/sf-intra-duplicates.md](reference/sf-intra-duplicates.md) | **SF-only** duplicate review |
+| [reference/merge-automation.md](reference/merge-automation.md) | **Bucket merge/close** automation |
+| [reference/detection.md](reference/detection.md) | FD↔SF match signals, SOQL, batch scan |
 | [reference/federated-coi.md](reference/federated-coi.md) | Req-id parsing, vetting, routing |
 | [reference/attachment-sync.md](reference/attachment-sync.md) | FD → SF file sync policies |
 | [reference/examples.md](reference/examples.md) | Worked examples |
@@ -146,7 +206,13 @@ COI Req-id duplicates**.
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/scan_duplicates.py` | Window batch pair detection |
+| `scripts/scan_sf_duplicates.py` | **SF-only** duplicate Case review |
+| `scripts/merge_sf_duplicates.py` | **Bucket merge/close** plan + execute |
+| `scripts/sf_merge_primary.py` | Status/assignment-aware primary selection |
+| `scripts/sf_case_activity.py` | CaseComment/History/Task last-touch lookup |
+| `scripts/voicemail_match.py` | Voicemail description/transcript work-target search |
+| `scripts/sf_case_buckets.py` | Case bucket classification helpers |
+| `scripts/scan_duplicates.py` | FD↔SF window batch pair detection |
 | `scripts/sync_attachments_to_sf.py` | FD → SF Case file sync with policy |
 
 ## Artifacts

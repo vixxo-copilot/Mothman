@@ -107,6 +107,18 @@ def select_attachments(
                 add(att, f"conv:{conv.get('id')}")
         return out
 
+    if policy == "voicemail-wav":
+        for att in ticket.get("attachments") or []:
+            name = (att.get("name") or "").lower()
+            if name.endswith(".wav") or name.endswith(".mp3"):
+                add(att, "ticket")
+        for conv in conversations:
+            for att in conv.get("attachments") or []:
+                name = (att.get("name") or "").lower()
+                if name.endswith(".wav") or name.endswith(".mp3"):
+                    add(att, f"conv:{conv.get('id')}")
+        return out
+
     if policy == "latest-reply-only":
         include_original_packet = False
 
@@ -236,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sf-case-number", type=str, default=None)
     parser.add_argument(
         "--policy",
-        choices=("ks-onboarding-reply", "full", "latest-reply-only"),
+        choices=("ks-onboarding-reply", "full", "latest-reply-only", "voicemail-wav"),
         default="ks-onboarding-reply",
     )
     parser.add_argument(
