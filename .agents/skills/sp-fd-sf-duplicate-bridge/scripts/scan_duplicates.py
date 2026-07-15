@@ -389,10 +389,10 @@ def is_qsiap_ap_voicemail(ticket: dict) -> bool:
     """True for 8x8 AP voicemails routed to qsiap@vixxo.com (not aphelp)."""
     if not is_voicemail_ticket(ticket):
         return False
-    subject = (ticket.get("subject") or "").lower()
-    if "accounts payable" in subject:
-        return True
-    return QSIAP in ticket_routing_blob(ticket).lower()
+    blob = ticket_routing_blob(ticket).lower()
+    if "aphelp" in blob:
+        return False
+    return QSIAP in blob
 
 
 def resolve_ticket_for_qsiap(api_key: str, row: dict) -> dict:
@@ -856,10 +856,15 @@ def collect_intra_fd_qsiap_voicemail_dupes(
     for summary in fd_summaries:
         if not is_voicemail_ticket(summary):
             continue
-        ticket = resolve_ticket_for_qsiap(api_key, summary)
-        if not is_qsiap_ap_voicemail(ticket):
-            continue
-        if ticket is summary:
+        if not is_qsiap_ap_voicemail(summary):
+            if not enrich:
+                continue
+            ticket = resolve_ticket_for_qsiap(api_key, summary)
+            if not is_qsiap_ap_voicemail(ticket):
+                continue
+        else:
+            ticket = summary
+        if enrich and ticket is summary:
             ticket = get_ticket(api_key, int(summary["id"]))
         meta = extract_metadata(ticket)
         phone = meta.get("phone")
@@ -1111,11 +1116,18 @@ def main(argv: list[str] | None = None) -> int:
     enrich = not args.no_enrich
     pairs = scan(fd_summaries, sf_cases, api_key, enrich=enrich)
     intra = collect_intra_system_req_duplicates(fd_summaries, sf_cases)
-    qsiap_vms = [
-        t
+    qsiap_voicemail_count = sum(
+        1
         for t in fd_summaries
-        if is_qsiap_ap_voicemail(resolve_ticket_for_qsiap(api_key, t))
-    ]
+        if is_voicemail_ticket(t)
+        and (
+            is_qsiap_ap_voicemail(t)
+            or (
+                enrich
+                and is_qsiap_ap_voicemail(resolve_ticket_for_qsiap(api_key, t))
+            )
+        )
+    )
     qsiap_intra = collect_intra_fd_qsiap_voicemail_dupes(
         fd_summaries,
         api_key,
@@ -1130,7 +1142,7 @@ def main(argv: list[str] | None = None) -> int:
         "qsiap_open_all": args.qsiap_open_all,
         "qsiap_open_search_truncated": qsiap_open_search_truncated,
         "fd_count": len(fd_summaries),
-        "qsiap_voicemail_count": len(qsiap_vms),
+        "qsiap_voicemail_count": qsiap_voicemail_count,
         "qsiap_voicemail_intra_duplicates": qsiap_intra,
         "sf_count": len(sf_cases),
         "pair_count": len(pairs),
