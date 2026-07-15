@@ -163,6 +163,10 @@ Matching logic: [reference/detection.md](reference/detection.md). Federated COI:
 
 Use `--include-coi` when scanning Federated cert intake.
 
+Use `--include-qsiap-voicemail` for AP 8x8 voicemails on `qsiap@vixxo.com`
+(subject `via ACCOUNTS PAYABLE`; not `aphelp`). Surfaces repeat-caller merge
+groups by callback phone.
+
 ## Workflow — Federated COI vet (single notification)
 
 1. **Parse subject** — extract `{provider}`, `{policy-id}`, `Req {req_id}` per
