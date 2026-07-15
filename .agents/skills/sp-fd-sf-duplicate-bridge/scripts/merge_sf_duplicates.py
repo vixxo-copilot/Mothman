@@ -611,18 +611,22 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
         result["steps"] = [
             {"action": "copy_files", "from": dup["id"], "to": primary["id"]},
             {"action": "case_comment_primary", "body": comment[:300]},
-            {"action": "case_comment_duplicate", "body": dup_comment[:300]},
-            {
-                "action": "close_case",
-                "case_number": dup.get("case_number"),
-                "closed_reason": "Duplicate",
-            },
-            {"action": "audit_task", "subject": task_subj},
         ]
         if sync_voicemail and plan["bucket"] == BUCKET_VOICEMAIL and fd_id:
             result["steps"].append(
                 {"action": "sync_voicemail_wav", "fd_ticket_id": fd_id}
             )
+        result["steps"].extend(
+            [
+                {"action": "audit_task", "subject": task_subj},
+                {"action": "case_comment_duplicate", "body": dup_comment[:300]},
+                {
+                    "action": "close_case",
+                    "case_number": dup.get("case_number"),
+                    "closed_reason": "Duplicate",
+                },
+            ]
+        )
         return result
 
     file_results = copy_case_files(dup["id"], primary["id"], org=org)
@@ -634,12 +638,6 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
     comment_r = post_case_comment(primary["id"], comment, org=org)
     result["steps"].append({"action": "case_comment_primary", "result": comment_r})
     if not comment_r.get("ok", True):
-        result["ok"] = False
-        return result
-
-    dup_comment_r = post_case_comment(dup["id"], dup_comment, org=org)
-    result["steps"].append({"action": "case_comment_duplicate", "result": dup_comment_r})
-    if not dup_comment_r.get("ok", True):
         result["ok"] = False
         return result
 
@@ -659,6 +657,12 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
     )
     result["steps"].append({"action": "audit_task", "result": task_r})
     if not task_r.get("ok", True):
+        result["ok"] = False
+        return result
+
+    dup_comment_r = post_case_comment(dup["id"], dup_comment, org=org)
+    result["steps"].append({"action": "case_comment_duplicate", "result": dup_comment_r})
+    if not dup_comment_r.get("ok", True):
         result["ok"] = False
         return result
 
@@ -902,7 +906,7 @@ def main(argv: list[str] | None = None) -> int:
             dup_id = dup.get("id")
             if dup_id and dup_id in seen_dup_ids:
                 continue
-            if not is_open(dup) and not args.execute:
+            if not is_open(dup):
                 continue
             if dup_id:
                 seen_dup_ids.add(dup_id)
@@ -934,6 +938,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if dry_run and executions:
         print("\nDRY-RUN: pass --execute after operator approval to apply merges.")
+    if args.execute and any(not ex.get("ok", True) for ex in executions):
+        return 1
     return 0
 
 
