@@ -155,12 +155,14 @@ def pick_merge_primary(cases: list[dict]) -> tuple[dict | None, str | None]:
     return new_cases[0], None
 
 
-def pick_primary(cases: list[dict]) -> dict:
+def pick_primary(cases: list[dict]) -> dict | None:
     """Backward-compatible wrapper — never pick closed when open exist."""
     primary, reason = pick_merge_primary(cases)
     if primary:
         return primary
     if reason == "all_closed":
         return sorted(cases, key=lambda c: c.get("created_at") or "")[0]
+    if reason:
+        return None
     open_cases = [c for c in cases if is_open(c)]
     return pick_best(open_cases or cases)

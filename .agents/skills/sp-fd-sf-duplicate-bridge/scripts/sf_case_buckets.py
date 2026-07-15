@@ -301,7 +301,7 @@ def coi_routing_soql(sp_name: str) -> str:
     """SOQL to find open onboarding Case or Lead for COI merge target."""
     safe = sp_name.replace("'", "\\'")
     return (
-        "SELECT Id, CaseNumber, Subject, Status, CreatedDate "
+        "SELECT Id, CaseNumber, Subject, Status, CreatedDate, Owner.Username "
         "FROM Case "
         f"WHERE IsClosed = false AND (Subject LIKE '%{safe}%' "
         f"OR Subject LIKE '%KS - {safe}%') "

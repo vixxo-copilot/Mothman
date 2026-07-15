@@ -27,7 +27,7 @@ from scan_duplicates import (
     load_sf_cases,
     norm_email,
 )
-from sf_merge_primary import enrich_owner_fields, pick_primary
+from sf_merge_primary import enrich_owner_fields, pick_merge_primary
 
 OPEN_STATUSES = {"new", "working", "open", "pending", "escalated", "on hold"}
 SHELL_ACCOUNT = "Service Provider Support Shell Account"
@@ -43,6 +43,32 @@ def normalize_subject(subject: str | None) -> str:
 
 def case_email(case: dict) -> str | None:
     return norm_email(case.get("ContactEmail")) or norm_email(case.get("SuppliedEmail"))
+
+
+def _duplicate_group_entry(
+    cases: list[dict],
+    *,
+    dup_type: str,
+    extra: dict,
+) -> dict:
+    primary, review_reason = pick_merge_primary(cases)
+    if primary is None and review_reason == "all_closed":
+        primary = sorted(cases, key=lambda c: c.get("created_at") or "")[0]
+        review_reason = None
+
+    open_cases = [c for c in cases if (c.get("status") or "").lower() in OPEN_STATUSES]
+    group = {
+        "dup_type": dup_type,
+        "case_count": len(cases),
+        "open_count": len(open_cases),
+        "primary": primary,
+        "merge_candidates": [c for c in cases if primary and c["id"] != primary["id"]],
+        **extra,
+    }
+    if review_reason:
+        group["manual_review_reason"] = review_reason
+        group["manual_review_cases"] = open_cases or cases
+    return group
 
 
 def case_entry(case: dict) -> dict:
@@ -91,23 +117,18 @@ def analyze(records: list[dict]) -> dict:
     ):
         if len(cases) <= 1:
             continue
-        primary = pick_primary(cases)
-        merge = [c for c in cases if c["id"] != primary["id"]]
         for c in cases:
             federated_case_ids.add(c["id"])
         federated_duplicates.append(
-            {
-                "dup_type": "federated_coi_req_id",
-                "provider": cases[0].get("provider") or "—",
-                "policy_id": policy_id,
-                "req_id": req_id,
-                "case_count": len(cases),
-                "open_count": sum(
-                    1 for c in cases if (c.get("status") or "").lower() in OPEN_STATUSES
-                ),
-                "primary": primary,
-                "merge_candidates": merge,
-            }
+            _duplicate_group_entry(
+                cases,
+                dup_type="federated_coi_req_id",
+                extra={
+                    "provider": cases[0].get("provider") or "—",
+                    "policy_id": policy_id,
+                    "req_id": req_id,
+                },
+            )
         )
 
     subject_groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
@@ -129,21 +150,18 @@ def analyze(records: list[dict]) -> dict:
     for (norm_subj, email), cases in sorted(subject_groups.items(), key=lambda x: x[0]):
         if len(cases) <= 1:
             continue
-        primary = pick_primary(cases)
-        subject_duplicates.append(
-            {
-                "dup_type": "subject_email",
-                "provider": primary.get("provider") or _provider_from_subject(cases[0]["subject"]),
+        group = _duplicate_group_entry(
+            cases,
+            dup_type="subject_email",
+            extra={
+                "provider": _provider_from_subject(cases[0]["subject"]),
                 "subject_key": cases[0]["subject"][:120],
                 "requester_email": email,
-                "case_count": len(cases),
-                "open_count": sum(
-                    1 for c in cases if (c.get("status") or "").lower() in OPEN_STATUSES
-                ),
-                "primary": primary,
-                "merge_candidates": [c for c in cases if c["id"] != primary["id"]],
-            }
+            },
         )
+        if group.get("primary"):
+            group["provider"] = group["primary"].get("provider") or group["provider"]
+        subject_duplicates.append(group)
 
     by_provider: dict[str, list[dict]] = defaultdict(list)
     for group in federated_duplicates + subject_duplicates:
@@ -198,7 +216,12 @@ def write_report(result: dict, path: Path, window_note: str) -> None:
         "|---------------|-------:|-----------------|---------------|",
     ]
     for provider, groups in result["by_provider"].items():
-        primaries = ", ".join(f"**{g['primary']['case_number']}**" for g in groups)
+        primaries = ", ".join(
+            f"**{g['primary']['case_number']}**"
+            if g.get("primary")
+            else "— (manual review)"
+            for g in groups
+        )
         merges = ", ".join(
             c["case_number"]
             for g in groups
@@ -218,14 +241,23 @@ def write_report(result: dict, path: Path, window_note: str) -> None:
             )
             lines.append("")
             p = g["primary"]
-            lines.append(
-                f"**Primary:** {p['case_number']} ({p['status']}, {p.get('account') or '—'})"
-            )
-            lines.append("")
-            for c in g["merge_candidates"]:
+            if p:
                 lines.append(
-                    f"- Close/merge **{c['case_number']}** ({c['status']}) → {p['case_number']}"
+                    f"**Primary:** {p['case_number']} ({p['status']}, {p.get('account') or '—'})"
                 )
+            else:
+                lines.append(
+                    f"**Primary:** — ({g.get('manual_review_reason', 'manual review')})"
+                )
+            lines.append("")
+            if p:
+                for c in g["merge_candidates"]:
+                    lines.append(
+                        f"- Close/merge **{c['case_number']}** ({c['status']}) → {p['case_number']}"
+                    )
+            else:
+                for c in g.get("manual_review_cases") or []:
+                    lines.append(f"- **{c['case_number']}** ({c['status']}) — manual review")
             lines.append("")
 
     if result["subject_duplicates"]:
@@ -234,10 +266,20 @@ def write_report(result: dict, path: Path, window_note: str) -> None:
             lines.append(f"### {g['provider']}")
             lines.append("")
             lines.append(f"**Subject:** {g['subject_key']}")
-            lines.append(f"**Primary:** {g['primary']['case_number']} ({g['primary']['status']})")
+            p = g["primary"]
+            if p:
+                lines.append(f"**Primary:** {p['case_number']} ({p['status']})")
+            else:
+                lines.append(
+                    f"**Primary:** — ({g.get('manual_review_reason', 'manual review')})"
+                )
             lines.append("")
-            for c in g["merge_candidates"]:
-                lines.append(f"- **{c['case_number']}** ({c['status']})")
+            if p:
+                for c in g["merge_candidates"]:
+                    lines.append(f"- **{c['case_number']}** ({c['status']})")
+            else:
+                for c in g.get("manual_review_cases") or []:
+                    lines.append(f"- **{c['case_number']}** ({c['status']}) — manual review")
             lines.append("")
 
     path.parent.mkdir(parents=True, exist_ok=True)

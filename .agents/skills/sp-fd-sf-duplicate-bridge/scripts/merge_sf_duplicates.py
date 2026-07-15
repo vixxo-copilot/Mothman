@@ -283,10 +283,43 @@ def scan_group_to_plan(
     all_records: list[dict] | None = None,
     touch_map: dict[str, dict] | None = None,
 ) -> dict | None:
+    review_reason = group.get("manual_review_reason")
+    primary = group.get("primary")
     merge = group.get("merge_candidates") or []
+
+    if not primary and review_reason:
+        pool = apply_touch_to_pool(group.get("manual_review_cases") or [], touch_map or {})
+        open_pool = [c for c in pool if is_open(c)]
+        if len(open_pool) < 2:
+            return None
+
+        dup_type = group.get("dup_type", "")
+        if dup_type == "federated_coi_req_id":
+            b = BUCKET_COI_FEDERATED
+            gid = f"coi_federated:{group.get('policy_id')}|{group.get('req_id')}"
+        else:
+            subj = group.get("subject_key") or ""
+            b = bucket or classify_case(subj)
+            sp = normalize_sp_key(group.get("provider")) or ""
+            email = group.get("requester_email") or ""
+            gid = bucket_group_id(b, sp, email)
+
+        return {
+            "group_id": gid,
+            "source": "scan_json",
+            "bucket": b,
+            "dup_type": dup_type,
+            "confidence": "manual",
+            "manual_review_reason": review_reason,
+            "manual_review_cases": open_pool,
+            "primary": None,
+            "merge_candidates": [],
+            "policy_id": group.get("policy_id"),
+            "req_id": group.get("req_id"),
+        }
+
     if not merge:
         return None
-    primary = group.get("primary")
     if not primary:
         return None
 
@@ -325,7 +358,7 @@ def scan_group_to_plan(
         review_reason = "work_target_new_only"
         confidence = "medium"
 
-    if review_reason and confidence != "high":
+    if review_reason:
         confidence = "manual"
 
     if primary is None:
@@ -600,14 +633,23 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
 
     comment_r = post_case_comment(primary["id"], comment, org=org)
     result["steps"].append({"action": "case_comment_primary", "result": comment_r})
+    if not comment_r.get("ok", True):
+        result["ok"] = False
+        return result
 
     dup_comment_r = post_case_comment(dup["id"], dup_comment, org=org)
     result["steps"].append({"action": "case_comment_duplicate", "result": dup_comment_r})
+    if not dup_comment_r.get("ok", True):
+        result["ok"] = False
+        return result
 
     if sync_voicemail and plan["bucket"] == BUCKET_VOICEMAIL:
         sync_r = maybe_sync_voicemail_wav(dup, primary, org, dry_run=False)
         if sync_r:
             result["steps"].append({"action": "sync_voicemail_wav", "result": sync_r})
+            if not sync_r.get("ok", True):
+                result["ok"] = False
+                return result
 
     task_r = create_completed_task(
         primary["id"],
@@ -616,6 +658,9 @@ def execute_merge(plan: dict, dup: dict, org: str, dry_run: bool, sync_voicemail
         org=org,
     )
     result["steps"].append({"action": "audit_task", "result": task_r})
+    if not task_r.get("ok", True):
+        result["ok"] = False
+        return result
 
     close_r = close_case(dup["id"], org=org)
     result["steps"].append({"action": "close_case", "result": close_r})
