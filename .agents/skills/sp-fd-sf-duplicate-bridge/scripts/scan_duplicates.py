@@ -317,8 +317,11 @@ def _search_fd_open(api_key: str, filter_expr: str, max_pages: int = 15) -> list
         try:
             with urllib.request.urlopen(req, timeout=90) as resp:
                 payload = json.loads(resp.read().decode())
-        except urllib.error.HTTPError:
-            break
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode()
+            raise RuntimeError(
+                f"Freshdesk open search failed page={page} body={body[:500]}"
+            ) from exc
         batch = payload.get("results") or []
         if not batch:
             break
@@ -432,15 +435,11 @@ def load_sf_cases(path: Path) -> list[dict]:
 
 
 def merge_fd_summaries(*batches: list[dict]) -> list[dict]:
-    seen: set[int] = set()
-    out: list[dict] = []
+    by_id: dict[int, dict] = {}
     for batch in batches:
         for t in batch:
-            tid = int(t["id"])
-            if tid in seen:
-                continue
-            seen.add(tid)
-            out.append(t)
+            by_id[int(t["id"])] = t
+    out = list(by_id.values())
     out.sort(key=lambda x: x.get("created_at") or "")
     return out
 
