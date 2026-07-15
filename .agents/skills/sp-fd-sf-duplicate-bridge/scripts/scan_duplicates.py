@@ -38,12 +38,30 @@ def auth_headers(api_key: str) -> dict[str, str]:
 
 
 def load_credentials() -> str:
+    root = Path(__file__).resolve().parents[4]
+    env_path = root / ".env"
+    if env_path.is_file():
+        for raw in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            if key and val and not os.environ.get(key):
+                os.environ[key] = val
     api_key = os.environ.get("FRESHDESK_API_KEY", "").strip()
-    token_path = Path.home() / ".vixxo" / "freshdesk_token"
-    if not api_key and token_path.is_file():
-        api_key = token_path.read_text(encoding="utf-8").strip()
+    home_vixxo = Path.home() / ".vixxo"
+    for name in ("freshdesk_api_key", "freshdesk_token"):
+        token_path = home_vixxo / name
+        if not api_key and token_path.is_file():
+            api_key = token_path.read_text(encoding="utf-8").strip()
+    if not api_key and os.environ.get("FRESHDESK_TOKEN"):
+        api_key = os.environ["FRESHDESK_TOKEN"].strip()
     if not api_key:
-        raise SystemExit("FRESHDESK_API_KEY not set and ~/.vixxo/freshdesk_token missing")
+        raise SystemExit(
+            "FRESHDESK_API_KEY not set — configure .env or ~/.vixxo/freshdesk_token"
+        )
     return api_key
 
 
