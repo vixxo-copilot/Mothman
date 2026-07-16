@@ -225,7 +225,11 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
 
 
 def load_enriched_items(
-    data_path: Path, skip: set[int], api_key: str, re_vet: bool
+    data_path: Path,
+    skip: set[int],
+    api_key: str,
+    re_vet: bool,
+    dry_run: bool = False,
 ) -> list[dict]:
     data = json.loads(data_path.read_text(encoding="utf-8"))
     items: list[dict] = []
@@ -233,7 +237,7 @@ def load_enriched_items(
         tid = int(item["ticket_id"])
         if tid in skip:
             continue
-        if not re_vet:
+        if not re_vet and not dry_run:
             try:
                 ticket = get_ticket(api_key, tid)
             except urllib.error.HTTPError:
@@ -271,7 +275,9 @@ def main() -> int:
         return 1
 
     if args.data:
-        items = load_enriched_items(args.data, skip, api, args.re_vet)
+        items = load_enriched_items(
+            args.data, skip, api, args.re_vet, dry_run=args.dry_run
+        )
         tickets: list[dict] = []
     else:
         tickets = discover_qsiap_voicemails(api)
