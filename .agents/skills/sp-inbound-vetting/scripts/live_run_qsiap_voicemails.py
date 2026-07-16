@@ -28,7 +28,6 @@ sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"
 
 from batch_process_freshdesk import (  # noqa: E402
     auth_headers,
-    extract_metadata,
     http_json,
     is_voicemail_ticket,
     load_credentials,
