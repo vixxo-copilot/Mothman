@@ -42,8 +42,9 @@ from dry_run_batch import (  # noqa: E402
     posture,
     salesforce_search,
 )
+from entity_extraction import is_valid_company_string  # noqa: E402
 from gateway_vetting import gateway_health_check  # noqa: E402
-from live_run_batch import OUT_DIR, apply_item  # noqa: E402
+from live_run_batch import OUT_DIR, apply_item, posture_tag  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
 SPM_GROUP = "159000485013"
@@ -176,6 +177,14 @@ def build_item(ticket: dict) -> dict:
             entities["ks_number"] = sp_num.upper()
             gw = gateway_find_sp(entities) or gw
     post, cf_target = posture(gw, sf, entities)
+    if entities.get("cf_sp_current") not in (None, "", "Unknown") and post == "Unknown / Not in systems":
+        current_cf = str(entities.get("cf_sp_current") or "")
+        if is_valid_company_string(current_cf):
+            cf_target = "(keep existing)"
+        elif is_valid_company_string(str(cf_target)):
+            pass  # overwrite invalid human/bot cf_sp with good extraction
+        else:
+            cf_target = "(keep existing)" if current_cf else "Unknown"
     return {
         "ticket_id": tid,
         "queue": "qsiap-voicemail",
@@ -208,9 +217,16 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
         pass
     try:
         ticket = get_ticket(api_key, tid)
-        tags = sorted(
-            set((ticket.get("tags") or []) + ["qsiap-source", "voicemail-vetted"])
-        )
+        intended = result.get("tags")
+        if isinstance(intended, list):
+            base_tags = intended
+        else:
+            existing_tags = list(ticket.get("tags") or [])
+            positive_tag = posture_tag(item["posture"])
+            base_tags = sorted(set(existing_tags + ["sp-vetted", positive_tag]))
+            if positive_tag != "unknown-sp":
+                base_tags = [t for t in base_tags if t != "unknown-sp"]
+        tags = sorted(set(base_tags + ["qsiap-source", "voicemail-vetted"]))
         payload: dict = {"tags": tags}
         if not ticket.get("type"):
             payload["type"] = "Invoice Support"
@@ -280,7 +296,12 @@ def main() -> int:
     out.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps({k: summary[k] for k in ("mode", "discovered", "vetted", "known_sp", "run_at")}, indent=2))
     print(f"Wrote {out}")
-    return 0
+    errors = [
+        r
+        for r in results
+        if r.get("error") or str(r.get("qsiap_update", "")).startswith("failed")
+    ]
+    return 0 if not errors else 1
 
 
 if __name__ == "__main__":
