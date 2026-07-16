@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 import urllib.error
 import urllib.parse
@@ -44,28 +43,12 @@ from dry_run_batch import (  # noqa: E402
 )
 from gateway_vetting import gateway_health_check  # noqa: E402
 from live_run_batch import OUT_DIR, apply_item  # noqa: E402
+from voicemail_entities import enrich_voicemail_entities  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
 SPM_GROUP = "159000485013"
 QSIAP = "qsiap@vixxo.com"
 SKIP_DEFAULT = {74250}  # manually vetted 2026-07-13
-
-SR_CTX_RE = re.compile(
-    r"(?:SR|service request|work order)[^\d]{0,40}(1[-\d]{10,18})",
-    re.I,
-)
-SR_RE = re.compile(r"\b(1[-\d]{10,18})\b")
-
-
-def normalize_sr(raw: str) -> str | None:
-    digits = re.sub(r"\D", "", raw or "")
-    if len(digits) == 11 and digits.startswith("1"):
-        core = digits[1:]
-    elif len(digits) == 10:
-        core = digits
-    else:
-        return None
-    return f"1-{core}"
 
 
 def blob(ticket: dict) -> str:
@@ -86,40 +69,6 @@ def blob(ticket: dict) -> str:
 
 def qsiap_gate(ticket: dict) -> bool:
     return QSIAP in blob(ticket)
-
-
-def extract_srs(text: str, phone: str | None) -> list[str]:
-    phone_digits = re.sub(r"\D", "", phone or "")[-10:]
-    found: list[str] = []
-    seen: set[str] = set()
-    for m in SR_CTX_RE.finditer(text):
-        sr = normalize_sr(m.group(1))
-        if sr and sr not in seen:
-            seen.add(sr)
-            found.append(sr)
-    for m in SR_RE.finditer(text):
-        sr = normalize_sr(m.group(1))
-        if not sr:
-            continue
-        if phone_digits and re.sub(r"\D", "", sr)[1:] == phone_digits:
-            continue
-        if sr not in seen:
-            seen.add(sr)
-            found.append(sr)
-    return found
-
-
-def enrich_voicemail_entities(ticket: dict, entities: dict) -> dict:
-    meta = extract_metadata(ticket)
-    caller = meta.get("caller") or "Not stated"
-    if caller not in ("Not stated", "Unknown", "WIRELESS CALLER"):
-        entities["contact_name"] = caller
-        entities["vetting_contact_name"] = caller
-    text = blob(ticket)
-    srs = extract_srs(text, meta.get("phone"))
-    if srs and not entities.get("sr_number"):
-        entities["sr_number"] = srs[0]
-    return entities
 
 
 def search_open(api_key: str, query: str, max_pages: int = 12) -> list[dict]:
@@ -196,6 +145,7 @@ def build_item(ticket: dict) -> dict:
         "sf_lead": sf.get("lead"),
         "sf_case": sf.get("case"),
         "sf_account": sf.get("account"),
+        "sf_contact": sf.get("contact"),
         "errors": sf.get("errors", []),
     }
 

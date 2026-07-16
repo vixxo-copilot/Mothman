@@ -329,6 +329,52 @@ def is_probable_person_name(name: str) -> bool:
     return len(parts) == 2 and all(p[0].isupper() for p in parts if p)
 
 
+def caller_is_person(caller: str) -> bool:
+    """True when 8x8 caller ID is a person, not a business name."""
+    cleaned = re.sub(r"\s+", " ", (caller or "").strip())
+    if not cleaned or cleaned.upper() in ("NOT STATED", "UNKNOWN", "WIRELESS CALLER"):
+        return False
+    if "," in cleaned:
+        return True
+    if is_probable_person_name(cleaned):
+        return True
+    parts = cleaned.split()
+    if len(parts) == 2 and cleaned.isupper():
+        return True
+    return False
+
+
+def caller_id_search_tokens(caller: str) -> list[str]:
+    """Search tokens for Gateway/SF contact-name lookup from 8x8 caller ID."""
+    cleaned = re.sub(r"\s+", " ", (caller or "").strip())
+    if not cleaned or cleaned.upper() in ("NOT STATED", "UNKNOWN", "WIRELESS CALLER"):
+        return []
+
+    tokens: list[str] = []
+    seen: set[str] = set()
+
+    def add(raw: str) -> None:
+        token = re.sub(r"\s+", " ", (raw or "").strip(" ,."))
+        key = token.lower()
+        if token and len(token) >= 3 and key not in seen:
+            seen.add(key)
+            tokens.append(token)
+
+    add(cleaned)
+    if "," in cleaned:
+        parts = [p.strip() for p in cleaned.split(",") if p.strip()]
+        for part in parts:
+            add(part)
+        if len(parts) >= 2:
+            add(f"{parts[1]} {parts[0]}")
+    else:
+        parts = cleaned.split()
+        if len(parts) >= 2:
+            add(parts[-1])
+            add(parts[0])
+    return tokens
+
+
 def is_generic_mailbox_name(name: str) -> bool:
     lower = (name or "").strip().lower()
     if not lower or lower in GENERIC_MAILBOX_NAMES:

@@ -5,7 +5,12 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from entity_extraction import company_search_variants, email_domain_search_tokens, is_internal_email
+from entity_extraction import (
+    caller_id_search_tokens,
+    company_search_variants,
+    email_domain_search_tokens,
+    is_internal_email,
+)
 from mcp_http import mcp_call, mcp_result_text
 
 GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
@@ -316,21 +321,24 @@ def gateway_find_sp(entities: dict) -> dict | None:
             return hit
 
     if contact_name and contact_name not in ("Not stated", ""):
-        rows = gateway_search_invoices(searchString=contact_name)
-        hit = _enrich_sp_hit(
-            pick_invoice_match(rows, name=contact_name, email=requester if requester != "Not stated" else None)
-        )
-        if hit:
-            return hit
-        parts = contact_name.split()
-        if len(parts) >= 2:
-            last = parts[-1]
-            if len(last) >= 3 and not _skip_gateway_search(last, last_name_only=True):
-                rows = gateway_search_invoices(searchString=last)
-                hit = _enrich_sp_hit(pick_invoice_match(rows, name=contact_name))
-                if hit:
-                    hit["source"] = f"gateway_search_invoices(last-name={last})"
-                    return hit
+        search_tokens = caller_id_search_tokens(contact_name)
+        if not search_tokens:
+            search_tokens = [contact_name]
+        for token in search_tokens:
+            if _skip_gateway_search(token, last_name_only=len(token.split()) == 1):
+                continue
+            rows = gateway_search_invoices(searchString=token)
+            hit = _enrich_sp_hit(
+                pick_invoice_match(
+                    rows,
+                    name=contact_name,
+                    email=requester if requester != "Not stated" else None,
+                )
+            )
+            if hit:
+                if token != contact_name:
+                    hit["source"] = f"gateway_search_invoices(contact-token={token})"
+                return hit
 
     return _gateway_find_sp_by_company(entities)
 

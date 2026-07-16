@@ -84,6 +84,46 @@ and `gateway_swm_get_provider`.
 
 ---
 
+## Symptom: Voicemail caller ID is a person name but posture is Unknown SP
+
+**Example:** FD **#74473** — caller ID **Hemmert**; known active SP **KS101094**.
+
+**Root causes:**
+
+1. **Batch REST / fast cron path** — `batch_process_freshdesk.py` does not call
+   Gateway, VixxoLink, or Salesforce. Internal notes say
+   `Unknown (batch REST — vetting deferred)` or `vetting skipped`.
+2. **Caller ID treated as company** — metadata set `company = caller`, so vetting
+   searched "Hemmert" as a company string instead of as **contact name** across
+   Gateway invoice rows and SF Contact/Lead.
+3. **LAST,FIRST caller ID not tokenized** — `HEMMERT,JOHN` was not split into
+   searchable last-name tokens before Gateway lookup.
+4. **SF Contact name path missing** — Lead-by-name ran, but Contact → Account
+   → `Service_Provider_Number__c` bootstrap was not attempted.
+
+**Fix (interactive / re-vet):**
+
+1. Run contact-name vetting with Gateway + SF MCP enabled:
+
+   ```bash
+   python .agents/skills/sp-inbound-vetting/scripts/live_run_ksonboarding_voicemails.py \
+     --ticket 74473 --dry-run
+   ```
+
+2. Confirm searches use caller ID tokens (`Hemmert`, `HEMMERT,JOHN` → `Hemmert`,
+   `JOHN`, `JOHN HEMMERT`):
+   - `gateway_search_invoices(searchString=Hemmert)` → KS101094
+   - SF Contact `LastName LIKE '%Hemmert%'` → Account → KS101094
+3. Re-apply with `--re-vet` when posture is **Known SP**; set `cf_sp` to
+   `KS101094 - {Gateway display name}`.
+
+**Skill behavior (2026-07-16):** Voicemail batch metadata no longer sets
+`company = caller` when caller ID is a person name. Use
+`voicemail_entities.enrich_voicemail_entities` + `caller_id_search_tokens` before
+Gateway/SF lookup.
+
+---
+
 ## Symptom: Company extracted but still `unknown-sp`
 
 **Expected when:** Gateway unreachable in batch shell, or SP not yet in Siebel.

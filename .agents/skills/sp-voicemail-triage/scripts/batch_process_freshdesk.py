@@ -17,6 +17,17 @@ from html import unescape
 from pathlib import Path
 from typing import Any
 
+_VETTING_SCRIPTS = Path(__file__).resolve().parents[2] / "sp-inbound-vetting" / "scripts"
+if str(_VETTING_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_VETTING_SCRIPTS))
+
+try:
+    from entity_extraction import caller_is_person  # noqa: E402
+except ImportError:
+    def caller_is_person(caller: str) -> bool:  # type: ignore[misc]
+        cleaned = (caller or "").strip()
+        return bool(cleaned and "," in cleaned)
+
 from transcribe_voicemail import TRANSCRIPT_SOURCE, transcribe_ticket
 
 DEFAULT_DOMAIN = "vixxo-helpdesk.freshdesk.com"
@@ -226,11 +237,17 @@ def extract_metadata(ticket: dict) -> dict[str, str | None]:
     if dm:
         duration = dm.group(1)
 
+    caller_label = caller or "Not stated"
+    if caller and not caller_is_person(caller) and caller.upper() != "WIRELESS CALLER":
+        company = caller
+    else:
+        company = "Not stated"
+
     return {
-        "caller": caller or "Not stated",
+        "caller": caller_label,
         "phone": phone or "Not stated",
         "duration": duration or "Unknown",
-        "company": caller if caller and caller.upper() != "WIRELESS CALLER" else "Not stated",
+        "company": company,
     }
 
 

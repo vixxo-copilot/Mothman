@@ -93,6 +93,12 @@ LIMIT 10
 
 Run phone and contact-name predicates even when company is `Not stated`.
 
+**Voicemail caller ID:** When the 8x8 notification carries a person name in the
+subject/body (e.g. `HEMMERT,JOHN`), treat it as **contact name** — not company.
+Tokenize with `caller_id_search_tokens` and search Gateway invoice rows and SF
+Contact before declaring Unknown. Helper:
+`sp-inbound-vetting/scripts/voicemail_entities.py`.
+
 ### Case search
 
 ```sql
@@ -131,8 +137,13 @@ SELECT Id, Name, Email, Phone, AccountId
 FROM Contact
 WHERE Phone LIKE '%{last10_digits}%'
    OR MobilePhone LIKE '%{last10_digits}%'
+   OR Name LIKE '%{contact_name}%'
+   OR LastName LIKE '%{contact_name}%'
 LIMIT 5
 ```
+
+When Contact matches, resolve linked Account and read
+`Service_Provider_Number__c` (KS#####) — re-run Gateway with that KS number.
 
 Prefer the most recently modified Lead when multiple Leads match. Capture
 **Lead Id**, **Case Number**, and **Account Id** in the triage packet.
