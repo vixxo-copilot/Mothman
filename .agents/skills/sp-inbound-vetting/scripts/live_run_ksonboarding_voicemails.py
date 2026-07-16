@@ -12,16 +12,19 @@ Requires:
 Examples:
   python live_run_ksonboarding_voicemails.py --ticket 74473 --dry-run
   python live_run_ksonboarding_voicemails.py --ticket 74473 --re-vet
+  python live_run_ksonboarding_voicemails.py --revet-errors --dry-run
+  python live_run_ksonboarding_voicemails.py --revet-errors --re-vet
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -33,6 +36,7 @@ from batch_process_freshdesk import (  # noqa: E402
     http_json,
     is_voicemail_ticket,
     load_credentials,
+    strip_html,
 )
 from dry_run_batch import (  # noqa: E402
     extract_company,
@@ -46,10 +50,15 @@ from live_run_batch import OUT_DIR, apply_item  # noqa: E402
 from voicemail_entities import enrich_voicemail_entities  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
-QUERY = "group_id:159000485013 AND status:2 AND type:'KSOnboarding'"
+SPM_GROUP = "159000485013"
+QUERY_OPEN = f"group_id:{SPM_GROUP} AND status:2 AND type:'KSOnboarding'"
+VETTING_DEFERRED_RE = re.compile(
+    r"vetting deferred|vetting skipped|Entity posture:\*\* Unknown",
+    re.I,
+)
 
 
-def search_open(api_key: str, query: str, max_pages: int = 11) -> list[dict]:
+def search_tickets(api_key: str, query: str, max_pages: int = 11) -> list[dict]:
     out: list[dict] = []
     for page in range(1, max_pages + 1):
         params = {"query": f'"{query}"', "page": str(page)}
@@ -64,20 +73,73 @@ def search_open(api_key: str, query: str, max_pages: int = 11) -> list[dict]:
     return out
 
 
-def discover_ksonboarding_voicemails(api_key: str) -> list[dict]:
-    tickets: list[dict] = []
-    for row in search_open(api_key, QUERY):
-        if not is_voicemail_ticket(row):
-            continue
-        tid = int(row["id"])
-        tickets.append(
-            http_json(
-                "GET",
-                f"/api/v2/tickets/{tid}?include=requester,conversations",
-                api_key,
-            )
+def fetch_ticket(api_key: str, ticket_id: int) -> dict:
+    return http_json(
+        "GET",
+        f"/api/v2/tickets/{ticket_id}?include=requester,conversations",
+        api_key,
+    )
+
+
+def is_unknown_sp_ticket(ticket: dict) -> bool:
+    tags = {str(t).lower() for t in (ticket.get("tags") or [])}
+    cf_sp = str((ticket.get("custom_fields") or {}).get("cf_sp") or "").strip()
+    if "unknown-sp" in tags:
+        return True
+    if cf_sp.lower() in ("unknown", ""):
+        return True
+    return False
+
+
+def note_indicates_deferred_vetting(ticket: dict) -> bool:
+    parts = [
+        ticket.get("description_text") or strip_html(ticket.get("description") or ""),
+    ]
+    for conv in ticket.get("conversations") or []:
+        if conv.get("private"):
+            parts.append(conv.get("body_text") or strip_html(conv.get("body") or ""))
+    blob = "\n".join(parts)
+    return bool(VETTING_DEFERRED_RE.search(blob))
+
+
+def discover_ksonboarding_voicemails(api_key: str, *, include_resolved: bool = False) -> list[dict]:
+    queries = [QUERY_OPEN]
+    if include_resolved:
+        since = (datetime.now(timezone.utc) - timedelta(days=45)).strftime("%Y-%m-%d")
+        queries.append(
+            f"group_id:{SPM_GROUP} AND status:5 AND type:'KSOnboarding' AND updated_at:>'{since}'"
         )
-    return tickets
+    by_id: dict[int, dict] = {}
+    for query in queries:
+        for row in search_tickets(api_key, query):
+            if not is_voicemail_ticket(row):
+                continue
+            tid = int(row["id"])
+            if tid not in by_id:
+                by_id[tid] = fetch_ticket(api_key, tid)
+    return list(by_id.values())
+
+
+def discover_revet_error_candidates(api_key: str) -> list[dict]:
+    """Voicemails likely mis-vetted: unknown-sp tag, cf_sp Unknown, or deferred vetting note."""
+    since = (datetime.now(timezone.utc) - timedelta(days=45)).strftime("%Y-%m-%d")
+    queries = [
+        f"group_id:{SPM_GROUP} AND type:'KSOnboarding' AND tag:'unknown-sp' AND updated_at:>'{since}'",
+        QUERY_OPEN,
+        f"group_id:{SPM_GROUP} AND status:5 AND type:'KSOnboarding' AND updated_at:>'{since}'",
+    ]
+    by_id: dict[int, dict] = {}
+    for query in queries:
+        for row in search_tickets(api_key, query):
+            if not is_voicemail_ticket(row):
+                continue
+            tid = int(row["id"])
+            if tid in by_id:
+                continue
+            ticket = fetch_ticket(api_key, tid)
+            if is_unknown_sp_ticket(ticket) or note_indicates_deferred_vetting(ticket):
+                by_id[tid] = ticket
+    return list(by_id.values())
 
 
 def build_item(ticket: dict) -> dict:
@@ -128,23 +190,39 @@ def build_item(ticket: dict) -> dict:
 def load_tickets(api_key: str, ticket_ids: list[int]) -> list[dict]:
     tickets: list[dict] = []
     for tid in ticket_ids:
-        ticket = http_json(
-            "GET",
-            f"/api/v2/tickets/{tid}?include=requester,conversations",
-            api_key,
-        )
+        ticket = fetch_ticket(api_key, tid)
         if not is_voicemail_ticket(ticket):
             raise SystemExit(f"ERROR: #{tid} is not a New voicemail KSOnboarding ticket")
         tickets.append(ticket)
     return tickets
 
 
+def print_item_line(item: dict, *, prefix: str = "") -> None:
+    gw = item.get("gateway_sp") or {}
+    print(
+        f"{prefix}#{item['ticket_id']} {item['posture']} "
+        f"contact={item.get('vetting_contact_name')} "
+        f"tokens={item.get('caller_id_tokens')} "
+        f"gw={gw.get('sp_number')} "
+        f"cf_sp→{item.get('cf_sp_target')}"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Vet KSOnboarding voicemails with contact-name search")
     parser.add_argument("--ticket", type=int, action="append", dest="tickets", help="Freshdesk ticket id(s)")
-    parser.add_argument("--re-vet", action="store_true", help="Include sp-vetted tickets in batch mode")
+    parser.add_argument(
+        "--revet-errors",
+        action="store_true",
+        help="Re-vet voicemails tagged unknown-sp, cf_sp Unknown, or with deferred vetting notes",
+    )
+    parser.add_argument("--re-vet", action="store_true", help="Apply writes (required with --revet-errors live apply)")
     parser.add_argument("--dry-run", action="store_true", help="Vet only; no Freshdesk writes")
     args = parser.parse_args()
+
+    if args.revet_errors and not args.dry_run and not args.re_vet:
+        print("ERROR: --revet-errors live apply requires --re-vet", file=sys.stderr)
+        return 2
 
     api = load_credentials()
     gw_health = gateway_health_check()
@@ -154,8 +232,10 @@ def main() -> int:
 
     if args.tickets:
         tickets = load_tickets(api, args.tickets)
+    elif args.revet_errors:
+        tickets = discover_revet_error_candidates(api)
     else:
-        tickets = discover_ksonboarding_voicemails(api)
+        tickets = discover_ksonboarding_voicemails(api, include_resolved=False)
         if not args.re_vet:
             tickets = [
                 t
@@ -165,15 +245,22 @@ def main() -> int:
             ]
 
     items = [build_item(ticket) for ticket in tickets]
+    corrected = [
+        item
+        for item in items
+        if str(item["posture"]).startswith("Known SP")
+        and (
+            str(item.get("cf_sp_current") or "").lower() in ("unknown", "")
+            or "unknown-sp" in [str(t).lower() for t in (ticket_tags(tickets, item["ticket_id"]))]
+        )
+    ]
+    still_unknown = [item for item in items if item["posture"] == "Unknown / Not in systems"]
+
     results: list[dict] = []
     if args.dry_run:
+        print(f"=== Re-vet dry-run — {len(items)} voicemail(s) ===")
         for item in items:
-            print(
-                f"#{item['ticket_id']} {item['posture']} "
-                f"contact={item.get('vetting_contact_name')} "
-                f"tokens={item.get('caller_id_tokens')} "
-                f"gw={((item.get('gateway_sp') or {}).get('sp_number'))}"
-            )
+            print_item_line(item)
             results.append(
                 {
                     "ticket_id": item["ticket_id"],
@@ -185,6 +272,10 @@ def main() -> int:
                     "dry_run": True,
                 }
             )
+        if corrected:
+            print(f"\n=== Corrections available ({len(corrected)}) ===")
+            for item in corrected:
+                print_item_line(item, prefix="FIX ")
     else:
         for item in items:
             result = apply_item(api, item)
@@ -194,20 +285,47 @@ def main() -> int:
     known = sum(1 for item in items if str(item["posture"]).startswith("Known SP"))
     summary = {
         "mode": "dry-run" if args.dry_run else "live",
+        "revet_errors": args.revet_errors,
         "ticket_ids": [int(t["id"]) for t in tickets],
         "vetted": len(items),
         "known_sp": known,
+        "corrected_candidates": [i["ticket_id"] for i in corrected],
+        "still_unknown": [i["ticket_id"] for i in still_unknown],
         "gateway_health": gw_health,
         "run_at": datetime.now(timezone.utc).isoformat(),
         "results": results,
     }
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    out = OUT_DIR / f"live-run-ksonboarding-voicemails-{stamp}.json"
+    label = "revet-errors" if args.revet_errors else "ksonboarding-voicemails"
+    out = OUT_DIR / f"live-run-{label}-{stamp}.json"
     out.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
-    print(json.dumps({k: summary[k] for k in ("mode", "ticket_ids", "vetted", "known_sp", "run_at")}, indent=2))
+    print(
+        json.dumps(
+            {
+                k: summary[k]
+                for k in (
+                    "mode",
+                    "revet_errors",
+                    "vetted",
+                    "known_sp",
+                    "corrected_candidates",
+                    "still_unknown",
+                    "run_at",
+                )
+            },
+            indent=2,
+        )
+    )
     print(f"Wrote {out}")
     return 0
+
+
+def ticket_tags(tickets: list[dict], ticket_id: int) -> list[str]:
+    for ticket in tickets:
+        if int(ticket.get("id") or 0) == int(ticket_id):
+            return list(ticket.get("tags") or [])
+    return []
 
 
 if __name__ == "__main__":

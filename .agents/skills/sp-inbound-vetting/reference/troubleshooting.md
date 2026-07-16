@@ -117,6 +117,18 @@ and `gateway_swm_get_provider`.
 3. Re-apply with `--re-vet` when posture is **Known SP**; set `cf_sp` to
    `KS101094 - {Gateway display name}`.
 
+**Batch re-vet (all likely errors, last 45 days):**
+
+```bash
+python .agents/skills/sp-inbound-vetting/scripts/live_run_ksonboarding_voicemails.py \
+  --revet-errors --dry-run
+python .agents/skills/sp-inbound-vetting/scripts/live_run_ksonboarding_voicemails.py \
+  --revet-errors --re-vet
+```
+
+Scans KSOnboarding voicemails with `unknown-sp` tag, `cf_sp` Unknown, or internal
+notes containing `vetting deferred` / `vetting skipped`.
+
 **Skill behavior (2026-07-16):** Voicemail batch metadata no longer sets
 `company = caller` when caller ID is a person name. Use
 `voicemail_entities.enrich_voicemail_entities` + `caller_id_search_tokens` before
