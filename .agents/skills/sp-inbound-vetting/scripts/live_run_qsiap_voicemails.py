@@ -224,13 +224,20 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
     return result
 
 
-def load_enriched_items(data_path: Path, skip: set[int]) -> list[dict]:
+def load_enriched_items(
+    data_path: Path, skip: set[int], api_key: str, re_vet: bool
+) -> list[dict]:
     data = json.loads(data_path.read_text(encoding="utf-8"))
     items: list[dict] = []
     for item in data.get("items") or []:
         tid = int(item["ticket_id"])
         if tid in skip:
             continue
+        if not re_vet:
+            ticket = get_ticket(api_key, tid)
+            tags = ticket.get("tags") or []
+            if "sp-vetted" in tags or "vetting-complete" in tags:
+                continue
         items.append(item)
     return items
 
@@ -261,7 +268,7 @@ def main() -> int:
         return 1
 
     if args.data:
-        items = load_enriched_items(args.data, skip)
+        items = load_enriched_items(args.data, skip, api, args.re_vet)
         tickets: list[dict] = []
     else:
         tickets = discover_qsiap_voicemails(api)

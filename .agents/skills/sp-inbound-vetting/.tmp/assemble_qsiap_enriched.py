@@ -88,6 +88,25 @@ def phone_digits(value: str | None) -> str:
     return digits[-10:] if len(digits) >= 10 else digits
 
 
+def is_phone_as_sr(sr: str | None, phone: str | None) -> bool:
+    pd = phone_digits(phone)
+    if len(pd) < 10:
+        return False
+    sd = phone_digits(sr)
+    return bool(sd) and sd == pd
+
+
+def strip_phone_as_sr_fields(item: dict) -> dict:
+    phone = item.get("phone")
+    out = dict(item)
+    if is_phone_as_sr(out.get("sr_number"), phone):
+        out["sr_number"] = None
+    out["sr_numbers"] = [
+        sr for sr in (out.get("sr_numbers") or []) if not is_phone_as_sr(sr, phone)
+    ]
+    return out
+
+
 def normalize_company_key(name: str) -> str:
     return re.sub(r"[^\w\s]", "", (name or "").lower())
 
@@ -152,6 +171,7 @@ def posture(gw: dict | None, sf: dict, company: str, cf_current: str | None) -> 
 
 
 def enrich(item: dict) -> dict:
+    item = strip_phone_as_sr_fields(item)
     company = clean(item.get("company")) or "Not stated"
     sf = sf_lookup(item)
     gw = gateway_lookup(item)
