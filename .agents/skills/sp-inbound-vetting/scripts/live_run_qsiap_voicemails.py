@@ -224,36 +224,72 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
     return result
 
 
+def load_enriched_items(
+    data_path: Path,
+    skip: set[int],
+    api_key: str,
+    re_vet: bool,
+    dry_run: bool = False,
+) -> list[dict]:
+    data = json.loads(data_path.read_text(encoding="utf-8"))
+    items: list[dict] = []
+    for item in data.get("items") or []:
+        tid = int(item["ticket_id"])
+        if tid in skip:
+            continue
+        if not re_vet and not dry_run:
+            try:
+                ticket = get_ticket(api_key, tid)
+            except urllib.error.HTTPError:
+                continue
+            tags = ticket.get("tags") or []
+            if "sp-vetted" in tags or "vetting-complete" in tags:
+                continue
+        items.append(item)
+    return items
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Vet open qsiap AP voicemails")
+    parser.add_argument(
+        "--data",
+        type=Path,
+        help="Gateway+SF enriched JSON (skip live Gateway/SF lookups)",
+    )
     parser.add_argument(
         "--skip",
         type=int,
         nargs="*",
-        default=sorted(SKIP_DEFAULT),
-        help="Ticket IDs to skip (default: 74250)",
+        default=None,
+        help="Ticket IDs to skip (default: 74250 for discovery; none for --data)",
     )
     parser.add_argument("--re-vet", action="store_true", help="Include sp-vetted tickets")
     parser.add_argument("--dry-run", action="store_true", help="Vet only; no FD writes")
     args = parser.parse_args()
-    skip = set(args.skip or [])
+    skip = set(args.skip if args.skip is not None else ([] if args.data else SKIP_DEFAULT))
 
     api = load_credentials()
     gw_health = gateway_health_check()
-    if not gw_health.get("ok"):
+    if not args.data and not gw_health.get("ok"):
         print(json.dumps({"error": "Gateway unavailable", "health": gw_health}, indent=2))
         return 1
 
-    tickets = discover_qsiap_voicemails(api)
-    items: list[dict] = []
-    for ticket in tickets:
-        tid = int(ticket["id"])
-        if tid in skip:
-            continue
-        tags = ticket.get("tags") or []
-        if not args.re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
-            continue
-        items.append(build_item(ticket))
+    if args.data:
+        items = load_enriched_items(
+            args.data, skip, api, args.re_vet, dry_run=args.dry_run
+        )
+        tickets: list[dict] = []
+    else:
+        tickets = discover_qsiap_voicemails(api)
+        items = []
+        for ticket in tickets:
+            tid = int(ticket["id"])
+            if tid in skip:
+                continue
+            tags = ticket.get("tags") or []
+            if not args.re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
+                continue
+            items.append(build_item(ticket))
 
     results = []
     if args.dry_run:
@@ -266,8 +302,9 @@ def main() -> int:
 
     known = sum(1 for i in items if i["posture"].startswith("Known SP"))
     summary = {
-        "mode": "dry-run" if args.dry_run else "live",
-        "discovered": len(tickets),
+        "mode": "dry-run" if args.dry_run else ("gateway-enriched" if args.data else "live"),
+        "data": str(args.data) if args.data else None,
+        "discovered": len(tickets) if not args.data else len(items),
         "vetted": len(items),
         "skipped_ids": sorted(skip),
         "known_sp": known,
