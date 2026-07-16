@@ -234,7 +234,10 @@ def load_enriched_items(
         if tid in skip:
             continue
         if not re_vet:
-            ticket = get_ticket(api_key, tid)
+            try:
+                ticket = get_ticket(api_key, tid)
+            except urllib.error.HTTPError:
+                continue
             tags = ticket.get("tags") or []
             if "sp-vetted" in tags or "vetting-complete" in tags:
                 continue
