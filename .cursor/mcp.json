@@ -2,27 +2,24 @@
   "mcpServers": {
     "business-objects": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/bo-universe"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "business-objects"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "chatfpt": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/chatfpt"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "chatfpt"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "dynamics365": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/dynamics365"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "dynamics365"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "freshdesk": {
       "args": [],
@@ -44,11 +41,10 @@
     },
     "gateway": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/gateway"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "gateway"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "github": {
       "args": [
@@ -66,11 +62,10 @@
     },
     "gong-transact": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://transact.vixxo.com/mcp/gong"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "gong-transact"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "hubspot": {
       "url": "https://mcp.hubspot.com"
@@ -94,11 +89,10 @@
     },
     "powerbi-prod": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/powerbi"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "powerbi-prod"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "salesforce": {
       "args": [],
@@ -117,19 +111,17 @@
     },
     "vixxolink": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxolink"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "vixxolink"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "vixxonow": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxonow"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "vixxonow"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"

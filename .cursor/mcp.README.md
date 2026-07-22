@@ -122,17 +122,22 @@ in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
 **Purpose:** Internal Vixxo read/write tools via `https://vixxonow.com/mcp/*`.
 
-**Transport:** local stdio via `npx mcp-remote` (direct HTTP endpoint in
-`.cursor/mcp.json`; no token pre-check wrapper).
+**Transport:** local stdio via `.cursor/bin/run-vixxo-http-mcp.py`, which wraps
+`npx mcp-remote` and injects a Bearer token header.
 
-**Auth:** If the endpoint requires a Bearer token, add it via Cursor HTTP MCP
-OAuth or extend the `mcp-remote` args with
-`--header Authorization:Bearer <token>`. Optional token storage (for scripts/skills):
+**Auth:** Bearer token required. The gateway endpoint rejects unauthenticated
+requests (`Bearer token required for MCP gateway`). Store your token in one of:
 
-- `~/.vixxo/vixxolink_api_token` (recommended)
+- `~/.vixxo/gateway_api_token` (recommended for gateway)
+- `~/.vixxo/vixxolink_api_token` (shared across Vixxo HTTP MCPs)
 - `~/.vixxo/vixxonow_api_token`
-- `~/.vixxo/gateway_api_token`
-- or `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+- or `GATEWAY_API_TOKEN` / `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+
+The launcher falls back across those names so one token file can cover multiple
+servers when your Vixxo account uses a shared API token.
+
+**Windows:** if `python3` is not on PATH, point `.cursor/mcp.json` at
+`.cursor/bin/run-vixxo-http-mcp.cmd` instead (same args).
 
 After auth changes, open **Cursor Settings → MCP** and restart the affected
 servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
