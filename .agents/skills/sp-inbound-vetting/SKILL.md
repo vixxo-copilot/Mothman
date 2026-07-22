@@ -171,6 +171,7 @@ See [reference/examples.md](reference/examples.md).
 
 ### Actions taken
 - **SF Case/Lead Task:** {Id + posted | N/A | failed}
+- **Case Account update:** {AccountId set to SP Account | skipped — already correct | failed}
 - **Internal note (FD):** {posted | N/A | failed}
 - **cf_sp + tags (FD):** {updated | N/A | skipped}
 - **Recommended forward:** {aphelp@vixxo.com — draft for approval | none}
@@ -193,6 +194,10 @@ See [reference/examples.md](reference/examples.md).
    - Post **Task** on matched Lead when Lead found.
    - Include routing recommendation (stay vs forward to AP Help) in Task body.
    - Do **not** auto-forward — surface draft forward language for operator approval.
+   - **Update Case `AccountId`** when posture is **Known SP** and Salesforce
+     Account resolves — replace Vixxo / SP Support shell placeholders with the
+     matched provider Account ([salesforce-notes.md](reference/salesforce-notes.md)).
+     Post a short audit Task when AccountId changes.
 6. **Document (AP Help — Freshdesk):**
    - Post Freshdesk internal note —
      [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md).
@@ -232,6 +237,7 @@ Vetting progress — {Case or ticket id}:
 - [ ] Salesforce Lead search complete (company + contact name + email)
 - [ ] Salesforce Case search complete
 - [ ] SF Case/Lead Task posted (SF-primary queues)
+- [ ] Case AccountId updated when Known SP Account resolved
 - [ ] Internal note posted (AP Help / when FD ticket exists)
 - [ ] cf_sp + sp-vetted tag updated (AP Help only)
 - [ ] Forward recommendation drafted (when routing table matches — no auto-send)

@@ -104,7 +104,9 @@ When vetting an open queue Case:
 
 Document on the **queue Case** via Task even when a related Lead also matches.
 
-
+When posture is **Known SP** and this search returns an Account Id, also update
+the queue Case `AccountId` if it is blank or still on a Vixxo / SP Support shell
+placeholder — see [salesforce-notes.md](salesforce-notes.md).
 
 ## Contact email — Gateway
 

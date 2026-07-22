@@ -19,6 +19,10 @@ sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"
 from batch_process_freshdesk import http_json, load_credentials  # noqa: E402
 from gateway_vetting import gateway_health_check  # noqa: E402
 from queue_config import resolve_queues  # noqa: E402
+from sf_case_account import (  # noqa: E402
+    should_update_case_account,
+    update_case_account,
+)
 
 OUT_DIR = SCRIPT_DIR.parent / ".tmp" / "live-run"
 FD_LINK = "https://vixxo-helpdesk.freshdesk.com/a/tickets/{tid}"
@@ -231,6 +235,7 @@ def apply_item(api_key: str, item: dict) -> dict:
         "sf_task": "N/A",
         "sf_lead_task": "N/A",
         "sf_case_task": "N/A",
+        "sf_case_account": "N/A",
         "error": None,
     }
     try:
@@ -253,9 +258,24 @@ def apply_item(api_key: str, item: dict) -> dict:
         lead_task = create_sf_lead_task(tid, item, lead["Id"])
 
     case_task = "N/A"
+    case_account_update = "N/A"
     case = item.get("sf_case")
+    account = item.get("sf_account")
     if case and case.get("Id"):
         case_task = create_sf_case_task(tid, item, case["Id"])
+        account_id = (account or {}).get("Id")
+        if should_update_case_account(
+            item.get("posture", ""),
+            case.get("AccountId"),
+            account_id,
+        ):
+            case_account_update = update_case_account(
+                case["Id"],
+                account_id,
+                case_number=case.get("CaseNumber"),
+                posture=item.get("posture", "Known SP"),
+                account=account,
+            )
 
     note_body = build_note(tid, item, cf_sp_value, new_tags, lead_task, case_task)
     try:
@@ -283,6 +303,7 @@ def apply_item(api_key: str, item: dict) -> dict:
     out["sf_task"] = lead_task
     out["sf_lead_task"] = lead_task
     out["sf_case_task"] = case_task
+    out["sf_case_account"] = case_account_update
     return out
 
 
