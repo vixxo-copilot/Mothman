@@ -39,13 +39,35 @@ def check_cmd(name: str) -> bool:
     return False
 
 
+def has_oauth_token(server_url: str) -> bool:
+    scripts = ROOT / ".agents" / "skills" / "sp-inbound-vetting" / "scripts"
+    if not (scripts / "mcp_oauth.py").is_file():
+        return False
+    sys.path.insert(0, str(scripts))
+    try:
+        from mcp_oauth import oauth_access_token
+
+        return bool(oauth_access_token(server_url))
+    except Exception:
+        return False
+    finally:
+        if str(scripts) in sys.path:
+            sys.path.remove(str(scripts))
+
+
 def main() -> int:
     results: list[dict] = []
 
     checks = [
         ("freshdesk", has_secret("FRESHDESK_API_KEY", "FRESHDESK_TOKEN"), "freshdesk_token in ~/.vixxo or FRESHDESK_API_KEY in .env"),
         ("freshservice", has_secret("FRESHSERVICE_API_KEY"), "freshservice_api_key in ~/.vixxo"),
-        ("gateway/vixxolink/vixxonow", has_secret("VIXXOLINK_API_TOKEN", "GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"), "vixxolink_api_token or vixxonow_api_token in ~/.vixxo"),
+        (
+            "gateway/vixxolink/vixxonow",
+            has_secret("GATEWAY_API_TOKEN", "VIXXOLINK_API_TOKEN", "VIXXONOW_API_TOKEN")
+            or has_oauth_token("https://vixxonow.com/mcp/gateway")
+            or has_oauth_token("https://vixxonow.com/mcp/vixxolink"),
+            "Cursor MCP OAuth for gateway/vixxolink (Settings → MCP), or gateway_api_token in ~/.vixxo",
+        ),
         ("salesforce CLI", check_cmd("sf"), "npm install -g @salesforce/cli && sf org login web"),
         ("github MCP binary", (ROOT / ".cursor" / "bin" / "github-mcp-server.exe").is_file(), "see .cursor/mcp.README.md § GitHub"),
         ("node/npx", check_cmd("npx"), "install Node.js"),

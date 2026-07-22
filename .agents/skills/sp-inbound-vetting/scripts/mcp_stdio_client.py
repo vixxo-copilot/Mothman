@@ -50,7 +50,13 @@ def _parse_response_line(line: str) -> dict | None:
         return None
 
 
-def mcp_stdio_call(base_url: str, tool_name: str, arguments: dict | None = None) -> Any:
+def mcp_stdio_call(
+    base_url: str,
+    tool_name: str,
+    arguments: dict | None = None,
+    *,
+    wait_timeout: float = 45.0,
+) -> Any:
     """One-shot MCP tools/call over mcp-remote stdio."""
     cmd = _npx_cmd() + [base_url]
     proc = subprocess.Popen(
@@ -112,8 +118,8 @@ def mcp_stdio_call(base_url: str, tool_name: str, arguments: dict | None = None)
     )
     proc.stdin.close()
 
-    done.wait(timeout=180)
-    proc.wait(timeout=30)
+    done.wait(timeout=wait_timeout)
+    proc.wait(timeout=10)
     t_out.join(timeout=5)
     t_err.join(timeout=5)
 

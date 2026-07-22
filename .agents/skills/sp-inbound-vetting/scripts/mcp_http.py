@@ -63,20 +63,42 @@ def _token() -> str | None:
     return None
 
 
+def _token_for_url(base_url: str) -> str | None:
+    """Resolve bearer for a Vixxo HTTP MCP URL (env token, then OAuth cache)."""
+    token = _token()
+    if token:
+        return token
+    try:
+        from mcp_oauth import oauth_access_token
+
+        return oauth_access_token(base_url)
+    except ImportError:
+        return None
+
+
 def _stdio_fallback(base_url: str, tool_name: str, arguments: dict | None) -> Any:
     try:
+        from mcp_oauth import oauth_access_token
+
+        if not oauth_access_token(base_url):
+            return {
+                "error": (
+                    "Gateway/Vixxo MCP OAuth not configured. Connect gateway in "
+                    "Cursor Settings → MCP (url OAuth, no API token), then retry."
+                )
+            }
         from mcp_stdio_client import mcp_stdio_call
 
-        return mcp_stdio_call(base_url, tool_name, arguments)
+        return mcp_stdio_call(base_url, tool_name, arguments, wait_timeout=45.0)
     except Exception as exc:  # noqa: BLE001
         return {"error": f"MCP stdio fallback failed: {exc}"}
 
 
 def mcp_call(base_url: str, tool_name: str, arguments: dict | None = None) -> Any:
     _load_env()
-    token = _token()
+    token = _token_for_url(base_url)
     if not token:
-        # Shell scripts lack Cursor MCP OAuth; stdio fallback usually fails outside Cursor.
+        # No static token or cached OAuth — delegate to mcp-remote stdio (Cursor OAuth).
         return _stdio_fallback(base_url, tool_name, arguments)
 
     payload = {

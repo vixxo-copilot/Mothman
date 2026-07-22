@@ -1,28 +1,13 @@
 {
   "mcpServers": {
     "business-objects": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/bo-universe"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/bo-universe"
     },
     "chatfpt": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/chatfpt"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/chatfpt"
     },
     "dynamics365": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/dynamics365"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/dynamics365"
     },
     "freshdesk": {
       "args": [],
@@ -43,12 +28,7 @@
       }
     },
     "gateway": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/gateway"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/gateway"
     },
     "github": {
       "args": [
@@ -65,12 +45,7 @@
       "command": "npx"
     },
     "gong-transact": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://transact.vixxo.com/mcp/gong"
-      ],
-      "command": "npx"
+      "url": "https://transact.vixxo.com/mcp/gong"
     },
     "hubspot": {
       "url": "https://mcp.hubspot.com"
@@ -93,12 +68,7 @@
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "powerbi-prod": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/powerbi"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/powerbi"
     },
     "salesforce": {
       "args": [],
@@ -116,20 +86,10 @@
       "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-smartsheet-mcp.cmd"
     },
     "vixxolink": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxolink"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/vixxolink"
     },
     "vixxonow": {
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxonow"
-      ],
-      "command": "npx"
+      "url": "https://vixxonow.com/mcp/vixxonow"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"
