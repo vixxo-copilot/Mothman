@@ -9,6 +9,13 @@ Usage
       --window-start 2026-06-24T18:00:00Z \\
       --sf-cache .tmp/sf-cases-window-20260625.json \\
       --output .tmp/fd-sf-duplicate-scan.json
+
+    # AP voicemails land on qsiap@vixxo.com (8x8 ext 4054), not aphelp — use:
+    python scan_duplicates.py \\
+      --window-start 2026-07-01T00:00:00Z \\
+      --sf-cache .tmp/sf-cases-window.json \\
+      --include-qsiap-voicemail \\
+      --output .tmp/fd-sf-duplicate-scan-qsiap.json
 """
 
 from __future__ import annotations
@@ -18,14 +25,21 @@ import base64
 import json
 import os
 import re
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+TRIAGE_SCRIPTS = Path(__file__).resolve().parents[2] / "sp-voicemail-triage" / "scripts"
+if str(TRIAGE_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(TRIAGE_SCRIPTS))
+from batch_process_freshdesk import extract_metadata, is_voicemail_ticket, strip_html  # noqa: E402
+
 DOMAIN = os.environ.get("FRESHDESK_DOMAIN", "vixxo-helpdesk.freshdesk.com").strip()
 SPM_GROUP_ID = 159000485013
+QSIAP = "qsiap@vixxo.com"
 USER_AGENT = "sp-fd-sf-duplicate-bridge/1.0"
 
 
@@ -262,6 +276,94 @@ def search_fd_coi_in_window(api_key: str, window_start: datetime, window_end: da
     return merged
 
 
+def search_fd_qsiap_voicemail_in_window(
+    api_key: str,
+    window_start: datetime,
+    window_end: datetime,
+) -> list[dict]:
+    """Pull qsiap AP voicemails in a created_at window — bypasses FD 300-cap via type slices."""
+    merged: list[dict] = []
+    seen: set[int] = set()
+    queries = (
+        f"group_id:{SPM_GROUP_ID} AND status:2 AND type:'Invoice Support'",
+        f"group_id:{SPM_GROUP_ID} AND status:2 AND type:null",
+    )
+    for filter_expr in queries:
+        for row in _search_fd_filter(api_key, window_start, window_end, filter_expr):
+            tid = int(row["id"])
+            if tid in seen:
+                continue
+            if not is_voicemail_ticket(row):
+                continue
+            ticket = resolve_ticket_for_qsiap(api_key, row)
+            if not is_qsiap_ap_voicemail(ticket):
+                continue
+            seen.add(tid)
+            merged.append(ticket)
+    merged.sort(key=lambda x: x.get("created_at") or "")
+    return merged
+
+
+def _search_fd_open(api_key: str, filter_expr: str, max_pages: int = 15) -> tuple[list[dict], bool]:
+    """Freshdesk search without created_at bounds (open backlog scans)."""
+    seen: set[int] = set()
+    out: list[dict] = []
+    truncated = False
+    for page in range(1, max_pages + 1):
+        params = {"query": format_search_query(filter_expr), "page": str(page)}
+        url = f"https://{DOMAIN}/api/v2/search/tickets?" + urllib.parse.urlencode(params)
+        req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
+        try:
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                payload = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode()
+            raise RuntimeError(
+                f"Freshdesk open search failed page={page} body={body[:500]}"
+            ) from exc
+        batch = payload.get("results") or []
+        if not batch:
+            break
+        for row in batch:
+            tid = int(row["id"])
+            if tid in seen:
+                continue
+            seen.add(tid)
+            out.append(row)
+        if len(batch) < 30:
+            break
+        if page == max_pages:
+            truncated = True
+    return out, truncated
+
+
+def search_fd_qsiap_voicemail_open(api_key: str) -> tuple[list[dict], bool]:
+    """All open qsiap AP voicemails — no created_at window (current backlog)."""
+    merged: list[dict] = []
+    seen: set[int] = set()
+    truncated = False
+    queries = (
+        f"group_id:{SPM_GROUP_ID} AND status:2 AND type:'Invoice Support'",
+        f"group_id:{SPM_GROUP_ID} AND status:2 AND type:null",
+    )
+    for filter_expr in queries:
+        rows, slice_truncated = _search_fd_open(api_key, filter_expr)
+        truncated = truncated or slice_truncated
+        for row in rows:
+            tid = int(row["id"])
+            if tid in seen:
+                continue
+            if not is_voicemail_ticket(row):
+                continue
+            ticket = resolve_ticket_for_qsiap(api_key, row)
+            if not is_qsiap_ap_voicemail(ticket):
+                continue
+            seen.add(tid)
+            merged.append(ticket)
+    merged.sort(key=lambda x: x.get("created_at") or "")
+    return merged, truncated
+
+
 def get_conversations(api_key: str, ticket_id: int) -> list[dict]:
     url = f"https://{DOMAIN}/api/v2/tickets/{ticket_id}/conversations"
     req = urllib.request.Request(url, headers=auth_headers(api_key), method="GET")
@@ -269,13 +371,48 @@ def get_conversations(api_key: str, ticket_id: int) -> list[dict]:
         return json.loads(resp.read().decode())
 
 
+def ticket_routing_blob(ticket: dict) -> str:
+    parts = [
+        ticket.get("subject") or "",
+        ticket.get("description_text") or strip_html(ticket.get("description") or ""),
+    ]
+    for field in ("to_emails", "cc_emails", "support_email"):
+        val = ticket.get(field)
+        if isinstance(val, list):
+            parts.extend(str(x) for x in val)
+        elif val:
+            parts.append(str(val))
+    return " ".join(parts)
+
+
+def is_qsiap_ap_voicemail(ticket: dict) -> bool:
+    """True for 8x8 AP voicemails routed to qsiap@vixxo.com (not aphelp)."""
+    if not is_voicemail_ticket(ticket):
+        return False
+    blob = ticket_routing_blob(ticket).lower()
+    if "aphelp" in blob:
+        return False
+    return QSIAP in blob
+
+
+def resolve_ticket_for_qsiap(api_key: str, row: dict) -> dict:
+    """Fetch full ticket when search summary lacks qsiap routing in blob."""
+    if QSIAP not in ticket_routing_blob(row).lower():
+        return get_ticket(api_key, int(row["id"]))
+    return row
+
+
 def classify_queue(t: dict) -> str:
+    if is_qsiap_ap_voicemail(t):
+        return "qsiap-voicemail"
     ttype = (t.get("type") or "").lower()
     if "ksonboarding" in ttype:
         return "ksonboarding"
     if "invoice" in ttype:
         return "invoice-concerns"
-    to_blob = " ".join(t.get("to_emails") or []).lower()
+    to_blob = ticket_routing_blob(t).lower()
+    if QSIAP in to_blob:
+        return "qsiap-ap"
     if "aphelp" in to_blob:
         return "aphelp"
     return "spm-other"
@@ -307,15 +444,11 @@ def load_sf_cases(path: Path) -> list[dict]:
 
 
 def merge_fd_summaries(*batches: list[dict]) -> list[dict]:
-    seen: set[int] = set()
-    out: list[dict] = []
+    by_id: dict[int, dict] = {}
     for batch in batches:
         for t in batch:
-            tid = int(t["id"])
-            if tid in seen:
-                continue
-            seen.add(tid)
-            out.append(t)
+            by_id[int(t["id"])] = t
+    out = list(by_id.values())
     out.sort(key=lambda x: x.get("created_at") or "")
     return out
 
@@ -327,12 +460,12 @@ def build_fd_meta(
     enrich: bool,
 ) -> dict:
     subject = summary.get("subject") or ""
+    queue_source = summary
     fd_meta: dict = {
         "id": int(summary["id"]),
         "subject": subject,
         "created_at": summary.get("created_at"),
         "status": summary.get("status"),
-        "queue": classify_queue(summary),
         "requester": req_email,
     }
     provider = extract_federated_coi_provider(subject)
@@ -346,6 +479,7 @@ def build_fd_meta(
             fd_meta["coi_req_timestamp"] = coi_fields["timestamp"]
     if enrich:
         ticket = get_ticket(api_key, int(summary["id"]))
+        queue_source = ticket
         try:
             convs = get_conversations(api_key, int(summary["id"]))
         except Exception:
@@ -358,6 +492,13 @@ def build_fd_meta(
         tags = ticket.get("tags") or []
         if tags:
             fd_meta["tags"] = tags
+        if is_qsiap_ap_voicemail(ticket):
+            meta = extract_metadata(ticket)
+            if meta.get("caller"):
+                fd_meta["caller"] = meta["caller"]
+            if meta.get("phone"):
+                fd_meta["phone"] = meta["phone"]
+    fd_meta["queue"] = classify_queue(queue_source)
     return fd_meta
 
 
@@ -704,6 +845,56 @@ def collect_intra_system_req_duplicates(
     }
 
 
+def collect_intra_fd_qsiap_voicemail_dupes(
+    fd_summaries: list[dict],
+    api_key: str,
+    *,
+    enrich: bool,
+) -> list[dict]:
+    """Group qsiap AP voicemails by callback phone (repeat-caller merge candidates)."""
+    groups: dict[str, list[dict]] = {}
+    for summary in fd_summaries:
+        if not is_voicemail_ticket(summary):
+            continue
+        if not is_qsiap_ap_voicemail(summary):
+            if not enrich:
+                continue
+            ticket = resolve_ticket_for_qsiap(api_key, summary)
+            if not is_qsiap_ap_voicemail(ticket):
+                continue
+        else:
+            ticket = summary
+        if enrich and ticket is summary:
+            ticket = get_ticket(api_key, int(summary["id"]))
+        meta = extract_metadata(ticket)
+        phone = meta.get("phone")
+        if not phone:
+            continue
+        digits = re.sub(r"\D", "", phone)[-10:]
+        if len(digits) != 10:
+            continue
+        groups.setdefault(digits, []).append(
+            {
+                "id": int(ticket["id"]),
+                "subject": ticket.get("subject"),
+                "created_at": ticket.get("created_at"),
+                "status": ticket.get("status"),
+                "caller": meta.get("caller"),
+                "phone": phone,
+            }
+        )
+    return [
+        {
+            "phone": phone,
+            "caller": tickets[0].get("caller"),
+            "ticket_count": len(tickets),
+            "tickets": sorted(tickets, key=lambda t: t.get("created_at") or ""),
+        }
+        for phone, tickets in sorted(groups.items())
+        if len(tickets) > 1
+    ]
+
+
 def write_report_markdown(result: dict, path: Path) -> None:
     pairs = result["pairs"]
     coi_req_pairs = [
@@ -736,8 +927,39 @@ def write_report_markdown(result: dict, path: Path) -> None:
         f"| Contact collision | {result['contact_collision']} |",
         f"| COI Req-id matched | {result.get('coi_req_id_matched', 0)} |",
         f"| COI provider-matched | {len(coi_pairs)} |",
+        f"| QSI AP voicemails (qsiap) | {result.get('qsiap_voicemail_count', 0)} |",
+        f"| QSI AP VM repeat-caller groups | {len(result.get('qsiap_voicemail_intra_duplicates') or [])} |",
         "",
     ]
+    if result.get("qsiap_open_search_truncated"):
+        lines.extend(
+            [
+                "> **Warning:** Open qsiap voicemail search hit the Freshdesk "
+                "pagination cap; backlog counts may be incomplete.",
+                "",
+            ]
+        )
+    qsiap_intra = result.get("qsiap_voicemail_intra_duplicates") or []
+    if qsiap_intra:
+        lines.extend(
+            [
+                "## QSI AP voicemail repeat callers (merge candidates)",
+                "",
+                "AP 8x8 voicemails route to **`qsiap@vixxo.com`** (ext 4054), not `aphelp`.",
+                "",
+                "| Phone | Caller | Tickets | FD ids |",
+                "|-------|--------|--------:|--------|",
+            ]
+        )
+        for group in qsiap_intra:
+            ids = ", ".join(f"#{t['id']}" for t in group["tickets"])
+            lines.append(
+                f"| {group['phone']} "
+                f"| {group.get('caller') or '—'} "
+                f"| {group['ticket_count']} "
+                f"| {ids} |"
+            )
+        lines.append("")
     intra = result.get("intra_system_req_duplicates") or {}
     fd_intra = intra.get("fd_intra_duplicates") or []
     sf_intra = intra.get("sf_intra_duplicates") or []
@@ -853,6 +1075,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--report", type=Path, default=None, help="Markdown report path (default: output .md)")
     parser.add_argument("--include-coi", action="store_true", help="Also pull FD COI tickets by subject/tag")
+    parser.add_argument(
+        "--include-qsiap-voicemail",
+        action="store_true",
+        help="Also pull open qsiap@vixxo.com AP voicemails (bypasses FD 300-cap)",
+    )
+    parser.add_argument(
+        "--qsiap-open-all",
+        action="store_true",
+        help="With --include-qsiap-voicemail, scan all open qsiap VMs (ignore created_at window)",
+    )
     parser.add_argument("--no-enrich", action="store_true", help="Skip per-ticket FD API enrichment")
     args = parser.parse_args(argv)
 
@@ -866,19 +1098,52 @@ def main(argv: list[str] | None = None) -> int:
     api_key = load_credentials()
     sf_cases = load_sf_cases(args.sf_cache)
     fd_spm = search_fd_created_in_window(api_key, window_start, window_end)
+    fd_batches = [fd_spm]
+    qsiap_open_search_truncated = False
     if args.include_coi:
-        fd_coi = search_fd_coi_in_window(api_key, window_start, window_end)
-        fd_summaries = merge_fd_summaries(fd_spm, fd_coi)
-    else:
-        fd_summaries = fd_spm
-    pairs = scan(fd_summaries, sf_cases, api_key, enrich=not args.no_enrich)
+        fd_batches.append(search_fd_coi_in_window(api_key, window_start, window_end))
+    if args.include_qsiap_voicemail:
+        if args.qsiap_open_all:
+            qsiap_open, qsiap_open_search_truncated = search_fd_qsiap_voicemail_open(
+                api_key
+            )
+            fd_batches.append(qsiap_open)
+        else:
+            fd_batches.append(
+                search_fd_qsiap_voicemail_in_window(api_key, window_start, window_end)
+            )
+    fd_summaries = merge_fd_summaries(*fd_batches)
+    enrich = not args.no_enrich
+    pairs = scan(fd_summaries, sf_cases, api_key, enrich=enrich)
     intra = collect_intra_system_req_duplicates(fd_summaries, sf_cases)
+    qsiap_voicemail_count = sum(
+        1
+        for t in fd_summaries
+        if is_voicemail_ticket(t)
+        and (
+            is_qsiap_ap_voicemail(t)
+            or (
+                enrich
+                and is_qsiap_ap_voicemail(resolve_ticket_for_qsiap(api_key, t))
+            )
+        )
+    )
+    qsiap_intra = collect_intra_fd_qsiap_voicemail_dupes(
+        fd_summaries,
+        api_key,
+        enrich=enrich,
+    )
 
     result = {
         "window_start": window_start.isoformat(),
         "window_end": window_end.isoformat(),
         "include_coi": args.include_coi,
+        "include_qsiap_voicemail": args.include_qsiap_voicemail,
+        "qsiap_open_all": args.qsiap_open_all,
+        "qsiap_open_search_truncated": qsiap_open_search_truncated,
         "fd_count": len(fd_summaries),
+        "qsiap_voicemail_count": qsiap_voicemail_count,
+        "qsiap_voicemail_intra_duplicates": qsiap_intra,
         "sf_count": len(sf_cases),
         "pair_count": len(pairs),
         "true_same_thread": sum(1 for p in pairs if p["dup_type"] == "true_same_thread"),
