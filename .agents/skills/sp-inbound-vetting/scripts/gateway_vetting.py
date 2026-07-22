@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 
 from entity_extraction import company_search_variants, email_domain_search_tokens, is_internal_email
@@ -106,6 +107,170 @@ def sp_from_sr_payload(data: dict, source: str) -> dict | None:
 def gateway_search_invoices(**kwargs: Any) -> list[dict]:
     resp = mcp_call(GATEWAY_URL, "gateway_search_invoices", kwargs)
     return invoice_list_from_response(parse_json_blob(mcp_result_text(resp)))
+
+
+def _nested_get(row: dict | None, *keys: str) -> str:
+    if not row:
+        return ""
+    for key in keys:
+        val = row.get(key)
+        if val not in (None, ""):
+            return str(val)
+    return ""
+
+
+def _sr_row_from_payload(data: dict) -> dict | None:
+    rows = data.get("serviceRequestList")
+    if isinstance(rows, list) and rows:
+        return rows[0]
+    if _nested_get(data, "serviceRequestNumber", "number"):
+        return data
+    nested = data.get("data") or data.get("serviceRequest")
+    if isinstance(nested, dict):
+        return nested
+    return data
+
+
+def _parse_dt(raw: Any) -> datetime | None:
+    if not raw:
+        return None
+    text = str(raw).replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _pick_latest_invoice_row(invoices: list[dict]) -> dict | None:
+    if not invoices:
+        return None
+    return max(
+        invoices,
+        key=lambda inv: _parse_dt(inv.get("lastUpdatedDate"))
+        or _parse_dt(inv.get("createdDate"))
+        or datetime.min,
+    )
+
+
+def _invoices_matching_sr(rows: list[dict], sr: str) -> list[dict]:
+    sr_norm = str(sr or "").strip()
+    if not sr_norm:
+        return []
+    return [r for r in rows if str(r.get("serviceRequestNumber") or "").strip() == sr_norm]
+
+
+def gateway_invoices_for_sr(sr: str, sp_number: str | None = None) -> list[dict]:
+    """Return Gateway invoice rows for a service request number."""
+    sr = str(sr or "").strip()
+    if not sr:
+        return []
+
+    search_args = (
+        {"serviceRequestNumber": sr},
+        {"service_request_number": sr},
+        {"searchString": sr},
+    )
+    for kwargs in search_args:
+        matched = _invoices_matching_sr(gateway_search_invoices(**kwargs), sr)
+        if matched:
+            return matched
+
+    ks = sp_number or (gateway_get_sr(sr) or {}).get("sp_number")
+    if ks:
+        matched = _invoices_matching_sr(
+            gateway_search_invoices(serviceProviderNumber=str(ks)),
+            sr,
+        )
+        if matched:
+            return matched
+    return []
+
+
+def gateway_sr_invoice_status(sr: str, sp_number: str | None = None) -> dict:
+    """Gateway SR + latest invoice payment/status snapshot for vetting notes."""
+    sr = str(sr or "").strip()
+    if not sr:
+        return {"sr_number": None, "error": "no_sr"}
+
+    args = {"service_request_number": sr, "number": sr, "sr_number": sr}
+    resp = mcp_call(GATEWAY_URL, "gateway_get_service_request", args)
+    sr_data = parse_json_blob(mcp_result_text(resp))
+    sr_row = _sr_row_from_payload(sr_data) if isinstance(sr_data, dict) else None
+
+    sp_from_sr = sp_from_sr_payload(sr_data, f"gateway_get_service_request({sr})") if isinstance(sr_data, dict) else None
+    ks = sp_number or (sp_from_sr or {}).get("sp_number")
+    invoices = gateway_invoices_for_sr(sr, sp_number=ks)
+    latest = _pick_latest_invoice_row(invoices)
+
+    out: dict[str, Any] = {
+        "sr_number": sr,
+        "sr_status": _nested_get(sr_row, "status", "statusName") or None,
+        "sr_sub_status": _nested_get(sr_row, "subStatus", "subStatusName") or None,
+        "invoice_count": len(invoices),
+        "latest_invoice": None,
+        "source": "gateway_get_service_request+gateway_search_invoices",
+    }
+    if latest:
+        out["latest_invoice"] = {
+            "viid": latest.get("viid"),
+            "status": latest.get("status"),
+            "consolidated_status": latest.get("consolidatedStatus"),
+            "sp_amount": latest.get("serviceProviderTotalAmount"),
+            "customer_amount": latest.get("customerTotalAmount"),
+            "payment_date": latest.get("paymentDate"),
+            "accepted_date": latest.get("acceptedDate"),
+            "last_updated": latest.get("lastUpdatedDate"),
+            "sp_invoice_number": latest.get("serviceProviderInvoiceNumber"),
+        }
+    return out
+
+
+def format_gateway_sr_invoice_note_section(status: dict | None) -> str:
+    """Markdown block for Freshdesk internal notes when SR is present."""
+    if not status or not status.get("sr_number"):
+        return ""
+
+    sr = status["sr_number"]
+    sr_status = status.get("sr_status") or "Unknown"
+    sr_sub = status.get("sr_sub_status") or "—"
+    count = status.get("invoice_count", 0)
+    latest = status.get("latest_invoice") or {}
+
+    if not latest and count == 0:
+        invoice_line = "No Gateway invoice rows found for this SR."
+    elif not latest:
+        invoice_line = f"{count} invoice row(s) on SR; latest row not resolved."
+    else:
+        viid = latest.get("viid") or "—"
+        inv_status = latest.get("status") or "Unknown"
+        consolidated = latest.get("consolidated_status") or "—"
+        sp_amt = latest.get("sp_amount")
+        amt = f"${sp_amt}" if sp_amt not in (None, "") else "—"
+        paid = latest.get("payment_date") or "Not paid"
+        accepted = latest.get("accepted_date") or "—"
+        updated = latest.get("last_updated") or "—"
+        sp_inv = latest.get("sp_invoice_number") or "—"
+        invoice_line = (
+            f"VIID {viid} | status **{inv_status}** | consolidated **{consolidated}** | "
+            f"SP amount {amt} | SP invoice # {sp_inv} | accepted {accepted} | "
+            f"payment date {paid} | last updated {updated}"
+        )
+
+    return f"""
+---
+
+**Gateway SR / invoice status (current)**
+
+| Field | Value |
+| --- | --- |
+| **SR** | {sr} |
+| **SR status** | {sr_status} |
+| **SR sub-status** | {sr_sub} |
+| **Invoice rows on SR** | {count} |
+| **Latest invoice (Gateway)** | {invoice_line} |
+
+*Compare ticket ask to Gateway record above; do not promise payment unless Gateway shows paid.*
+"""
 
 
 def gateway_get_sr(sr: str) -> dict | None:

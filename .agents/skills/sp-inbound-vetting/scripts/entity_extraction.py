@@ -133,6 +133,7 @@ SIGNATURE_TITLE_DASH_RE = re.compile(
 
 def _clean_company(name: str) -> str:
     cleaned = re.sub(r"\s+", " ", (name or "").strip(" \t\r\n.,;|\"'"))
+    cleaned = re.sub(r"^>+\s*", "", cleaned).strip()
     if not cleaned or len(cleaned) < 3:
         return ""
     cleaned = JOB_TITLE_PREFIX_RE.sub("", cleaned).strip()
@@ -227,6 +228,8 @@ def is_valid_company_string(name: str) -> bool:
     """Reject body paragraphs, boilerplate, and client-site subject lines."""
     cleaned = (name or "").strip()
     if len(cleaned) < 3 or len(cleaned) > 80:
+        return False
+    if re.match(r"^[>&]", cleaned):
         return False
     lower = cleaned.lower()
     if lower in GENERIC_MAILBOX_NAMES or is_generic_mailbox_name(cleaned):
@@ -362,6 +365,13 @@ def extract_signature_company(body: str, email: str = "") -> str | None:
             if idx > 0 and re.search(COMPANY_SUFFIX, lines[idx - 1], re.I):
                 candidates.append(lines[idx - 1])
 
+    for idx in range(len(lines) - 1):
+        line1 = re.sub(r"^>+\s*", "", lines[idx]).strip()
+        line2 = re.sub(r"^>+\s*", "", lines[idx + 1]).strip()
+        if line2.startswith("&") and line1 and not re.search(COMPANY_SUFFIX, line1, re.I):
+            combined = f"{line1.rstrip(',')} {line2}".strip()
+            candidates.append(combined)
+
     cleaned: list[str] = []
     for raw in candidates:
         company = sanitize_company(raw)
@@ -373,6 +383,26 @@ def extract_signature_company(body: str, email: str = "") -> str | None:
         return picked
 
     return cleaned[0] if cleaned else None
+
+
+CASE_SUBJECT_KS_RE = re.compile(r"\b(KS\d+)\b", re.I)
+CASE_SUBJECT_TAIL_RE = re.compile(
+    r"\s+(?:Rate Change|Onboarding|COI(?:\s+Request)?|Update|Renewal|Invoice)\s*$",
+    re.I,
+)
+
+
+def parse_sf_case_subject(subject: str) -> dict[str, str | None]:
+    """Mine KS number and SP company name from a Salesforce Case Subject."""
+    if not subject:
+        return {"ks_number": None, "company": None}
+    text = subject.strip()
+    ks_match = CASE_SUBJECT_KS_RE.search(text)
+    ks_number = ks_match.group(1).upper() if ks_match else None
+    company_text = text[: ks_match.start()].strip() if ks_match else text
+    company_text = CASE_SUBJECT_TAIL_RE.sub("", company_text).strip()
+    company = sanitize_company(company_text) if company_text else None
+    return {"ks_number": ks_number, "company": company}
 
 
 def email_domain_search_tokens(email: str) -> list[str]:

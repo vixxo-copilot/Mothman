@@ -94,9 +94,9 @@ When vetting an open queue Case:
 
 | 2 | Case `ContactId` | Pull contact name + email for Gateway search |
 
-| 3 | Case `Subject` / `Description` | Entity extraction + routing classification |
+| 3 | Case `Subject` / `Description` | Entity extraction + routing classification; mine `KS\d+` and company name from Subject when Case matches |
 
-| 4 | Linked Lead | When Case references onboarding Lead, read Lead `Company` |
+| 4 | Linked Lead | When Case references onboarding Lead, read Lead `Company`; reject internal placeholder Leads (`Vixxo`) when ticket company differs |
 
 | 5 | Broad SOQL | Fall back to Lead/Case search below when Case fields are thin |
 
@@ -270,7 +270,8 @@ target — related Case hits are context only unless user asks otherwise.
 
 When Gateway company/email search returns empty but company name is confident,
 query **Account** with `Type = 'Service Provider'` and read
-`Service_Provider_Number__c` (KS#####). Re-run Gateway with that KS number.
+`Service_Provider_Number__c` (KS##### or legacy Siebel id). Re-run Gateway with
+that SP number.
 
 ```sql
 SELECT Id, Name, Type, Service_Provider_Number__c

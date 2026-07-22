@@ -29,12 +29,15 @@ from entity_extraction import (  # noqa: E402
     extract_signature_contact_name,
     extract_subject_company,
     is_generic_mailbox_name,
+    is_internal_email,
     is_probable_person_name,
+    parse_sf_case_subject,
     pick_best_company,
     sanitize_company,
     is_valid_company_string,
+    strip_company_suffix,
 )
-from gateway_vetting import gateway_find_sp  # noqa: E402
+from gateway_vetting import gateway_find_sp, gateway_sr_invoice_status  # noqa: E402
 from queue_config import VettingQueue, resolve_queues  # noqa: E402
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
@@ -42,6 +45,101 @@ VOICEMAIL_RE = re.compile(r"\bnew voicemail\b", re.I)
 KS_RE = re.compile(r"\b(KS\d+)\b", re.I)
 SP_HASH_RE = re.compile(r"#(\d{4,6})\b")
 SR_RE = re.compile(r"\b(1-\d{9,10})\b")
+
+INTERNAL_LEAD_COMPANIES = frozenset({"vixxo", "knowledge sync", "knowledge sync inc"})
+
+
+def _normalize_company_key(name: str) -> str:
+    key = strip_company_suffix(name or "").lower()
+    key = re.sub(r"[^\w\s]", "", key)
+    return re.sub(r"\s+", " ", key).strip()
+
+
+def _companies_materially_differ(a: str, b: str) -> bool:
+    if not a or not b or a in ("Not stated", "") or b in ("Not stated", ""):
+        return False
+    ka = _normalize_company_key(a)
+    kb = _normalize_company_key(b)
+    if not ka or not kb:
+        return True
+    if ka == kb or ka in kb or kb in ka:
+        return False
+    if set(ka.split()) & set(kb.split()):
+        return False
+    return True
+
+
+def _is_stale_internal_lead(lead: dict | None, extracted_company: str) -> bool:
+    if not lead:
+        return False
+    lead_co = (lead.get("Company") or "").strip()
+    if lead_co.lower() not in INTERNAL_LEAD_COMPANIES:
+        return False
+    return _companies_materially_differ(lead_co, extracted_company)
+
+
+def _account_aligns_with_company(account: dict | None, company: str) -> bool:
+    if not account or company in ("Not stated", ""):
+        return False
+    return not _companies_materially_differ(account.get("Name") or "", company)
+
+
+def _cf_from_sf_account(account: dict) -> str:
+    sp_num = str(account.get("Service_Provider_Number__c") or "").strip()
+    acct_name = (account.get("Name") or "").strip()
+    if sp_num and acct_name:
+        return f"{sp_num} - {acct_name}"
+    return sp_num or acct_name or "Unknown"
+
+
+def _cf_from_sf_case(case: dict, account: dict | None, entities: dict) -> str:
+    parsed = parse_sf_case_subject(case.get("Subject") or "")
+    ks = parsed.get("ks_number") or entities.get("ks_number")
+    company = parsed.get("company") or entities.get("company")
+    if account and (account.get("Service_Provider_Number__c") or account.get("Name")):
+        return _cf_from_sf_account(account)
+    if ks and company and company not in ("Not stated", ""):
+        return f"{ks} - {company}"
+    if company and company not in ("Not stated", "") and is_valid_company_string(str(company)):
+        return str(company)
+    return "Unknown"
+
+
+def apply_sf_case_entities(entities: dict, sf: dict) -> None:
+    case = sf.get("case")
+    if not case:
+        return
+    parsed = parse_sf_case_subject(case.get("Subject") or "")
+    if parsed.get("ks_number") and not entities.get("ks_number"):
+        entities["ks_number"] = parsed["ks_number"]
+    case_company = parsed.get("company")
+    if not case_company:
+        return
+    current = entities.get("company") or ""
+    if current in ("Not stated", "") or not is_valid_company_string(str(current)):
+        entities["company"] = case_company
+
+
+def apply_sf_account_sp_number(entities: dict, sf: dict) -> None:
+    account = sf.get("account")
+    if not account:
+        return
+    sp_num = str(account.get("Service_Provider_Number__c") or "").strip()
+    if sp_num and not entities.get("ks_number"):
+        entities["ks_number"] = sp_num
+
+
+def resolve_vetting(entities: dict) -> tuple[dict | None, dict, dict]:
+    """Salesforce lookup, entity enrichment, and Gateway SP resolution."""
+    sf = salesforce_search(entities)
+    if _is_stale_internal_lead(sf.get("lead"), entities.get("company") or ""):
+        sf = {**sf, "lead": None}
+    apply_sf_case_entities(entities, sf)
+    gw = gateway_find_sp(entities)
+    if not gw:
+        apply_sf_account_sp_number(entities, sf)
+        gw = gateway_find_sp(entities)
+    return gw, sf, entities
 
 
 def search_all(api_key: str, query: str) -> list[dict]:
@@ -222,9 +320,15 @@ def salesforce_search(entities: dict) -> dict:
     company = entities.get("company") or ""
     email = entities.get("requester_email") or ""
     contact_name = entities.get("vetting_contact_name") or entities.get("contact_name") or ""
-    contact_emails = entities.get("contact_emails") or []
-    if email and email != "Not stated" and email not in contact_emails:
-        contact_emails = [email.lower()] + list(contact_emails)
+    contact_emails = [
+        addr.lower()
+        for addr in (entities.get("contact_emails") or [])
+        if addr and not is_internal_email(addr)
+    ]
+    if email and email != "Not stated" and not is_internal_email(email):
+        lower = email.lower()
+        if lower not in contact_emails:
+            contact_emails = [lower] + contact_emails
 
     def _first_records(records: list[dict]) -> list[dict]:
         if records and records[0].get("_error"):
@@ -354,25 +458,53 @@ def salesforce_search(entities: dict) -> dict:
 
 
 def posture(gw: dict | None, sf: dict, entities: dict | None = None) -> tuple[str, str]:
-    if gw and sf.get("lead"):
+    entities = entities or {}
+    company = entities.get("company") or ""
+    lead = sf.get("lead")
+    account = sf.get("account")
+    account_aligned = _account_aligns_with_company(account, company)
+
+    if lead and _is_stale_internal_lead(lead, company):
+        lead = None
+
+    if gw and lead and not account_aligned:
         return "Known SP + SF Lead", f"{gw.get('sp_number')} - {gw.get('name')}"
     if gw:
         num, name = gw.get("sp_number"), gw.get("name")
         return "Known SP", f"{num} - {name}" if num else str(name or "Unknown")
-    if sf.get("lead"):
-        return "Prospect (SF Lead only)", (sf["lead"] or {}).get("Company") or "Unknown"
+    if lead and not account_aligned:
+        return "Prospect (SF Lead only)", (lead or {}).get("Company") or "Unknown"
+    if account_aligned and account:
+        cf = _cf_from_sf_account(account)
+        if sf.get("case"):
+            return "Open SF Case", cf
+        if company and is_valid_company_string(company):
+            return "Unknown / Not in systems", cf
     if sf.get("case"):
-        return "Open SF Case", "Unknown"
-    company = (entities or {}).get("company") or ""
+        return "Open SF Case", _cf_from_sf_case(sf["case"], account, entities)
     if company and is_valid_company_string(company):
         return "Unknown / Not in systems", company
     return "Unknown / Not in systems", "Unknown"
 
 
-def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]:
+def queue_search_query(
+    queue: VettingQueue,
+    created_after: str | None = None,
+    created_before: str | None = None,
+) -> str:
+    q = queue.query
+    if created_after:
+        q = f"{q} AND created_at:>'{created_after}'"
+    if created_before:
+        q = f"{q} AND created_at:<'{created_before}'"
+    return q
+
+
+def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool, created_after: str | None = None, created_before: str | None = None) -> list[dict]:
     seen: set[int] = set()
     items: list[dict] = []
-    for summary in search_all(api_key, queue.query):
+    query = queue_search_query(queue, created_after, created_before)
+    for summary in search_all(api_key, query):
         tid = int(summary["id"])
         if tid in seen:
             continue
@@ -385,13 +517,7 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
         if queue.recipient_gate and not passes_recipient_gate(ticket, queue.recipient_gate):
             continue
         entities = extract_company(ticket)
-        gw = gateway_find_sp(entities)
-        sf = salesforce_search(entities)
-        if not gw and sf.get("account"):
-            sp_num = str((sf["account"] or {}).get("Service_Provider_Number__c") or "").strip()
-            if sp_num.upper().startswith("KS") and not entities.get("ks_number"):
-                entities["ks_number"] = sp_num.upper()
-                gw = gateway_find_sp(entities) or gw
+        gw, sf, entities = resolve_vetting(entities)
         post, cf_target = posture(gw, sf, entities)
         if entities.get("cf_sp_current") not in (None, "", "Unknown") and post == "Unknown / Not in systems":
             current_cf = str(entities.get("cf_sp_current") or "")
@@ -401,8 +527,7 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
                 pass  # overwrite invalid human/bot cf_sp with good extraction
             else:
                 cf_target = "(keep existing)" if current_cf else "Unknown"
-        items.append(
-            {
+        item: dict = {
                 "ticket_id": tid,
                 "queue": queue.key,
                 "inbox_label": queue.inbox_label,
@@ -424,7 +549,13 @@ def collect_queue(api_key: str, queue: VettingQueue, re_vet: bool) -> list[dict]
                 "sf_account": sf.get("account"),
                 "errors": sf.get("errors", []),
             }
-        )
+        if queue.key == "invoice-concerns" and entities.get("sr_number"):
+            sp_num = (gw or {}).get("sp_number") or entities.get("ks_number")
+            item["gateway_sr_invoice"] = gateway_sr_invoice_status(
+                entities["sr_number"],
+                sp_number=sp_num,
+            )
+        items.append(item)
     return items
 
 
@@ -436,6 +567,8 @@ def main() -> int:
         help="ksonboarding | invoice-concerns | aphelp | all (default: all)",
     )
     parser.add_argument("--re-vet", action="store_true", help="Include tickets already tagged sp-vetted")
+    parser.add_argument("--created-after", help="Freshdesk created_at lower bound YYYY-MM-DD")
+    parser.add_argument("--created-before", help="Freshdesk created_at upper bound YYYY-MM-DD")
     args = parser.parse_args()
 
     api = load_credentials()
@@ -443,7 +576,7 @@ def main() -> int:
     all_items: list[dict] = []
     by_queue: dict[str, int] = {}
     for queue in queues:
-        batch = collect_queue(api, queue, args.re_vet)
+        batch = collect_queue(api, queue, args.re_vet, args.created_after, args.created_before)
         by_queue[queue.key] = len(batch)
         all_items.extend(batch)
 

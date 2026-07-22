@@ -17,7 +17,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"))
 
 from batch_process_freshdesk import http_json, load_credentials  # noqa: E402
-from gateway_vetting import gateway_health_check  # noqa: E402
+from gateway_vetting import format_gateway_sr_invoice_note_section, gateway_health_check  # noqa: E402
 from queue_config import resolve_queues  # noqa: E402
 
 OUT_DIR = SCRIPT_DIR.parent / ".tmp" / "live-run"
@@ -36,6 +36,14 @@ def sf_bin() -> str:
             if candidate.is_file():
                 return str(candidate)
     return "sf"
+
+
+def escape_sf_cli_string(value: str, *, limit: int | None = None) -> str:
+    """Sanitize text for sf CLI --values key='value' strings (Windows-safe)."""
+    text = (value or "").replace("'", "\u2019")
+    if limit is not None:
+        text = text[:limit]
+    return text
 
 
 def posture_tag(posture: str) -> str:
@@ -89,6 +97,7 @@ def build_note(
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     inbox = item.get("inbox_label") or "spm-intake"
     cf_line = cf_sp_applied if cf_sp_applied is not None else "(keep existing — not overwritten)"
+    sr_invoice_block = format_gateway_sr_invoice_note_section(item.get("gateway_sr_invoice"))
     return f"""**SP Inbound Vetting — Freshdesk #{tid}**
 
 **Processed:** {ts}
@@ -111,7 +120,7 @@ def build_note(
 | Salesforce Case | {case_yes} | {case_id} |
 
 **Entity posture:** {item['posture']}
-
+{sr_invoice_block}
 ---
 
 **Freshdesk field update**
@@ -153,7 +162,8 @@ def create_sf_lead_task(tid: int, item: dict, lead_id: str) -> str:
         f"Link: {FD_LINK.format(tid=tid)}. "
         f"Processed: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
-    subject = f"Freshdesk inbound vetting — FD #{tid}"
+    subject = escape_sf_cli_string(f"Freshdesk inbound vetting — FD #{tid}", limit=255)
+    desc = escape_sf_cli_string(desc, limit=32000)
     cmd = [
         sf_bin(),
         "data",
@@ -191,7 +201,8 @@ def create_sf_case_task(tid: int, item: dict, case_id: str) -> str:
         f"Link: {FD_LINK.format(tid=tid)}. "
         f"Processed: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
-    subject = f"SP Inbound Vetting — Case {case_number}"
+    subject = escape_sf_cli_string(f"SP Inbound Vetting — Case {case_number}", limit=255)
+    desc = escape_sf_cli_string(desc, limit=32000)
     cmd = [
         sf_bin(),
         "data",
@@ -286,7 +297,13 @@ def apply_item(api_key: str, item: dict) -> dict:
     return out
 
 
-def load_items(data_path: Path | None, queue_arg: str, re_vet: bool = False) -> list[dict]:
+def load_items(
+    data_path: Path | None,
+    queue_arg: str,
+    re_vet: bool = False,
+    created_after: str | None = None,
+    created_before: str | None = None,
+) -> list[dict]:
     if data_path:
         data = json.loads(data_path.read_text(encoding="utf-8"))
         return data.get("items") or []
@@ -297,7 +314,7 @@ def load_items(data_path: Path | None, queue_arg: str, re_vet: bool = False) -> 
     items: list[dict] = []
     seen: set[int] = set()
     for queue in resolve_queues(queue_arg):
-        for item in collect_queue(api, queue, re_vet=re_vet):
+        for item in collect_queue(api, queue, re_vet=re_vet, created_after=created_after, created_before=created_before):
             tid = int(item["ticket_id"])
             if tid in seen:
                 continue
@@ -311,17 +328,27 @@ def main() -> int:
     parser.add_argument("--queue", default="all", help="ksonboarding | invoice-concerns | aphelp | all")
     parser.add_argument("--re-vet", action="store_true", help="Include tickets already tagged sp-vetted")
     parser.add_argument("--data", type=Path, help="Optional dry-run JSON (skip re-vetting)")
+    parser.add_argument("--created-after", help="Freshdesk created_at lower bound YYYY-MM-DD")
+    parser.add_argument("--created-before", help="Freshdesk created_at upper bound YYYY-MM-DD")
     args = parser.parse_args()
 
     api = load_credentials()
     gw_health = gateway_health_check()
-    items = load_items(args.data, args.queue, re_vet=args.re_vet)
+    items = load_items(
+        args.data,
+        args.queue,
+        re_vet=args.re_vet,
+        created_after=args.created_after,
+        created_before=args.created_before,
+    )
     results = [apply_item(api, item) for item in items]
 
     summary = {
         "mode": "live",
         "queue": args.queue,
         "re_vet": args.re_vet,
+        "created_after": args.created_after,
+        "created_before": args.created_before,
         "gateway_health": gw_health,
         "run_at": datetime.now(timezone.utc).isoformat(),
         "total": len(results),

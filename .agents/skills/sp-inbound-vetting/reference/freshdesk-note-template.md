@@ -32,6 +32,20 @@ Post via `create_ticket_note` with `"private": true`.
 
 ---
 
+**Gateway SR / invoice status (current)** — *invoice-concerns only, when SR present*
+
+| Field | Value |
+| --- | --- |
+| **SR** | {service request number} |
+| **SR status** | {Gateway SR status} |
+| **SR sub-status** | {Gateway SR sub-status} |
+| **Invoice rows on SR** | {count} |
+| **Latest invoice (Gateway)** | {VIID, status, consolidated status, SP amount, payment date, …} |
+
+*Compare ticket ask to Gateway record; do not promise payment unless Gateway shows paid.*
+
+---
+
 **Freshdesk field update**
 
 - **cf_sp set to:** {value or skipped — reason}
