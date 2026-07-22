@@ -21,6 +21,7 @@ sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"
 
 from batch_process_freshdesk import auth_headers, load_credentials, strip_html  # noqa: E402
 from entity_extraction import (  # noqa: E402
+    caller_id_search_tokens,
     contact_search_name,
     company_search_variants,
     extract_body_company_mentions,
@@ -331,6 +332,48 @@ def salesforce_search(entities: dict) -> dict:
         if leads:
             out["lead"] = leads[0]
 
+    contact_tokens = caller_id_search_tokens(contact_name)
+    if contact_name not in ("Not stated", "") and contact_name not in contact_tokens:
+        contact_tokens.insert(0, contact_name)
+
+    for token in contact_tokens:
+        if out.get("contact"):
+            break
+        esc = token.replace("'", "\\'")
+        contacts = _first_records(
+            sf_query(
+                "SELECT Id, Name, Email, Phone, AccountId FROM Contact "
+                f"WHERE Name LIKE '%{esc}%' OR LastName LIKE '%{esc}%' "
+                f"ORDER BY LastModifiedDate DESC LIMIT 5"
+            )
+        )
+        if contacts:
+            out["contact"] = contacts[0]
+
+    if out.get("contact") and out["contact"].get("AccountId") and not out.get("account"):
+        account_id = str(out["contact"]["AccountId"]).replace("'", "\\'")
+        accounts = _first_records(
+            sf_query(
+                "SELECT Id, Name, Type, Service_Provider_Number__c FROM Account "
+                f"WHERE Id = '{account_id}' LIMIT 1"
+            )
+        )
+        if accounts:
+            out["account"] = accounts[0]
+
+    for token in contact_tokens:
+        if out.get("case"):
+            break
+        esc = token.replace("'", "\\'")
+        cases = _first_records(
+            sf_query(
+                "SELECT Id, CaseNumber, Subject, Status FROM Case "
+                f"WHERE Subject LIKE '%{esc}%' ORDER BY CreatedDate DESC LIMIT 3"
+            )
+        )
+        if cases:
+            out["case"] = cases[0]
+
     if company != "Not stated" and not out.get("account"):
         seen_account: set[str] = set()
         for variant in company_search_variants(company):
@@ -363,6 +406,10 @@ def posture(gw: dict | None, sf: dict, entities: dict | None = None) -> tuple[st
         return "Prospect (SF Lead only)", (sf["lead"] or {}).get("Company") or "Unknown"
     if sf.get("case"):
         return "Open SF Case", "Unknown"
+    account = sf.get("account") or {}
+    sp_num = str(account.get("Service_Provider_Number__c") or "").strip()
+    if sp_num.upper().startswith("KS"):
+        return "Known SP (SF Account)", sp_num
     company = (entities or {}).get("company") or ""
     if company and is_valid_company_string(company):
         return "Unknown / Not in systems", company
