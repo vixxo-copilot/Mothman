@@ -30,11 +30,13 @@ sys.path.insert(0, str(SCRIPT_DIR.parents[1] / "sp-voicemail-triage" / "scripts"
 from batch_process_freshdesk import (  # noqa: E402
     auth_headers,
     extract_metadata,
+    format_stt_transcript,
     http_json,
     is_voicemail_ticket,
     load_credentials,
     strip_html,
 )
+from transcribe_voicemail import transcribe_ticket  # noqa: E402
 from dry_run_batch import (  # noqa: E402
     extract_company,
     gateway_find_sp,
@@ -43,8 +45,12 @@ from dry_run_batch import (  # noqa: E402
     salesforce_search,
 )
 from entity_extraction import is_valid_company_string  # noqa: E402
-from gateway_vetting import gateway_health_check  # noqa: E402
+from gateway_vetting import gateway_health_check, gateway_get_sr  # noqa: E402
 from live_run_batch import OUT_DIR, apply_item, posture_tag  # noqa: E402
+from voicemail_intake_routing import (  # noqa: E402
+    classify_voicemail_intake,
+    routing_note,
+)
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
 SPM_GROUP = "159000485013"
@@ -56,6 +62,12 @@ SR_CTX_RE = re.compile(
     re.I,
 )
 SR_RE = re.compile(r"\b(1[-\d]{10,18})\b")
+TRANSCRIPT_MARKER = "Transcript source:"
+COMPANY_FROM_SPOKEN_RE = re.compile(
+    r"\b(?:this is|i'?m|i am|my name is)\s+[\w'.-]+(?:\s+[\w'.-]+){0,3}"
+    r"\s+with\s+([A-Za-z0-9 &.'/-]+?)(?:\.|,|$|\s+(?:i'?m|i am|calling|trying))",
+    re.I,
+)
 
 
 def normalize_sr(raw: str) -> str | None:
@@ -110,6 +122,61 @@ def extract_srs(text: str, phone: str | None) -> list[str]:
     return found
 
 
+def attachment_context(ticket: dict) -> str:
+    names: list[str] = []
+    for att in ticket.get("attachments") or []:
+        name = str(att.get("name") or att.get("file_name") or "").strip()
+        if name:
+            names.append(name)
+    for conv in ticket.get("conversations") or []:
+        for att in conv.get("attachments") or []:
+            name = str(att.get("name") or att.get("file_name") or "").strip()
+            if name:
+                names.append(name)
+    return ", ".join(dict.fromkeys(names))
+
+
+def has_transcript_note(conversations: list[dict]) -> bool:
+    return any(
+        TRANSCRIPT_MARKER in (c.get("body_text") or c.get("body") or "")
+        for c in conversations
+    )
+
+
+def ensure_qsiap_transcript(api_key: str, ticket: dict) -> dict:
+    """Transcribe voicemail audio before vetting/routing when missing."""
+    convos = ticket.get("conversations") or []
+    if has_transcript_note(convos):
+        return ticket
+    stt = transcribe_ticket(ticket, api_key)
+    if not stt.get("ok"):
+        return ticket
+    meta = extract_metadata(ticket)
+    att_ctx = attachment_context(ticket)
+    body_lines = [
+        "**SP Voicemail transcript (qsiap vetting)**",
+        "",
+        format_stt_transcript(stt, meta, ticket),
+    ]
+    if att_ctx:
+        body_lines.extend(["", f"**Attachments on ticket:** {att_ctx}"])
+    http_json(
+        "POST",
+        f"/api/v2/tickets/{int(ticket['id'])}/notes",
+        api_key,
+        {"body": "\n".join(body_lines), "private": True},
+    )
+    return get_ticket(api_key, int(ticket["id"]))
+
+
+def company_from_spoken(text: str) -> str | None:
+    m = COMPANY_FROM_SPOKEN_RE.search(text)
+    if not m:
+        return None
+    name = m.group(1).strip(" .,-")
+    return name if is_valid_company_string(name) else None
+
+
 def enrich_voicemail_entities(ticket: dict, entities: dict) -> dict:
     meta = extract_metadata(ticket)
     caller = meta.get("caller") or "Not stated"
@@ -117,6 +184,9 @@ def enrich_voicemail_entities(ticket: dict, entities: dict) -> dict:
         entities["contact_name"] = caller
         entities["vetting_contact_name"] = caller
     text = blob(ticket)
+    spoken_company = company_from_spoken(text)
+    if spoken_company and not entities.get("company"):
+        entities["company"] = spoken_company
     srs = extract_srs(text, meta.get("phone"))
     if srs and not entities.get("sr_number"):
         entities["sr_number"] = srs[0]
@@ -147,6 +217,8 @@ def discover_qsiap_voicemails(api_key: str) -> list[dict]:
     queries = (
         f"group_id:{SPM_GROUP} AND status:2 AND type:'Invoice Support'",
         f"group_id:{SPM_GROUP} AND status:2 AND type:null",
+        f"group_id:{SPM_GROUP} AND status:2 AND type:'No Action Required'",
+        f"group_id:{SPM_GROUP} AND status:2 AND type:'VixxoLink Support'",
     )
     for q in queries:
         for row in search_open(api_key, q):
@@ -209,11 +281,31 @@ def build_item(ticket: dict) -> dict:
     }
 
 
-def apply_qsiap_item(api_key: str, item: dict) -> dict:
-    """apply_item + qsiap tags and Invoice Support type when missing."""
+def apply_qsiap_item(api_key: str, item: dict, ticket: dict, conversations: list[dict]) -> dict:
+    """apply_item + qsiap routing (VINT / SPM payment / invoice-forward vetting)."""
+    routing = classify_voicemail_intake(
+        ticket,
+        conversations=conversations,
+        sr_number=item.get("sr_number"),
+        sp_number=(item.get("gateway_sp") or {}).get("sp_number"),
+        gateway_lookup=lambda sr: gateway_get_sr(sr),
+    )
+    item = {
+        **item,
+        "voicemail_routing": routing.resolution,
+        "voicemail_routing_reason": routing.reason,
+    }
     result = apply_item(api_key, item)
     tid = int(item["ticket_id"])
-    if result.get("error") and "type" in str(result.get("error", "")):
+    try:
+        route_block = routing_note(routing, sr=item.get("sr_number"))
+        http_json(
+            "POST",
+            f"/api/v2/tickets/{tid}/notes",
+            api_key,
+            {"body": route_block, "private": True},
+        )
+    except urllib.error.HTTPError:
         pass
     try:
         ticket = get_ticket(api_key, tid)
@@ -226,15 +318,21 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
             base_tags = sorted(set(existing_tags + ["sp-vetted", positive_tag]))
             if positive_tag != "unknown-sp":
                 base_tags = [t for t in base_tags if t != "unknown-sp"]
-        tags = sorted(set(base_tags + ["qsiap-source", "voicemail-vetted"]))
-        payload: dict = {"tags": tags}
-        if not ticket.get("type"):
-            payload["type"] = "Invoice Support"
+        tags = sorted(set(base_tags + list(routing.tags) + ["qsiap-source", "vetting-complete"]))
+        payload: dict = {
+            "tags": tags,
+            "group_id": routing.group_id,
+            "type": routing.ticket_type,
+            "status": routing.status,
+        }
         cf = result.get("cf_sp")
         if cf and not str(cf).startswith("(keep"):
             payload.setdefault("custom_fields", {})["cf_sp"] = cf
         http_json("PUT", f"/api/v2/tickets/{tid}", api_key, payload)
         result["qsiap_tags"] = tags
+        result["voicemail_routing"] = routing.resolution
+        result["forward_candidate"] = routing.forward_to
+        result["gateway_invoice_check"] = routing.gateway_invoice_check
     except urllib.error.HTTPError as exc:
         result["qsiap_update"] = f"failed:{exc.code}"
     return result
@@ -261,7 +359,7 @@ def main() -> int:
         return 1
 
     tickets = discover_qsiap_voicemails(api)
-    items: list[dict] = []
+    work: list[tuple[dict, dict]] = []
     for ticket in tickets:
         tid = int(ticket["id"])
         if tid in skip:
@@ -269,22 +367,44 @@ def main() -> int:
         tags = ticket.get("tags") or []
         if not args.re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
             continue
-        items.append(build_item(ticket))
+        if not args.dry_run:
+            ticket = ensure_qsiap_transcript(api, ticket)
+        work.append((ticket, build_item(ticket)))
 
-    results = []
+    results: list[dict] = []
     if args.dry_run:
-        for item in items:
-            results.append({"ticket_id": item["ticket_id"], "posture": item["posture"], "dry_run": True})
+        for ticket, item in work:
+            routing = classify_voicemail_intake(
+                ticket,
+                conversations=ticket.get("conversations") or [],
+                sr_number=item.get("sr_number"),
+                sp_number=(item.get("gateway_sp") or {}).get("sp_number"),
+                gateway_lookup=lambda sr: gateway_get_sr(sr),
+            )
+            results.append(
+                {
+                    "ticket_id": item["ticket_id"],
+                    "posture": item["posture"],
+                    "voicemail_routing": routing.resolution,
+                    "forward_candidate": routing.forward_to,
+                    "gateway_invoice_check": routing.gateway_invoice_check,
+                    "dry_run": True,
+                }
+            )
     else:
-        for item in items:
-            results.append(apply_qsiap_item(api, item))
-            print(f"#{item['ticket_id']} {item['posture']}")
+        for ticket, item in work:
+            convs = ticket.get("conversations") or []
+            row = apply_qsiap_item(api, item, ticket, convs)
+            results.append(row)
+            print(
+                f"#{item['ticket_id']} {item['posture']} -> {row.get('voicemail_routing')}"
+            )
 
-    known = sum(1 for i in items if i["posture"].startswith("Known SP"))
+    known = sum(1 for _, item in work if item["posture"].startswith("Known SP"))
     summary = {
         "mode": "dry-run" if args.dry_run else "live",
         "discovered": len(tickets),
-        "vetted": len(items),
+        "vetted": len(work),
         "skipped_ids": sorted(skip),
         "known_sp": known,
         "gateway_health": gw_health,

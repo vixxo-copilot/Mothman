@@ -71,6 +71,19 @@ table in [queues.md](queues.md). When matched:
 Examples: "status of payment for invoice 12345", "haven't received check",
 "AP hold on my account", "duplicate payment".
 
+**VixxoLink portal exception (Freshdesk aphelp / qsiap voicemails):** When the
+requester message (before quoted history) asks for VixxoLink login, portal
+access, account setup, or **VixxoLink support** — including replies to APHelp
+past-due campaigns — route **VINT** (`group_id:159000486559`), type
+**VixxoLink Support**, leave Open. Do **not** forward to `invoices@vixxo.com`
+or `aphelp@vixxo.com` (audit FD **#70128**).
+
+**Payment / past-due voicemails:** Type **Invoice Support**, group **SPM**, status
+Open. Do **not** forward to aphelp. Only forward to `invoices@vixxo.com` when
+there is a **real invoice attachment** needing intake **and** Gateway confirms
+no invoice is already on the SR. See
+[qsiap-voicemail-routing.md](qsiap-voicemail-routing.md).
+
 ## Dedupe and exclusions
 
 | Condition | Action |

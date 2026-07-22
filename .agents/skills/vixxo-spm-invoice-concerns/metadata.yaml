@@ -6,7 +6,7 @@ agents:
   - cursor
   - claude-code
 author: "Maria Clavijo-Demchalk"
-version: "1.0.0"
+version: "1.0.2"
 tags: [freshdesk, invoice-concerns, gateway, spm, payments, vixxo]
 status: approved
 requires_mcp: [freshdesk, gateway]

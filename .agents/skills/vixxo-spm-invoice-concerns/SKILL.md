@@ -68,6 +68,12 @@ classification aids only; they do not authorize writes.
 Move to `pending-payment`, `paid-confirmation`, `short-pay-explained`,
 `short-pay-unresolved`, or `manual-review` after Gateway validation.
 
+**Voicemail / qsiap exception:** payment-status or past-due **inquiries**
+(without invoice attachment submit) → `payment-inquiry` — stay **SPM**
+(`159000485013`), type **Invoice Support**, **Open**. **Do not** forward to
+`aphelp@vixxo.com` or `invoices@vixxo.com`. See
+`sp-inbound-vetting/reference/qsiap-voicemail-routing.md`.
+
 Strong signals:
 - Subject/body includes `statement`, `statement of account`, `past due`,
   `overdue`, `aging`, `balance notice`, `outstanding invoice`, `unpaid
@@ -123,19 +129,28 @@ Routing:
 
 ### Account Team / VixxoLink Blocker
 
-Move to `account-team-needed`.
+Move to `vixxolink-portal-support` (preferred) or legacy `account-team-needed`.
 
 Strong signals:
 - Provider cannot submit in VixxoLink because travel/rate/NTE/product fields
   are missing, PO is not generating, only `Build Quote` is available, the
   description/dropdown is blank, old portal/new portal confusion exists, or
   login/access is blocked.
+- Reply to APHelp past-due / outstanding-invoice campaigns where the **requester
+  message** (before quoted history) asks for portal login, account setup, or
+  VixxoLink access — even when quoted text mentions past due balances or an
+  attachment is a portal screenshot (audit: FD **#70128**).
 - The request is really about provider setup, rates, customer/SAP/PO, NTE,
   portal visibility, or business ownership rather than AP payment status.
 
-Routing:
-- Route to the correct owner before AP review: portal support, Account Team,
-  NTE/rate owner, billing specialist, or SP setup support.
+Routing (execute path — `portal_support_routing.py`):
+- Assign **VINT** group (`159000486559`).
+- Set Freshdesk **type** to **`VixxoLink Support`**.
+- Tags: `vixxolink-portal-support`, `vint-routed`, `open-hold`.
+- **Do NOT** forward to `invoices@vixxo.com` or `aphelp@vixxo.com`. **Leave Open.**
+
+**Voicemail:** explicit “VixxoLink support” or portal/login language in the
+transcript uses the same VINT route (`voicemail_intake_routing.py`).
 
 ### Duplicate / Resubmission Cluster
 

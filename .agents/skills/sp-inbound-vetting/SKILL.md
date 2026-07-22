@@ -85,6 +85,13 @@ before Freshdesk forward/resolve; skip SF Task writes on that path.
 **Use `vixxo-spm-invoice-concerns`** for invoice/payment Gateway analysis,
 proposed resolutions, and invoice workflow tags on Freshdesk Invoice Concerns.
 
+**QSIAP voicemails (`qsiap@vixxo.com`):** use
+`scripts/live_run_qsiap_voicemails.py` with routing in
+[reference/qsiap-voicemail-routing.md](reference/qsiap-voicemail-routing.md):
+VixxoLink support → **VINT** / type **VixxoLink Support**; payment/past-due
+inquiry → **SPM** / **Invoice Support** / Open (no aphelp); invoice attachment
+forward → `invoices@vixxo.com` only after Gateway confirms no invoice on SR.
+
 **Use `vixxo-freshdesk-invoice-review`** for AP Help Desk No Agent queue,
 bucket classification, and provider reply drafting.
 
@@ -259,6 +266,7 @@ Vetting progress — {Case or ticket id}:
 | [reference/freshdesk-note-template.md](reference/freshdesk-note-template.md) | AP Help internal note body |
 | [reference/salesforce-notes.md](reference/salesforce-notes.md) | Task / Chatter writes (SF-primary) |
 | [reference/troubleshooting.md](reference/troubleshooting.md) | Known failure modes + fixes |
+| [reference/qsiap-voicemail-routing.md](reference/qsiap-voicemail-routing.md) | QSIAP/SPM voicemail routing (VINT, payment, invoice forward) |
 
 Sibling skills: **`sp-voicemail-triage`** (voicemail routing),
 **`vixxo-coi-review`** (COI certificate compliance),
