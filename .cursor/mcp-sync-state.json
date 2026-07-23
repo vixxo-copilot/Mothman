@@ -26,7 +26,7 @@
     "dynamics365": "manifest",
     "freshdesk": "manifest",
     "freshservice": "manifest",
-    "gateway": "manifest",
+    "gateway": "local",
     "gong-transact": "manifest",
     "hubspot": "manifest",
     "linear": "manifest",
@@ -34,7 +34,7 @@
     "powerbi-prod": "manifest",
     "salesforce": "manifest",
     "skills": "manifest",
-    "vixxolink": "manifest",
+    "vixxolink": "local",
     "vixxonow": "manifest",
     "zoominfo": "manifest"
   },

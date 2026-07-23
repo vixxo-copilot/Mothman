@@ -30,6 +30,8 @@ or "what should I focus on today", follow this workflow:
 3. Return in this order:
    - **Today at a glance** — meeting load, hard stops, coverage gaps
    - **Priority items** — P1 first, ordered by urgency and business impact
+   - **SF case mail to sync** — dry-run scan of open Cases (`morning_case_mail_scan.py`)
+   - **Account corrections** — audit-only Case Account check (`audit_case_accounts.py`)
    - **Blockers and risks**
    - **Follow-ups** — owner + timing
    - **First moves** — 2–3 concrete next actions

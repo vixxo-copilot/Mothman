@@ -9,7 +9,15 @@ import shutil
 from pathlib import Path
 
 GATEWAY_AUTH_ID = "6486a04241e2b8e809e7c6f312812185"
+VIXXOLINK_AUTH_ID = "86f3d1e19c821fab2297f5f94aac2d68"
+# Legacy/alternate mcp-remote client registrations seen in older workspaces.
+VIXXOLINK_AUTH_IDS = (
+    VIXXOLINK_AUTH_ID,
+    "bd3af626f5128d032de269bd1f9de2be",
+)
 BO_UNIVERSE_URL = "https://vixxonow.com/mcp/bo-universe"
+GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
+VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
 
 
 def load_env_file(path: Path) -> None:
@@ -102,32 +110,58 @@ def load_token_file(path: Path) -> str | None:
 
 
 def load_oauth_access_token(auth_id: str) -> str | None:
-    token_path = Path.home() / ".mcp-auth" / "mcp-remote-0.1.37" / f"{auth_id}_tokens.json"
-    if not token_path.is_file():
+    base = Path.home() / ".mcp-auth"
+    if not base.is_dir():
         return None
-    try:
-        payload = json.loads(token_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return None
-    access = payload.get("access_token")
-    if isinstance(access, str) and access.strip():
-        return access.strip()
+    candidates = sorted(base.glob(f"mcp-remote-*/{auth_id}_tokens.json"), reverse=True)
+    for token_path in candidates:
+        try:
+            payload = json.loads(token_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        access = payload.get("access_token")
+        if isinstance(access, str) and access.strip():
+            return access.strip()
     return None
 
 
 def resolve_vixxo_bearer_token() -> str | None:
     load_workspace_env()
-    token = first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN", "VIXXOLINK_API_TOKEN")
+    token = first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN")
     if token:
         return token
 
     vixxo = Path.home() / ".vixxo"
-    for name in ("gateway_api_token", "vixxonow_api_token", "vixxolink_api_token"):
+    for name in ("gateway_api_token", "vixxonow_api_token"):
         token = load_token_file(vixxo / name)
         if token:
             return token
 
     return load_oauth_access_token(GATEWAY_AUTH_ID)
+
+
+def resolve_vixxolink_bearer_token() -> str | None:
+    load_workspace_env()
+    token = first_env("VIXXOLINK_API_TOKEN")
+    if token:
+        return token
+
+    token = load_token_file(Path.home() / ".vixxo" / "vixxolink_api_token")
+    if token:
+        return token
+
+    for auth_id in VIXXOLINK_AUTH_IDS:
+        token = load_oauth_access_token(auth_id)
+        if token:
+            return token
+
+    return None
+
+
+def resolve_bearer_token_for_url(url: str) -> str | None:
+    if "/vixxolink" in url:
+        return resolve_vixxolink_bearer_token()
+    return resolve_vixxo_bearer_token()
 
 
 def auth_header_value(token: str) -> str:

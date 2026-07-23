@@ -5,3 +5,5 @@ powershell -NoProfile -Command ^
 echo.
 echo Port 37882 should be free. In Cursor: Settings -^> MCP -^> vixxolink -^> Reconnect.
 echo Complete the browser OAuth sign-in when prompted.
+echo Then: python .cursor\bin\sync_vixxolink_token.py
+echo Restart vixxolink in Cursor Settings -^> MCP.

@@ -118,40 +118,56 @@ macOS caveat: when Cursor is launched from Finder (double-click), it inherits th
 These integrations use agent skills and `.env` credentials. They do **not** appear
 in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
-### Vixxo HTTP MCPs (Gateway, VixxoLink, VixxoNow, …)
+### Vixxo HTTP MCPs (Gateway, VixxoLink, Business Objects, …)
 
 **Purpose:** Internal Vixxo read/write tools via `https://vixxonow.com/mcp/*`.
 
-**Transport:** local stdio via `npx mcp-remote` (direct HTTP endpoint in
-`.cursor/mcp.json`; no token pre-check wrapper).
+**Transport:** local stdio via bearer wrappers (same pattern as `business-objects`):
 
-**Auth:** If the endpoint requires a Bearer token, add it via Cursor HTTP MCP
-OAuth or extend the `mcp-remote` args with
-`--header Authorization:Bearer <token>`. Optional token storage (for scripts/skills):
+- `.cursor/bin/run-gateway-mcp.cmd`
+- `.cursor/bin/run-vixxolink-mcp.cmd`
+- `.cursor/bin/run-business-objects-mcp.cmd`
 
-- `~/.vixxo/vixxolink_api_token` (recommended)
-- `~/.vixxo/vixxonow_api_token`
-- `~/.vixxo/gateway_api_token`
-- or `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+Each wrapper runs `npx mcp-remote <url> --header Authorization:Bearer <token>` so
+shell and Cursor share one token path — no localhost OAuth callback ports.
 
-After auth changes, open **Cursor Settings → MCP** and restart the affected
-servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
+**Auth:** separate bearer tokens for Gateway vs VixxoLink:
 
-**OAuth troubleshooting (`Connection closed` / port 37882):** VixxoLink uses
-Cursor OAuth via `mcp-remote`. A failed or interrupted sign-in can leave a stale
-listener on `localhost:37882`, which blocks reconnects with `MCP error -32000:
-Connection closed`. Fix without a bearer token:
+| Server | Token file | OAuth cache auth id | Sync script |
+| --- | --- | --- | --- |
+| gateway / business-objects | `~/.vixxo/gateway_api_token` | `6486a042…` | `sync_gateway_token.py` |
+| vixxolink | `~/.vixxo/vixxolink_api_token` | `86f3d1e19…` | `sync_vixxolink_token.py` |
 
-1. Run `.cursor/bin/repair-vixxolink-oauth.cmd` (kills the stale listener and
-   removes the OAuth lock under `~/.mcp-auth/`).
-2. **Cursor Settings → MCP → vixxolink → Reconnect** and complete the browser
-   OAuth flow.
-3. Confirm `~/.mcp-auth/mcp-remote-*/86f3d1e19*_tokens.json` appears after
-   sign-in.
+`mcp_env.resolve_bearer_token_for_url()` picks the correct token per endpoint.
+Shell scripts and MCP wrappers share the same files.
+
+After auth changes:
+
+```bash
+python .cursor/bin/sync_gateway_token.py
+python .cursor/bin/sync_vixxolink_token.py
+```
+
+Then restart **gateway**, **vixxolink**, and **business-objects** in Cursor
+Settings → MCP.
+
+**OAuth troubleshooting (`Connection closed` / port 29069 or 37882):**
+
+1. Run `.cursor/bin/repair-gateway-oauth.cmd` or
+   `.cursor/bin/repair-vixxolink-oauth.cmd` (clears stale listener only —
+   does **not** delete token files).
+2. **Cursor Settings → MCP → gateway / vixxolink → Reconnect** and complete
+   browser sign-in once.
+3. `python .cursor/bin/sync_gateway_token.py` and/or
+   `python .cursor/bin/sync_vixxolink_token.py` to copy fresh OAuth tokens
+   into `~/.vixxo/`.
+4. Restart the MCP servers in Cursor.
 
 **Verify:**
 
 ```bash
+python .tmp/diagnose_gateway_mcp.py
+python .tmp/diagnose_bo_mcp.py
 python bin/diagnose-mcp.py
 ```
 

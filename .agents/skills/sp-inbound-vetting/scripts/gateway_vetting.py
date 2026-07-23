@@ -345,7 +345,10 @@ def gateway_health_check() -> dict:
         return {"ok": True, "probe": "gateway_search_invoices(searchString=KS69315)", "rows": len(rows)}
     return {
         "ok": False,
-        "error": "Gateway probe empty — use Cursor Gateway MCP (project-0-assistant-CGagner-gateway) or run enriched live_run --data",
+        "error": (
+            "Gateway probe empty. Ensure ~/.vixxo/gateway_api_token exists or run "
+            ".cursor/bin/sync_gateway_token.py, then restart gateway MCP."
+        ),
     }
 
 

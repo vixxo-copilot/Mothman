@@ -43,11 +43,10 @@
     },
     "gateway": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/gateway"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-gateway-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "github": {
       "args": [
@@ -116,11 +115,10 @@
     },
     "vixxolink": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxolink"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-vixxolink-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "vixxonow": {
       "args": [

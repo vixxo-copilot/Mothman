@@ -27,10 +27,12 @@ Return in this order:
 
 1. **Today at a glance** — meeting load, first/last meeting, conflicts
 2. **Priority items** — must-do today, ordered by urgency
-3. **Inbox highlights** — unread actionable mail only (skip noise)
-4. **Blockers and risks** — waiting states, tentative RSVPs, auth gaps
-5. **Follow-ups** — owner + suggested timing
-6. **First moves** — 2–3 concrete next actions
+3. **SF case mail to sync** — open Cases you own with Outlook mail not yet on SF
+4. **Account corrections** — Cases on placeholder/wrong Account (audit-only)
+5. **Inbox highlights** — unread actionable mail only (skip noise)
+6. **Blockers and risks** — waiting states, tentative RSVPs, auth gaps
+7. **Follow-ups** — owner + suggested timing
+8. **First moves** — 2–3 concrete next actions
 
 Keep sections scannable. No wall-of-text.
 
@@ -78,16 +80,54 @@ Surface Vixxo senders and attachments first.
 
 Do not combine `$search` and `$filter` on the same Graph request.
 
-### 4. Linear (if MCP available)
+### 4. SF case mail to sync (dry-run)
+
+Scan open Salesforce Cases assigned to the operator for Outlook threads not
+yet archived on the Case. **Dry-run only** — do not pass `--execute` during
+the morning brief unless the user explicitly approves sync.
+
+Run:
+
+```bash
+python .agents/skills/sf-case-email-sync/scripts/morning_case_mail_scan.py \
+  --days 7 --limit 15 \
+  --output .tmp/sf-email-sync-morning.json
+
+python .agents/skills/sf-case-email-sync/scripts/audit_case_accounts.py \
+  --owner-me --limit 15 \
+  --output .tmp/sf-account-audit-morning.json
+```
+
+Include mail scan output in **SF case mail to sync** and account audit output in
+**Account corrections** (recommended Case `AccountId` updates — audit only, no
+writes). If either scan fails, note what was skipped and continue.
+
+- Cases with only `skip_file_exists` are omitted from mail sync (already synced).
+- Account audit is **read-only** — never update Case `AccountId` during the brief.
+- Offer execute per Case after review; never auto-sync during the brief.
+- Full skill: `sf-case-email-sync` · vetting: `sp-inbound-vetting`.
+
+**Full portfolio run** (schedule once each morning after the compact scan, or
+weekly; allow ~45–60 min for ~156 open Cases):
+
+```bash
+python .agents/skills/sf-case-email-sync/scripts/sync_case_emails.py \
+  --owner-me --days 7 --limit 156 --account-audit \
+  --output .tmp/sf-email-sync-full-plan.json
+```
+
+Review the JSON plan before any `--execute` sync or account corrections.
+
+### 5. Linear (if MCP available)
 
 Pull active issues assigned to the user with due-date pressure.
 Note blocked or stale items.
 
-### 5. Teams (if MCP available)
+### 6. Teams (if MCP available)
 
 Scan recent mentions and unanswered asks in the last 24–48 hours.
 
-### 6. Synthesize
+### 7. Synthesize
 
 Merge into the output format. Propose a realistic first execution sequence
 given meeting load.
