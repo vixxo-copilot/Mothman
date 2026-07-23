@@ -161,6 +161,41 @@ Restart the Freshdesk MCP server in Cursor after pulling the fix.
 
 ---
 
+## Symptom: QSIAP voicemail vetted as Unknown SP using caller ID
+
+**Context:** Freshdesk SPM tickets to `qsiap@vixxo.com`, subject `New voicemail`,
+requester `no-reply@8x8.com`. Observed 2026-07-23 on FD #84639, #84652, #84733,
+#84714, #84480, #84444.
+
+**Root causes:**
+
+1. Vetting ran **before** Whisper transcription — company/contact came from 8x8
+   metadata (`GOODSON KEVIN`, `BOWSER,WILLIAM`, `User 3615750536`) instead of
+   spoken transcript (`Goodson Services`, `Customer's Choice LLC`, etc.).
+2. Requester email is always `no-reply@8x8.com` — email-first Gateway/SF paths
+   return nothing useful.
+3. Shell `gateway_health_check()` failure aborted the batch even when Cursor
+   Gateway MCP was healthy.
+
+**Fix (in skill — v2.0.3):**
+
+1. Run `live_run_qsiap_voicemails.py` — transcribes audio **first** via
+   `qsiap_voicemail_entities.py`, then extracts company/contact/SR from transcript.
+2. Treat 8x8 caller ID as **contact hint only** when it looks like a person name
+   (`LAST,FIRST` → normalize to `First Last`); never use as company string.
+3. Gateway health failure → **warn and continue**; SF Account search can still
+   resolve KS when transcript company is correct.
+4. Prefer **Cursor Gateway MCP** in agent sessions when shell token is missing.
+5. One-off corrections: `reapply_qsiap_corrections.py` with known SP map.
+
+**Example — Goodson Services (#84639):**
+
+- Wrong: company `GOODSON KEVIN` → Unknown SP.
+- Right: transcript "Goodson Services" / contact Kevin Goodson → SF Account
+  `KS68402`.
+
+---
+
 ## Future enhancements (not yet implemented)
 
 | Gap | Proposal |

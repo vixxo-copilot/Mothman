@@ -44,6 +44,13 @@ from dry_run_batch import (  # noqa: E402
 )
 from gateway_vetting import gateway_health_check  # noqa: E402
 from live_run_batch import OUT_DIR, apply_item  # noqa: E402
+from entity_extraction import is_probable_person_name  # noqa: E402
+from qsiap_voicemail_entities import (  # noqa: E402
+    is_caller_id_label,
+    merge_transcript_entities,
+    normalize_caller_id_name,
+    transcribe_ticket_text,
+)
 
 DOMAIN = "vixxo-helpdesk.freshdesk.com"
 SPM_GROUP = "159000485013"
@@ -109,17 +116,52 @@ def extract_srs(text: str, phone: str | None) -> list[str]:
     return found
 
 
-def enrich_voicemail_entities(ticket: dict, entities: dict) -> dict:
+def enrich_voicemail_entities(
+    ticket: dict,
+    entities: dict,
+    *,
+    api_key: str | None = None,
+    transcribe: bool = True,
+) -> tuple[dict, str | None]:
+    """Transcript-first enrichment; returns (entities, transcription_error)."""
     meta = extract_metadata(ticket)
-    caller = meta.get("caller") or "Not stated"
-    if caller not in ("Not stated", "Unknown", "WIRELESS CALLER"):
-        entities["contact_name"] = caller
-        entities["vetting_contact_name"] = caller
-    text = blob(ticket)
-    srs = extract_srs(text, meta.get("phone"))
+    transcript = None
+    tx_err: str | None = None
+
+    if transcribe and api_key:
+        transcript, tx_err = transcribe_ticket_text(ticket, api_key)
+
+    search_text = " ".join(
+        part
+        for part in (
+            transcript or "",
+            blob(ticket),
+        )
+        if part
+    )
+    srs = extract_srs(search_text, meta.get("phone"))
     if srs and not entities.get("sr_number"):
         entities["sr_number"] = srs[0]
-    return entities
+
+    if transcript:
+        entities = merge_transcript_entities(entities, transcript, meta)
+    else:
+        caller = meta.get("caller")
+        if not is_caller_id_label(caller):
+            entities["contact_name"] = caller
+            entities["vetting_contact_name"] = caller
+        else:
+            normalized = normalize_caller_id_name(caller)
+            if normalized and is_probable_person_name(normalized):
+                entities["contact_name"] = normalized
+                entities["vetting_contact_name"] = normalized
+            if is_caller_id_label(entities.get("company")) or entities.get("company") == caller:
+                entities["company"] = "Not stated"
+
+    phone = meta.get("phone")
+    if phone and phone != "Not stated":
+        entities.setdefault("callback_phone", phone)
+    return entities, tx_err
 
 
 def search_open(api_key: str, query: str, max_pages: int = 12) -> list[dict]:
@@ -165,9 +207,19 @@ def discover_qsiap_voicemails(api_key: str) -> list[dict]:
     return list(by_id.values())
 
 
-def build_item(ticket: dict) -> dict:
+def build_item(
+    ticket: dict,
+    api_key: str,
+    *,
+    transcribe: bool = True,
+) -> dict:
     tid = int(ticket["id"])
-    entities = enrich_voicemail_entities(ticket, extract_company(ticket))
+    entities, tx_err = enrich_voicemail_entities(
+        ticket,
+        extract_company(ticket),
+        api_key=api_key,
+        transcribe=transcribe,
+    )
     gw = gateway_find_sp(entities)
     sf = salesforce_search(entities)
     if not gw and sf.get("account"):
@@ -197,6 +249,8 @@ def build_item(ticket: dict) -> dict:
         "sf_case": sf.get("case"),
         "sf_account": sf.get("account"),
         "errors": sf.get("errors", []),
+        "transcription_error": tx_err,
+        "transcript_snippet": (entities.get("transcript") or "")[:500] or None,
     }
 
 
@@ -235,14 +289,27 @@ def main() -> int:
     )
     parser.add_argument("--re-vet", action="store_true", help="Include sp-vetted tickets")
     parser.add_argument("--dry-run", action="store_true", help="Vet only; no FD writes")
+    parser.add_argument(
+        "--no-transcribe",
+        action="store_true",
+        help="Skip Whisper transcription (not recommended for QSIAP)",
+    )
     args = parser.parse_args()
     skip = set(args.skip or [])
 
     api = load_credentials()
     gw_health = gateway_health_check()
     if not gw_health.get("ok"):
-        print(json.dumps({"error": "Gateway unavailable", "health": gw_health}, indent=2))
-        return 1
+        print(
+            json.dumps(
+                {
+                    "warning": "Gateway health check failed; continuing with SF-first vetting",
+                    "health": gw_health,
+                },
+                indent=2,
+            ),
+            file=sys.stderr,
+        )
 
     tickets = discover_qsiap_voicemails(api)
     items: list[dict] = []
@@ -253,7 +320,9 @@ def main() -> int:
         tags = ticket.get("tags") or []
         if not args.re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
             continue
-        items.append(build_item(ticket))
+        items.append(
+            build_item(ticket, api, transcribe=not args.no_transcribe)
+        )
 
     results = []
     if args.dry_run:
