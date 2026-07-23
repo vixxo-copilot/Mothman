@@ -3,7 +3,7 @@
   "last_applied_manifest_version": "1.0.2",
   "last_apply_timestamp": "2026-06-15T18:11:47.659Z",
   "managed_entry_fingerprints": {
-    "business-objects": "sha256:79d5da4c09c1424d4440854fdd6ba61ccb5789c105ac5258ace3cc90c995644f",
+    "business-objects": "sha256:78f8f74afce1a31da01d0951ace26ebad1cfd0e1cd6a6dd8b60b99bb0b5534dc",
     "chatfpt": "sha256:a4bc378cb9c9a450b79889b50d77f76bfa5e36f3932e29234469bd082d6ba948",
     "dynamics365": "sha256:743e32ceafe465d61ed3341d93ca1f569a72960d5228802b8b20ea0ec0f9880b",
     "freshdesk": "sha256:01cf6a4d0ad1dfabaf125c44f810eac820cf50e10729b3e30b587476fb8565ba",
@@ -21,7 +21,7 @@
     "zoominfo": "sha256:ed0720ad1afa93b202d9500bae8e66caa6604c1d0c40076e60cce289b0a3a611"
   },
   "managed_entry_resolution": {
-    "business-objects": "manifest",
+    "business-objects": "local",
     "chatfpt": "manifest",
     "dynamics365": "manifest",
     "freshdesk": "manifest",

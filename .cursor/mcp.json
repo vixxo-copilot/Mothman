@@ -2,11 +2,10 @@
   "mcpServers": {
     "business-objects": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/bo-universe"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-business-objects-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "chatfpt": {
       "args": [

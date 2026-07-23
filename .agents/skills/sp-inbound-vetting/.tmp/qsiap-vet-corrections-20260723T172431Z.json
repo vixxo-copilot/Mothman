@@ -1,0 +1,41 @@
+{
+  "run_at": "2026-07-23T17:24:21Z",
+  "results": [
+    {
+      "ticket_id": 84639,
+      "cf_sp": "68402 - Goodson Services",
+      "note": "posted",
+      "update": "ok"
+    },
+    {
+      "ticket_id": 84652,
+      "cf_sp": "KS69724 - KS - Customers Choice LLC",
+      "note": "posted",
+      "update": "ok"
+    },
+    {
+      "ticket_id": 84733,
+      "cf_sp": "KS69853 - KS - Craft's Locksmith LLC",
+      "note": "posted",
+      "update": "ok"
+    },
+    {
+      "ticket_id": 84714,
+      "cf_sp": "KS101323 - KS - CCONLY - Bosart Lock & Key Inc",
+      "note": "posted",
+      "update": "ok"
+    },
+    {
+      "ticket_id": 84480,
+      "cf_sp": "KS101491 - KS - General Fix-it, LLC",
+      "note": "posted",
+      "update": "ok"
+    },
+    {
+      "ticket_id": 84444,
+      "cf_sp": "KS68663 - KS - Andrews Plumbing Services Inc",
+      "note": "posted",
+      "update": "ok"
+    }
+  ]
+}
