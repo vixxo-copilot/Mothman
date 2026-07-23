@@ -5,8 +5,8 @@ batch runs.
 
 - **Local faster-whisper transcription** (`.wav` or `.mp3`; requires pip + ffmpeg)
 - **Shell cron:** keyword routing only — no external vetting
-- **QSIAP AP voicemails:** included by default via the `sp-inbound-vetting`
-  QSIAP runner (`qsiap@vixxo.com`, subject `New voicemail`)
+- **QSIAP AP voicemails:** included by default as transcript-only manual-vetting
+  handoff (`qsiap@vixxo.com`, subject `New voicemail`)
 - **Agent runs:** **`sp-inbound-vetting`** via **Skills MCP** for lite Gateway/SF
   vetting and quicker reroute before Freshdesk writes
 - **Freshdesk REST** for shell batch — agent tier also uses Freshdesk MCP for apply

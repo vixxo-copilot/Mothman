@@ -256,6 +256,113 @@ def build_item(
     }
 
 
+def build_transcript_only_item(
+    ticket: dict,
+    api_key: str,
+    *,
+    transcribe: bool = True,
+) -> dict:
+    """Build a QSIAP handoff item without Gateway/SF/SP attribution."""
+    tid = int(ticket["id"])
+    entities, tx_err = enrich_voicemail_entities(
+        ticket,
+        extract_company(ticket),
+        api_key=api_key,
+        transcribe=transcribe,
+    )
+    return {
+        "ticket_id": tid,
+        "queue": "qsiap-voicemail",
+        "mode": "transcript-only",
+        "inbox_label": QSIAP,
+        "subject": ticket.get("subject"),
+        "company_candidate": entities.get("company"),
+        "signature_company": entities.get("signature_company"),
+        "contact_name": entities.get("contact_name"),
+        "vetting_contact_name": entities.get("vetting_contact_name"),
+        "contact_emails": entities.get("contact_emails"),
+        "ks_number_candidate": entities.get("ks_number"),
+        "sr_number_candidate": entities.get("sr_number"),
+        "requester": entities.get("requester_email"),
+        "callback_phone": entities.get("callback_phone"),
+        "cf_sp_current": entities.get("cf_sp_current"),
+        "transcription_error": tx_err,
+        "transcript": entities.get("transcript"),
+        "transcript_snippet": (entities.get("transcript") or "")[:500] or None,
+    }
+
+
+def build_transcript_only_note(item: dict) -> str:
+    transcript = item.get("transcript") or "No transcript available."
+    contact_emails = item.get("contact_emails") or []
+    if not contact_emails and item.get("requester"):
+        contact_emails = [item["requester"]]
+    return f"""**QSIAP Voicemail — Transcript / Manual Vetting Handoff**
+
+**Freshdesk ticket:** #{item['ticket_id']}
+**Inbox / queue:** {item.get('inbox_label') or QSIAP}
+**Requester:** {item.get('requester') or 'Not stated'}
+**Contact name candidate:** {item.get('contact_name') or 'Not stated'}
+**Contact emails found:** {', '.join(contact_emails) if contact_emails else 'None'}
+**Company candidate from transcript/signature:** {item.get('company_candidate') or 'Not stated'}
+**Reference candidates:** SR {item.get('sr_number_candidate') or 'none'} | KS {item.get('ks_number_candidate') or 'none'}
+**Callback phone:** {item.get('callback_phone') or 'Not stated'}
+**Current cf_sp:** {item.get('cf_sp_current') or 'Not stated'}
+
+---
+
+**Transcript**
+
+{transcript}
+
+---
+
+**Automation action:** Transcribed QSIAP voicemail and captured handoff details only.
+No Gateway/VixxoLink lookup was performed in fast mode, and no SP attribution or
+`cf_sp` value was changed. Manual vetting should confirm the SP before any SP field update.
+"""
+
+
+def apply_transcript_only_item(api_key: str, item: dict) -> dict:
+    """Post transcript handoff note and tags without changing SP attribution."""
+    tid = int(item["ticket_id"])
+    out = {
+        "ticket_id": tid,
+        "mode": "transcript-only",
+        "note": None,
+        "tags": None,
+        "cf_sp": "(unchanged)",
+        "error": None,
+    }
+    try:
+        http_json(
+            "POST",
+            f"/api/v2/tickets/{tid}/notes",
+            api_key,
+            {"body": build_transcript_only_note(item), "private": True},
+        )
+        out["note"] = "posted"
+    except urllib.error.HTTPError as exc:
+        out["note"] = f"failed:{exc.code}"
+        out["error"] = f"note:{exc.reason}"
+
+    try:
+        ticket = get_ticket(api_key, tid)
+        tags = sorted(
+            set(
+                (ticket.get("tags") or [])
+                + ["qsiap-source", "voicemail-transcribed", "needs-manual-vetting"]
+            )
+        )
+        http_json("PUT", f"/api/v2/tickets/{tid}", api_key, {"tags": tags})
+        out["tags"] = tags
+    except urllib.error.HTTPError as exc:
+        if not out["error"]:
+            out["error"] = f"tags:{exc.reason}"
+        out["tags"] = f"failed:{exc.code}"
+    return out
+
+
 def apply_qsiap_item(api_key: str, item: dict) -> dict:
     """apply_item + qsiap tags and Invoice Support type when missing."""
     result = apply_item(api_key, item)
@@ -286,11 +393,20 @@ def run_qsiap_voicemails(
     re_vet: bool = False,
     dry_run: bool = False,
     transcribe: bool = True,
+    transcript_only: bool = False,
 ) -> dict:
     """Vet QSIAP AP voicemails and return the run summary."""
     skip = set(skip or [])
     api = load_credentials()
-    gw_health = gateway_health_check()
+    gw_health = (
+        {
+            "ok": None,
+            "skipped": True,
+            "reason": "transcript-only fast mode does not perform Gateway/VixxoLink lookup",
+        }
+        if transcript_only
+        else gateway_health_check()
+    )
     if not gw_health.get("ok"):
         print(
             json.dumps(
@@ -311,28 +427,51 @@ def run_qsiap_voicemails(
         if tid in skip:
             continue
         tags = ticket.get("tags") or []
-        if not re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
+        done_tags = ("sp-vetted", "vetting-complete")
+        if transcript_only:
+            done_tags = (*done_tags, "voicemail-transcribed")
+        if not re_vet and any(tag in tags for tag in done_tags):
             continue
-        items.append(
-            build_item(ticket, api, transcribe=transcribe, gateway_available=gateway_available)
-        )
+        if transcript_only:
+            items.append(build_transcript_only_item(ticket, api, transcribe=transcribe))
+        else:
+            items.append(
+                build_item(ticket, api, transcribe=transcribe, gateway_available=gateway_available)
+            )
 
     results = []
     if dry_run:
         for item in items:
-            results.append({"ticket_id": item["ticket_id"], "posture": item["posture"], "dry_run": True})
+            if transcript_only:
+                results.append(
+                    {
+                        "ticket_id": item["ticket_id"],
+                        "mode": "transcript-only",
+                        "transcription_error": item.get("transcription_error"),
+                        "dry_run": True,
+                    }
+                )
+            else:
+                results.append({"ticket_id": item["ticket_id"], "posture": item["posture"], "dry_run": True})
     else:
         for item in items:
-            results.append(apply_qsiap_item(api, item))
-            print(f"#{item['ticket_id']} {item['posture']}")
+            if transcript_only:
+                results.append(apply_transcript_only_item(api, item))
+                print(f"#{item['ticket_id']} transcript-only")
+            else:
+                results.append(apply_qsiap_item(api, item))
+                print(f"#{item['ticket_id']} {item['posture']}")
 
-    known = sum(1 for i in items if i["posture"].startswith("Known SP"))
+    known = sum(1 for i in items if i.get("posture", "").startswith("Known SP"))
     summary = {
-        "mode": "dry-run" if dry_run else "live",
+        "mode": "transcript-only-dry-run" if transcript_only and dry_run else "transcript-only" if transcript_only else "dry-run" if dry_run else "live",
+        "transcript_only": transcript_only,
         "discovered": len(tickets),
         "vetted": len(items),
         "skipped_ids": sorted(skip),
         "known_sp": known,
+        "transcribed": sum(1 for i in items if i.get("transcript")),
+        "transcription_failed": sum(1 for i in items if i.get("transcription_error")),
         "gateway_health": gw_health,
         "run_at": datetime.now(timezone.utc).isoformat(),
         "results": results,
@@ -364,6 +503,11 @@ def main() -> int:
         action="store_true",
         help="Skip Whisper transcription (not recommended for QSIAP)",
     )
+    parser.add_argument(
+        "--transcript-only",
+        action="store_true",
+        help="Post transcript handoff notes/tags only; do not perform Gateway/SF/SP attribution",
+    )
     args = parser.parse_args()
 
     summary = run_qsiap_voicemails(
@@ -371,6 +515,7 @@ def main() -> int:
         re_vet=args.re_vet,
         dry_run=args.dry_run,
         transcribe=not args.no_transcribe,
+        transcript_only=args.transcript_only,
     )
     out = write_summary(summary)
     print(json.dumps({k: summary[k] for k in ("mode", "discovered", "vetted", "known_sp", "run_at")}, indent=2))

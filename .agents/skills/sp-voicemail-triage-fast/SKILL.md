@@ -5,7 +5,7 @@ description: >-
   Downloads audio attachments (.wav or .mp3), transcribes locally with
   faster-whisper, classifies, posts Freshdesk internal notes, forwards to
   SPM/AP/COI/recruitment, resolves KSOnboarding tickets, and includes QSIAP
-  AP voicemails for Freshdesk enrichment. Agent sessions
+  AP voicemails for transcript-only manual-vetting handoff. Agent sessions
   load published skill sp-inbound-vetting via Skills MCP for lite identity
   vetting and quicker reroute before writes. Shell cron batch skips external
   vetting (--skip-vetting). For full vetting + SF Tasks use parent
@@ -98,13 +98,14 @@ By default the wrapper now runs two Freshdesk voicemail paths:
 1. **KSOnboarding:** parent fast voicemail triage, keyword routing, internal note,
    optional forward, and resolve.
 2. **QSIAP AP voicemail:** `sp-inbound-vetting` QSIAP runner for
-   `qsiap@vixxo.com` `New voicemail` tickets; transcribes audio, performs
-   Gateway/SF identity enrichment when available, posts Freshdesk internal notes,
-   updates `cf_sp`/tags, and leaves outbound forwarding out of scope.
+   `qsiap@vixxo.com` `New voicemail` tickets in **transcript-only** mode.
+   It transcribes audio, extracts stated company/contact/SR/KS candidates, posts
+   a Freshdesk internal note, and tags the ticket for manual vetting. It does
+   **not** perform Gateway/VixxoLink/Salesforce SP attribution and does **not**
+   update `cf_sp` or SP name fields in fast mode.
 
-If the shell Gateway probe is unavailable, the QSIAP path skips Gateway/VixxoLink
-lookups for that run to avoid hanging on MCP fallback and records the failed
-probe in the QSIAP summary.
+Manual vetting skill pushes should perform authoritative Gateway/VixxoLink/SF
+identity checks and apply any SP field updates later.
 
 Use `--no-qsiap` for a KSOnboarding-only run or `--qsiap-only` to run only the
 QSIAP voicemail path. Use `--qsiap-re-vet` when already-vetted QSIAP voicemail

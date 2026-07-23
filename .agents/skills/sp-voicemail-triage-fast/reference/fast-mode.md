@@ -2,7 +2,7 @@
 
 `sp-voicemail-triage-fast` runs the parent KSOnboarding batch pipeline with
 **`--skip-vetting`** in the **shell wrapper**, then runs the QSIAP AP voicemail
-enrichment path from `sp-inbound-vetting`. Agent sessions add
+transcript-only handoff path from `sp-inbound-vetting`. Agent sessions add
 **`sp-inbound-vetting`** lite vet via **Skills MCP** before KSOnboarding writes —
 see [inbound-vetting-reroute.md](inbound-vetting-reroute.md).
 
@@ -43,6 +43,8 @@ Document dry-run spec: [inbound-vetting-document-phase-dry-run.md](inbound-vetti
 - **faster-whisper** transcription (local, no API key) — **required before any write**
 - On success: keyword classification, callback decision, internal note, forward, resolve
 - On transcription failure: **no Freshdesk updates** — ticket stays open
+- QSIAP fast mode posts transcript handoff notes/tags only; it does not perform
+  Gateway/VixxoLink/SF SP attribution or update `cf_sp`
 
 ## When to use parent instead
 

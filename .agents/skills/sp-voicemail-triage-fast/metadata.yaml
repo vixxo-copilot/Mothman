@@ -1,6 +1,6 @@
 name: sp-voicemail-triage-fast
 title: "SP Voicemail Triage (Fast)"
-description: "Scheduled-automation variant — local faster-whisper transcription (.wav/.mp3), classify, forward, and resolve Freshdesk KSOnboarding voicemails, plus QSIAP AP voicemail enrichment. Shell batch skips external KSOnboarding vetting; agent runs load published sp-inbound-vetting via Skills MCP for lite Gateway/SF vetting and quicker reroute."
+description: "Scheduled-automation variant — local faster-whisper transcription (.wav/.mp3), classify, forward, and resolve Freshdesk KSOnboarding voicemails, plus QSIAP AP voicemail transcript-only handoff. Shell batch skips external KSOnboarding vetting; agent runs load published sp-inbound-vetting via Skills MCP for lite Gateway/SF vetting and quicker reroute."
 category: operations
 agents:
   - cursor

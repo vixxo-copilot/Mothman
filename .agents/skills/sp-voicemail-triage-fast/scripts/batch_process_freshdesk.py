@@ -51,6 +51,7 @@ def _build_qsiap_summary(args: list[str]) -> dict:
         re_vet=_qsiap_re_vet(args),
         dry_run="--dry-run" in args,
         transcribe=True,
+        transcript_only=True,
     )
     summary_path = write_summary(summary)
     return {"summary_path": str(summary_path), **summary}
