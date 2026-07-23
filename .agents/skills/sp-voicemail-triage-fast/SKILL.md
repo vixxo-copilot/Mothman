@@ -102,6 +102,10 @@ By default the wrapper now runs two Freshdesk voicemail paths:
    Gateway/SF identity enrichment when available, posts Freshdesk internal notes,
    updates `cf_sp`/tags, and leaves outbound forwarding out of scope.
 
+If the shell Gateway probe is unavailable, the QSIAP path skips Gateway/VixxoLink
+lookups for that run to avoid hanging on MCP fallback and records the failed
+probe in the QSIAP summary.
+
 Use `--no-qsiap` for a KSOnboarding-only run or `--qsiap-only` to run only the
 QSIAP voicemail path. Use `--qsiap-re-vet` when already-vetted QSIAP voicemail
 tickets should be included again.

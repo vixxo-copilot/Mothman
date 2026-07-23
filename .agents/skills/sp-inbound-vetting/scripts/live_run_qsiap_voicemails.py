@@ -212,6 +212,7 @@ def build_item(
     api_key: str,
     *,
     transcribe: bool = True,
+    gateway_available: bool = True,
 ) -> dict:
     tid = int(ticket["id"])
     entities, tx_err = enrich_voicemail_entities(
@@ -220,9 +221,9 @@ def build_item(
         api_key=api_key,
         transcribe=transcribe,
     )
-    gw = gateway_find_sp(entities)
+    gw = gateway_find_sp(entities) if gateway_available else None
     sf = salesforce_search(entities)
-    if not gw and sf.get("account"):
+    if gateway_available and not gw and sf.get("account"):
         sp_num = str((sf["account"] or {}).get("Service_Provider_Number__c") or "").strip()
         if sp_num.upper().startswith("KS") and not entities.get("ks_number"):
             entities["ks_number"] = sp_num.upper()
@@ -245,6 +246,7 @@ def build_item(
         "posture": post,
         "cf_sp_target": cf_target,
         "gateway_sp": gw,
+        "gateway_available": gateway_available,
         "sf_lead": sf.get("lead"),
         "sf_case": sf.get("case"),
         "sf_account": sf.get("account"),
@@ -301,6 +303,7 @@ def run_qsiap_voicemails(
             file=sys.stderr,
         )
 
+    gateway_available = bool(gw_health.get("ok"))
     tickets = discover_qsiap_voicemails(api)
     items: list[dict] = []
     for ticket in tickets:
@@ -311,7 +314,7 @@ def run_qsiap_voicemails(
         if not re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
             continue
         items.append(
-            build_item(ticket, api, transcribe=transcribe)
+            build_item(ticket, api, transcribe=transcribe, gateway_available=gateway_available)
         )
 
     results = []

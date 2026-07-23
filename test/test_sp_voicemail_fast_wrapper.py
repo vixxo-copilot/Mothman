@@ -64,10 +64,10 @@ class QsiapRunnerTest(unittest.TestCase):
             {"id": 1002, "tags": ["sp-vetted"]},
             {"id": 74250, "tags": []},
         ]
-        built: list[tuple[int, bool]] = []
+        built: list[tuple[int, bool, bool]] = []
 
-        def build_item(ticket, _api, *, transcribe=True):
-            built.append((int(ticket["id"]), transcribe))
+        def build_item(ticket, _api, *, transcribe=True, gateway_available=True):
+            built.append((int(ticket["id"]), transcribe, gateway_available))
             return {"ticket_id": int(ticket["id"]), "posture": "Known SP — matched"}
 
         self.qsiap.build_item = build_item
@@ -87,8 +87,25 @@ class QsiapRunnerTest(unittest.TestCase):
         self.assertEqual(summary["vetted"], 1)
         self.assertEqual(summary["skipped_ids"], [74250])
         self.assertEqual(summary["known_sp"], 1)
-        self.assertEqual(built, [(1001, True)])
+        self.assertEqual(built, [(1001, True, True)])
         self.assertEqual(summary["results"], [{"ticket_id": 1001, "posture": "Known SP — matched", "dry_run": True}])
+
+    def test_run_qsiap_voicemails_skips_gateway_lookup_when_probe_fails(self):
+        self.qsiap.load_credentials = lambda: "api-key"
+        self.qsiap.gateway_health_check = lambda: {"ok": False, "error": "probe failed"}
+        self.qsiap.discover_qsiap_voicemails = lambda _api: [{"id": 1001, "tags": []}]
+        built: list[bool] = []
+
+        def build_item(ticket, _api, *, transcribe=True, gateway_available=True):
+            built.append(gateway_available)
+            return {"ticket_id": int(ticket["id"]), "posture": "Unknown / Not in systems"}
+
+        self.qsiap.build_item = build_item
+
+        summary = self.qsiap.run_qsiap_voicemails(dry_run=True)
+
+        self.assertEqual(built, [False])
+        self.assertEqual(summary["gateway_health"], {"ok": False, "error": "probe failed"})
 
     def test_write_summary_persists_qsiap_json(self):
         with TemporaryDirectory() as tmp:
