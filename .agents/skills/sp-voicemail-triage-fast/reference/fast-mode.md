@@ -1,8 +1,10 @@
 # Fast mode — shell vs agent vetting
 
-`sp-voicemail-triage-fast` runs the parent batch pipeline with **`--skip-vetting`**
-in the **shell wrapper**. Agent sessions add **`sp-inbound-vetting`** lite vet via
-**Skills MCP** before writes — see [inbound-vetting-reroute.md](inbound-vetting-reroute.md).
+`sp-voicemail-triage-fast` runs the parent KSOnboarding batch pipeline with
+**`--skip-vetting`** in the **shell wrapper**, then runs the QSIAP AP voicemail
+enrichment path from `sp-inbound-vetting`. Agent sessions add
+**`sp-inbound-vetting`** lite vet via **Skills MCP** before KSOnboarding writes —
+see [inbound-vetting-reroute.md](inbound-vetting-reroute.md).
 
 ## Shell batch — skipped (for speed)
 
@@ -36,6 +38,7 @@ Document dry-run spec: [inbound-vetting-document-phase-dry-run.md](inbound-vetti
 ## Still performed (both tiers)
 
 - Freshdesk KSOnboarding search + voicemail subject filter
+- Freshdesk QSIAP AP voicemail search (`qsiap@vixxo.com`, subject `New voicemail`)
 - **Audio download** (`.wav` or `.mp3`) from ticket attachments (required — body has no spoken content)
 - **faster-whisper** transcription (local, no API key) — **required before any write**
 - On success: keyword classification, callback decision, internal note, forward, resolve
@@ -56,6 +59,18 @@ Document dry-run spec: [inbound-vetting-document-phase-dry-run.md](inbound-vetti
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 ```
 
+**KSOnboarding only:**
+
+```bash
+python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py --no-qsiap
+```
+
+**QSIAP only:**
+
+```bash
+python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py --qsiap-only
+```
+
 **Agent — preview:**
 
 ```bash
@@ -70,5 +85,8 @@ Optional flags (passed through to parent script):
 | `--no-email` | Same as `sp-voicemail-triage-no-email` |
 | `--no-transcribe` | **Not for automation** — disables STT; no writes |
 | `--reroute-spm` | Parent flag — AP→SPM correction note on forward (narrow fix) |
+| `--no-qsiap` | Skip the QSIAP AP voicemail enrichment path |
+| `--qsiap-only` | Run only QSIAP AP voicemail enrichment |
+| `--qsiap-re-vet` | Include already-vetted QSIAP voicemail tickets |
 
 Scheduled automation setup: [../../sp-voicemail-triage/reference/automation-setup.md](../../sp-voicemail-triage/reference/automation-setup.md)

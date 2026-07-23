@@ -4,7 +4,8 @@ description: >-
   Fast SP voicemail triage for scheduled automation and agent batch runs.
   Downloads audio attachments (.wav or .mp3), transcribes locally with
   faster-whisper, classifies, posts Freshdesk internal notes, forwards to
-  SPM/AP/COI/recruitment, and resolves KSOnboarding tickets. Agent sessions
+  SPM/AP/COI/recruitment, resolves KSOnboarding tickets, and includes QSIAP
+  AP voicemails for Freshdesk enrichment. Agent sessions
   load published skill sp-inbound-vetting via Skills MCP for lite identity
   vetting and quicker reroute before writes. Shell cron batch skips external
   vetting (--skip-vetting). For full vetting + SF Tasks use parent
@@ -27,7 +28,7 @@ Two execution tiers:
 
 ## When to use
 
-- Scheduled Cursor Automation on the KSOnboarding voicemail queue
+- Scheduled Cursor Automation on KSOnboarding and QSIAP voicemail queues
 - "Run fast voicemail triage" / "automation voicemail batch"
 - Agent batch when Gateway/Salesforce MCP is available and **quicker reroute**
   matters more than full parent SF Task writes
@@ -92,6 +93,19 @@ python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.p
 The wrapper injects **`--skip-vetting`**. Transcription is **always on** — do not
 pass `--no-transcribe` in automation.
 
+By default the wrapper now runs two Freshdesk voicemail paths:
+
+1. **KSOnboarding:** parent fast voicemail triage, keyword routing, internal note,
+   optional forward, and resolve.
+2. **QSIAP AP voicemail:** `sp-inbound-vetting` QSIAP runner for
+   `qsiap@vixxo.com` `New voicemail` tickets; transcribes audio, performs
+   Gateway/SF identity enrichment when available, posts Freshdesk internal notes,
+   updates `cf_sp`/tags, and leaves outbound forwarding out of scope.
+
+Use `--no-qsiap` for a KSOnboarding-only run or `--qsiap-only` to run only the
+QSIAP voicemail path. Use `--qsiap-re-vet` when already-vetted QSIAP voicemail
+tickets should be included again.
+
 ## Agent batch command (vet + reroute)
 
 ```bash
@@ -124,6 +138,8 @@ content must come from transcribing the attachment.
 5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
 6. **Otherwise:** keyword classify, internal note (vetting skipped), forward, resolve
 7. **On transcription failure:** skip ticket — no Freshdesk updates
+8. Run QSIAP AP voicemail enrichment for open `qsiap@vixxo.com` `New voicemail`
+   Freshdesk tickets unless `--no-qsiap` was passed
 
 ### Agent batch (with sp-inbound-vetting)
 
@@ -151,7 +167,8 @@ Run SP voicemail fast batch:
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
 
 Report processed, transcribed, transcription_failed, routed, closed, failed from JSON summary.
-Do not pass --no-transcribe. Shell path uses --skip-vetting (keyword routing only).
+Do not pass --no-transcribe. Shell path uses --skip-vetting for KSOnboarding
+(keyword routing only) and includes QSIAP AP voicemail enrichment by default.
 Tickets with transcription_failed were left open unchanged.
 ```
 

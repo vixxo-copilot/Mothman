@@ -278,25 +278,15 @@ def apply_qsiap_item(api_key: str, item: dict) -> dict:
     return result
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Vet open qsiap AP voicemails")
-    parser.add_argument(
-        "--skip",
-        type=int,
-        nargs="*",
-        default=sorted(SKIP_DEFAULT),
-        help="Ticket IDs to skip (default: 74250)",
-    )
-    parser.add_argument("--re-vet", action="store_true", help="Include sp-vetted tickets")
-    parser.add_argument("--dry-run", action="store_true", help="Vet only; no FD writes")
-    parser.add_argument(
-        "--no-transcribe",
-        action="store_true",
-        help="Skip Whisper transcription (not recommended for QSIAP)",
-    )
-    args = parser.parse_args()
-    skip = set(args.skip or [])
-
+def run_qsiap_voicemails(
+    *,
+    skip: set[int] | None = None,
+    re_vet: bool = False,
+    dry_run: bool = False,
+    transcribe: bool = True,
+) -> dict:
+    """Vet QSIAP AP voicemails and return the run summary."""
+    skip = set(skip or [])
     api = load_credentials()
     gw_health = gateway_health_check()
     if not gw_health.get("ok"):
@@ -318,14 +308,14 @@ def main() -> int:
         if tid in skip:
             continue
         tags = ticket.get("tags") or []
-        if not args.re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
+        if not re_vet and ("sp-vetted" in tags or "vetting-complete" in tags):
             continue
         items.append(
-            build_item(ticket, api, transcribe=not args.no_transcribe)
+            build_item(ticket, api, transcribe=transcribe)
         )
 
     results = []
-    if args.dry_run:
+    if dry_run:
         for item in items:
             results.append({"ticket_id": item["ticket_id"], "posture": item["posture"], "dry_run": True})
     else:
@@ -335,7 +325,7 @@ def main() -> int:
 
     known = sum(1 for i in items if i["posture"].startswith("Known SP"))
     summary = {
-        "mode": "dry-run" if args.dry_run else "live",
+        "mode": "dry-run" if dry_run else "live",
         "discovered": len(tickets),
         "vetted": len(items),
         "skipped_ids": sorted(skip),
@@ -344,9 +334,42 @@ def main() -> int:
         "run_at": datetime.now(timezone.utc).isoformat(),
         "results": results,
     }
+    return summary
+
+
+def write_summary(summary: dict) -> Path:
+    """Persist a QSIAP voicemail summary and return its path."""
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f"live-run-qsiap-voicemails-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
     out.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Vet open qsiap AP voicemails")
+    parser.add_argument(
+        "--skip",
+        type=int,
+        nargs="*",
+        default=sorted(SKIP_DEFAULT),
+        help="Ticket IDs to skip (default: 74250)",
+    )
+    parser.add_argument("--re-vet", action="store_true", help="Include sp-vetted tickets")
+    parser.add_argument("--dry-run", action="store_true", help="Vet only; no FD writes")
+    parser.add_argument(
+        "--no-transcribe",
+        action="store_true",
+        help="Skip Whisper transcription (not recommended for QSIAP)",
+    )
+    args = parser.parse_args()
+
+    summary = run_qsiap_voicemails(
+        skip=set(args.skip or []),
+        re_vet=args.re_vet,
+        dry_run=args.dry_run,
+        transcribe=not args.no_transcribe,
+    )
+    out = write_summary(summary)
     print(json.dumps({k: summary[k] for k in ("mode", "discovered", "vetted", "known_sp", "run_at")}, indent=2))
     print(f"Wrote {out}")
     return 0
