@@ -126,6 +126,7 @@ in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
 - `.cursor/bin/run-gateway-mcp.cmd`
 - `.cursor/bin/run-vixxolink-mcp.cmd`
+- `.cursor/bin/run-vixxonow-mcp.cmd`
 - `.cursor/bin/run-business-objects-mcp.cmd`
 
 Each wrapper runs `npx mcp-remote <url> --header Authorization:Bearer <token>` so
@@ -135,7 +136,7 @@ shell and Cursor share one token path — no localhost OAuth callback ports.
 
 | Server | Token file | OAuth cache auth id | Sync script |
 | --- | --- | --- | --- |
-| gateway / business-objects | `~/.vixxo/gateway_api_token` | `6486a042…` | `sync_gateway_token.py` |
+| gateway / business-objects / vixxonow | `~/.vixxo/gateway_api_token` | `6486a042…` | `sync_gateway_token.py` |
 | vixxolink | `~/.vixxo/vixxolink_api_token` | `86f3d1e19…` | `sync_vixxolink_token.py` |
 
 `mcp_env.resolve_bearer_token_for_url()` picks the correct token per endpoint.
@@ -148,20 +149,23 @@ python .cursor/bin/sync_gateway_token.py
 python .cursor/bin/sync_vixxolink_token.py
 ```
 
-Then restart **gateway**, **vixxolink**, and **business-objects** in Cursor
-Settings → MCP.
+Then restart **gateway**, **vixxolink**, **vixxonow**, and **business-objects**
+in Cursor Settings → MCP.
 
-**OAuth troubleshooting (`Connection closed` / port 29069 or 37882):**
+**OAuth troubleshooting (`Authorization state is invalid or expired` /
+`Connection closed` / localhost callback / port 29069 or 37882):**
 
-1. Run `.cursor/bin/repair-gateway-oauth.cmd` or
-   `.cursor/bin/repair-vixxolink-oauth.cmd` (clears stale listener only —
-   does **not** delete token files).
-2. **Cursor Settings → MCP → gateway / vixxolink → Reconnect** and complete
-   browser sign-in once.
+1. Run `.cursor/bin/repair-gateway-oauth.cmd`,
+   `.cursor/bin/repair-vixxolink-oauth.cmd`, or
+   `.cursor/bin/repair-vixxonow-oauth.cmd` (clears stale listener / OAuth
+   cache for that server).
+2. For gateway / vixxolink: **Cursor Settings → MCP → Reconnect** and complete
+   browser sign-in once when prompted.
 3. `python .cursor/bin/sync_gateway_token.py` and/or
    `python .cursor/bin/sync_vixxolink_token.py` to copy fresh OAuth tokens
    into `~/.vixxo/`.
-4. Restart the MCP servers in Cursor.
+4. Restart the MCP servers in Cursor. `vixxonow` and `business-objects` reuse
+   the Gateway bearer — no separate browser login.
 
 **Verify:**
 

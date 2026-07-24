@@ -17,7 +17,7 @@
     "salesforce": "sha256:78c8794bbfbec55d0ce16d197d5fbdbb401a6e6835ef02d123eae1d9290178cc",
     "skills": "sha256:48f3494a6993545d12b368de7d6099faf0991d917747a8fefa99a1de5956aace",
     "vixxolink": "sha256:03811e1777ffba8bb53cb675ff38a9081368ff39e9785889ae7aa6ca3a8b9f0d",
-    "vixxonow": "sha256:735aa005edf5db9e6bda5a7d0c19f373a5f32cf47c1ac0b3c82204b9c4f31e5d",
+    "vixxonow": "sha256:fa0c5e409b1fdc3658e6b2af58916aae767052aa99a16600a4768bc4943c2ae7",
     "zoominfo": "sha256:ed0720ad1afa93b202d9500bae8e66caa6604c1d0c40076e60cce289b0a3a611"
   },
   "managed_entry_resolution": {
@@ -35,7 +35,7 @@
     "salesforce": "manifest",
     "skills": "manifest",
     "vixxolink": "local",
-    "vixxonow": "manifest",
+    "vixxonow": "local",
     "zoominfo": "manifest"
   },
   "manifest_id": "vixxo-copilot-agent-skills-canonical",

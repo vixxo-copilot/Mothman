@@ -10,14 +10,13 @@ from pathlib import Path
 
 GATEWAY_AUTH_ID = "6486a04241e2b8e809e7c6f312812185"
 VIXXOLINK_AUTH_ID = "86f3d1e19c821fab2297f5f94aac2d68"
-# Legacy/alternate mcp-remote client registrations seen in older workspaces.
-VIXXOLINK_AUTH_IDS = (
-    VIXXOLINK_AUTH_ID,
-    "bd3af626f5128d032de269bd1f9de2be",
-)
+# md5("https://vixxonow.com/mcp/vixxonow") — own OAuth registration, not VixxoLink.
+VIXXONOW_AUTH_ID = "bd3af626f5128d032de269bd1f9de2be"
+VIXXOLINK_AUTH_IDS = (VIXXOLINK_AUTH_ID,)
 BO_UNIVERSE_URL = "https://vixxonow.com/mcp/bo-universe"
 GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
 VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
+VIXXONOW_URL = "https://vixxonow.com/mcp/vixxonow"
 
 
 def load_env_file(path: Path) -> None:

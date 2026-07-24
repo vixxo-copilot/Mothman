@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Launch vixxolink MCP via mcp-remote + shared Gateway bearer token."""
+"""Launch vixxolink MCP via mcp-remote + shared VixxoLink bearer token.
+
+If no bearer token is available, falls back to mcp-remote OAuth so Cursor can
+reconnect and populate ~/.mcp-auth. After a successful reconnect, run
+`.cursor/bin/sync_vixxolink_token.py` and restart the server.
+"""
 
 from __future__ import annotations
 
@@ -18,25 +23,31 @@ from mcp_env import (  # noqa: E402
 
 def main() -> int:
     token = resolve_vixxolink_bearer_token()
-    if not token:
-        print("vixxolink MCP: no VixxoLink bearer token found.", file=sys.stderr)
-        print(
-            "Fix: save a token to ~/.vixxo/vixxolink_api_token, or reconnect vixxolink "
-            "in Cursor MCP so ~/.mcp-auth is populated, then run "
-            ".cursor/bin/sync_vixxolink_token.py",
-            file=sys.stderr,
-        )
-        return 1
-
     npx = resolve_npx()
     cmd = [
         npx,
         "-y",
         "mcp-remote",
         VIXXOLINK_URL,
-        "--header",
-        f"Authorization:{auth_header_value(token)}",
     ]
+    if token:
+        cmd.extend(
+            [
+                "--header",
+                f"Authorization:{auth_header_value(token)}",
+            ]
+        )
+    else:
+        print(
+            "vixxolink MCP: no bearer token; launching mcp-remote OAuth path.",
+            file=sys.stderr,
+        )
+        print(
+            "Complete browser sign-in if prompted, then run "
+            ".cursor/bin/sync_vixxolink_token.py and restart vixxolink.",
+            file=sys.stderr,
+        )
+
     return subprocess.call(cmd)
 
 

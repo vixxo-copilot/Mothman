@@ -122,11 +122,10 @@
     },
     "vixxonow": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/vixxonow"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-vixxonow-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"
