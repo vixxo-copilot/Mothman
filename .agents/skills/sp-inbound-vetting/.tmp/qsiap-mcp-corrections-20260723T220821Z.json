@@ -1,0 +1,137 @@
+{
+  "run_at": "2026-07-23T22:08:07Z",
+  "known_sp": 8,
+  "vetted": 10,
+  "results": [
+    {
+      "ticket_id": 84639,
+      "posture": "Known SP",
+      "cf_sp": "68402 - Goodson Services",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84447,
+      "posture": "Known SP",
+      "cf_sp": "13166 - Bear Creek Lock, Safe And Alarm Inc.",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84733,
+      "posture": "Known SP",
+      "cf_sp": "KS69853 - KS - Craft's Locksmith LLC",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84714,
+      "posture": "Known SP",
+      "cf_sp": "KS101323 - KS - CCONLY - Bosart Lock & Key Inc",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84652,
+      "posture": "Known SP + SF Lead",
+      "cf_sp": "KS69724 - KS - Customers Choice LLC",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84642,
+      "posture": "Known SP",
+      "cf_sp": "KS69472 - KS - Bill's Key Shop and Locksmith Service LLC",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84480,
+      "posture": "Known SP + SF Lead",
+      "cf_sp": "KS101491 - KS - General Fix-it, LLC",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84444,
+      "posture": "Known SP",
+      "cf_sp": "KS68663 - KS - Andrews Plumbing Services Inc",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84903,
+      "posture": "Unknown / Not in systems",
+      "cf_sp": "Unknown",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84793,
+      "posture": "Unknown / Not in systems",
+      "cf_sp": "Unknown",
+      "note": "posted",
+      "update": "ok",
+      "tags": [
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp",
+        "voicemail-vetted"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "mode": "dry-run",
+  "discovered": 10,
+  "vetted": 10,
+  "skipped_ids": [
+    74250
+  ],
+  "known_sp": 8,
+  "gateway_health": {
+    "ok": true,
+    "probe": "gateway_search_invoices(KS69315)",
+    "rows": 12
+  },
+  "run_at": "2026-07-23T21:57:28.819423+00:00",
+  "results": [
+    {
+      "ticket_id": 84733,
+      "posture": "Known SP",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84714,
+      "posture": "Known SP",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84652,
+      "posture": "Known SP + SF Lead",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84642,
+      "posture": "Known SP",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84639,
+      "posture": "Unknown / Not in systems",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84480,
+      "posture": "Known SP + SF Lead",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84447,
+      "posture": "Known SP",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84444,
+      "posture": "Known SP",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84903,
+      "posture": "Unknown / Not in systems",
+      "dry_run": true
+    },
+    {
+      "ticket_id": 84793,
+      "posture": "Known SP",
+      "dry_run": true
+    }
+  ]
+}

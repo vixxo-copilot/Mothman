@@ -1,0 +1,404 @@
+{
+  "mode": "live-mcp-path",
+  "discovered": 10,
+  "vetted": 10,
+  "known_sp": 8,
+  "gateway_health": {
+    "ok": true,
+    "probe": "gateway_search_invoices(KS69315)",
+    "rows": 12
+  },
+  "run_at": "2026-07-23T22:07:14.627452+00:00",
+  "postures": [
+    {
+      "ticket_id": 84733,
+      "posture": "Known SP",
+      "cf_sp_target": "KS69853 - None",
+      "company": "Not stated",
+      "contact_name": "CRAFT JOHN",
+      "gateway_sp": {
+        "sp_number": "KS69853",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS69853) + gateway_swm_get_provider(KS69853)",
+        "sr_number": "1-6584993332",
+        "created_by": "craftslocksmith@gmail.com"
+      },
+      "sf_lead": null,
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84714,
+      "posture": "Known SP",
+      "cf_sp_target": "KS101323 - None",
+      "company": "was done on June 10th",
+      "contact_name": "Annika with Bozart Lock",
+      "gateway_sp": {
+        "sp_number": "KS101323",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS101323) + gateway_swm_get_provider(KS101323)",
+        "sr_number": "1-6576755576",
+        "created_by": "JFATHIMA"
+      },
+      "sf_lead": null,
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84652,
+      "posture": "Known SP + SF Lead",
+      "cf_sp_target": "KS69724 - None",
+      "company": "gmail",
+      "contact_name": "Paul Bowser again",
+      "gateway_sp": {
+        "sp_number": "KS69724",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS69724) + gateway_swm_get_provider(KS69724)",
+        "sr_number": "1-6527807745",
+        "created_by": "customerschoice26@gmail.com"
+      },
+      "sf_lead": "00QTS00000aZtJY2A0",
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84642,
+      "posture": "Known SP",
+      "cf_sp_target": "KS69472 - None",
+      "company": "this",
+      "contact_name": "Yann",
+      "gateway_sp": {
+        "sp_number": "KS69472",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS69472) + gateway_swm_get_provider(KS69472)",
+        "sr_number": "1-6578830382",
+        "created_by": "billskeyshop1947@gmail.com"
+      },
+      "sf_lead": null,
+      "sf_account": "001TS00000emzJOYAY"
+    },
+    {
+      "ticket_id": 84639,
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "Goodson Services",
+      "company": "Goodson Services",
+      "contact_name": "Kevin Goodson with Goodson",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_account": "001TS00000en8uaYAA"
+    },
+    {
+      "ticket_id": 84480,
+      "posture": "Known SP + SF Lead",
+      "cf_sp_target": "KS101491 - None",
+      "company": "the bottom of the thing that says",
+      "contact_name": "Keith",
+      "gateway_sp": {
+        "sp_number": "KS101491",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS101491) + gateway_swm_get_provider(KS101491)",
+        "sr_number": "1-6590202642",
+        "created_by": "ANATARAJAN"
+      },
+      "sf_lead": "00QTS00000f2Sm32AE",
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84447,
+      "posture": "Known SP",
+      "cf_sp_target": "67679 - Horizon Sign & Lighting Inc",
+      "company": "you guys",
+      "contact_name": "Chris at Bear Creek",
+      "gateway_sp": {
+        "sp_number": "67679",
+        "name": "Horizon Sign & Lighting Inc",
+        "source": "gateway_search_invoices(last-name=Creek)",
+        "sr_number": "1-5910574252",
+        "created_by": "service@horizonsigns.net"
+      },
+      "sf_lead": null,
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84444,
+      "posture": "Known SP",
+      "cf_sp_target": "KS68663 - None",
+      "company": "Not stated",
+      "contact_name": "ANDREWS REFRIGE",
+      "gateway_sp": {
+        "sp_number": "KS68663",
+        "name": null,
+        "source": "gateway_search_invoices(KS=KS68663) + gateway_swm_get_provider(KS68663)",
+        "sr_number": "1-6324039416",
+        "created_by": "KSELVARAJ"
+      },
+      "sf_lead": null,
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84903,
+      "posture": "Unknown / Not in systems",
+      "cf_sp_target": "RAOUL R JACQUES",
+      "company": "RAOUL R JACQUES",
+      "contact_name": "RAOUL R JACQUES",
+      "gateway_sp": null,
+      "sf_lead": null,
+      "sf_account": null
+    },
+    {
+      "ticket_id": 84793,
+      "posture": "Known SP",
+      "cf_sp_target": "22489 - National Accounts Espresso B&G Tech 6 - Massachusetts",
+      "company": "Not stated",
+      "contact_name": "BFPE International",
+      "gateway_sp": {
+        "sp_number": "22489",
+        "name": "National Accounts Espresso B&G Tech 6 - Massachusetts",
+        "source": "gateway_search_invoices(last-name=International)",
+        "sr_number": "1-5975161122",
+        "created_by": "employeeportalsvc@vixxosvc.com"
+      },
+      "sf_lead": null,
+      "sf_account": null
+    }
+  ],
+  "results": [
+    {
+      "ticket_id": 84733,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69853 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84714,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS101323 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84652,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP + SF Lead",
+      "note": "posted",
+      "cf_sp": "KS69724 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "00QTS00000aZtJY2A0 \u2014 posted (Task 00TTS00000zNj6K2AS)",
+      "sf_lead_task": "00QTS00000aZtJY2A0 \u2014 posted (Task 00TTS00000zNj6K2AS)",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84642,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS69472 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84639,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "(keep: 68402 - Goodson Services)",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "unknown-sp",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84480,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP + SF Lead",
+      "note": "posted",
+      "cf_sp": "KS101491 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "00QTS00000f2Sm32AE \u2014 posted (Task 00TTS00000zNglB2AS)",
+      "sf_lead_task": "00QTS00000f2Sm32AE \u2014 posted (Task 00TTS00000zNglB2AS)",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84447,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "67679 - Horizon Sign & Lighting Inc",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84444,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "KS68663 - None",
+      "tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ],
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": null,
+      "qsiap_tags": [
+        "known-sp",
+        "qsiap-source",
+        "sp-vetted",
+        "vetting-corrected",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84903,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "RAOUL R JACQUES",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84793,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "22489 - National Accounts Espresso B&G Tech 6 - Massachusetts",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    }
+  ]
+}

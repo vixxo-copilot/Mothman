@@ -1,0 +1,144 @@
+{
+  "mode": "live",
+  "discovered": 8,
+  "vetted": 8,
+  "known_sp": 2,
+  "results": [
+    {
+      "ticket_id": 84733,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "CRAFT JOHN",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84714,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "User 3615750536",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84652,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "BOWSER,WILLIAM",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84642,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP + SF Lead",
+      "note": "posted",
+      "cf_sp": "KS69472 - KS - Bill's Key Shop and Locksmith Service LLC",
+      "tags": "failed:400",
+      "sf_task": "failed \u2014 {\n  \"name\": \"Error\",\n  \"message\": \"Malformed key=value pair for value: Key.\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"stack\": \"Error: Malformed key=value pair for value: Key.\\n    at SfCommandError",
+      "sf_lead_task": "failed \u2014 {\n  \"name\": \"Error\",\n  \"message\": \"Malformed key=value pair for value: Key.\",\n  \"exitCode\": 1,\n  \"context\": \"Create\",\n  \"stack\": \"Error: Malformed key=value pair for value: Key.\\n    at SfCommandError",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84639,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "GOODSON KEVIN",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84480,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "Unknown",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84447,
+      "queue": "qsiap-voicemail",
+      "posture": "Known SP",
+      "note": "posted",
+      "cf_sp": "13166 - Bear Creek Lock, Safe And Alarm Inc.",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    },
+    {
+      "ticket_id": 84444,
+      "queue": "qsiap-voicemail",
+      "posture": "Unknown / Not in systems",
+      "note": "posted",
+      "cf_sp": "ANDREWS REFRIGE",
+      "tags": "failed:400",
+      "sf_task": "N/A",
+      "sf_lead_task": "N/A",
+      "sf_case_task": "N/A",
+      "sf_case_account": "N/A",
+      "error": "update:Bad Request",
+      "qsiap_tags": [
+        "qsiap-source",
+        "voicemail-vetted"
+      ]
+    }
+  ]
+}
