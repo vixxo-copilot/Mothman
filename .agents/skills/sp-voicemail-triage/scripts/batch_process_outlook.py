@@ -85,7 +85,10 @@ def run_helper(*args: str, binary: bool = False) -> Any:
 
 def search_voicemail_messages() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     data = run_helper("scan-voicemails")
-    folder = data.get("folder") or {}
+    folder = dict(data.get("folder") or {})
+    intake = data.get("intake") or {}
+    if intake:
+        folder["intake"] = intake
     items = list(data.get("value") or [])
     items.sort(key=lambda m: m.get("receivedDateTime") or "", reverse=True)
     return items, folder
@@ -332,7 +335,11 @@ def main() -> int:
     out_path = OUT_DIR / f"outlook-batch-{ts}.json"
 
     folder_label = vm_folder.get("displayName") or "VM"
+    intake = vm_folder.get("intake") if isinstance(vm_folder.get("intake"), dict) else {}
+    ext = intake.get("extension") or os.environ.get("VM_EXTENSION", "4046")
+    via = intake.get("viaLabel") or os.environ.get("VM_VIA_LABEL", "VENDOR RELATIONS")
     print(f"# SP Voicemail batch — Outlook — {datetime.now(timezone.utc).date()}")
+    print(f"**Intake:** extension {ext} | via {via}")
     print(f"**Folder:** {folder_label} ({vm_folder.get('source', 'unknown')})")
     if since_last_batch:
         print(f"**Incremental:** skipped {skipped_prior} already-processed message(s) from prior batch")

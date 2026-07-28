@@ -1,17 +1,17 @@
 ---
 name: sp-voicemail-triage
 description: >-
-  Auto-transcribes and triages service-provider voicemails from the Freshdesk
-  KSOnboarding queue and the user's Outlook inbox. Vets company names against
-  Siebel, Gateway, JDE, and Salesforce (Lead, Case, Account, Contact); classifies
-  the call reason; determines callback need; posts Freshdesk internal notes;
-  resolves tickets; adds Salesforce Lead/Case Tasks (and Cases when needed); and
-  automatically forwards to
+  Auto-transcribes and triages service-provider voicemails from Outlook extension
+  4046 (8x8 / VENDOR RELATIONS) and optionally the legacy Freshdesk KSOnboarding
+  queue. Vets company names against Siebel, Gateway, JDE, and Salesforce (Lead,
+  Case, Account, Contact); classifies the call reason; determines callback need;
+  posts Freshdesk internal notes when applicable; resolves tickets; adds Salesforce
+  Lead/Case Tasks (and Cases when needed); and automatically forwards to
   service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
   spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
   voicemails from the same contact into one forward with a unified summary. Use when
   the user asks to process SP voicemails, triage the voicemail queue, transcribe
-  voicemails,   or route onboarding, billing, COI, or SR callback mail. For triage
+  voicemails, or route onboarding, billing, COI, or SR callback mail. For triage
   without outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
   webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`. For
   scheduled automation with Whisper transcription and no external vetting, use
@@ -21,20 +21,21 @@ description: >-
 # SP Voicemail Triage
 
 Work-only workflow for **service provider (SP) voicemails**. Default run:
-**auto-transcribe and triage all voicemails** in the Freshdesk **KSOnboarding**
-queue and {{employee_name}}'s **Outlook inbox**, vet the company across Vixxo
-systems, classify the reason, decide callback need, then **automatically**
-post internal notes, forward mail/tickets, add Salesforce Lead/Case Tasks (and
-Cases when no dedupe match), resolve Freshdesk. No separate approval step —
-{{employee_name}} has pre-authorized these actions for this skill.
+**auto-transcribe and triage all voicemails** for Outlook **extension 4046**
+(8x8 / VENDOR RELATIONS), vet the company across Vixxo systems, classify the
+reason, decide callback need, then **automatically** forward mail (and post
+Freshdesk notes / resolve tickets when a legacy KSOnboarding duplicate exists).
+No separate approval step — {{employee_name}} has pre-authorized these actions
+for this skill.
 
-**Write order (every item):** internal note → forward → Salesforce (Lead Task,
-Case Task, and/or Case create) → resolve Freshdesk.
+**Write order (Freshdesk items only):** internal note → forward → Salesforce
+(Lead Task, Case Task, and/or Case create) → resolve Freshdesk. Outlook-only
+items: transcribe → classify → forward.
 
 ## When to use
 
-- "Process SP voicemails" / "run voicemail triage" / "triage the queue"
-- "Transcribe voicemails in KSOnboarding and my inbox"
+- "Process SP voicemails" / "run voicemail triage" / "triage extension 4046"
+- "Transcribe voicemails in my Outlook VM folder / inbox"
 - Single voicemail: attach audio, paste transcript, or point at a ticket/message
 - **Webhook + WAV:** use **`sp-voicemail-triage-webhook`** (not this skill)
 - **No outbound email:** use **`sp-voicemail-triage-no-email`**
@@ -44,7 +45,7 @@ Case Task, and/or Case create) → resolve Freshdesk.
 
 | Mode | Trigger | Behavior |
 | --- | --- | --- |
-| **Batch (default)** | "Process voicemails" without a single item | Scan both sources; full pipeline on every candidate |
+| **Batch (default)** | "Process voicemails" without a single item | Run `batch_process_all.py` (Outlook ext 4046; add `--freshdesk` for legacy queue) |
 | **Single** | One ticket, message, or attachment | Full pipeline on one item |
 | **Dry-run (opt-in)** | User says "dry-run" / "preview only" | Triage + vet only; no writes |
 
@@ -58,7 +59,49 @@ these actions for this skill.
 
 ## Default batch sources
 
-### 1. Freshdesk — KSOnboarding queue (voicemail only)
+### 1. Outlook — extension **4046** (primary)
+
+8x8 voicemail notifications for **Vendor Relations extension 4046** land in
+{{employee_name}}'s Outlook mailbox. Typical shape:
+
+- **From:** `no-reply@8x8.com`
+- **Subject:** `New voicemail from {Caller} via VENDOR RELATIONS`
+- **Body:** `Your extension 4046 just received a new voicemail.`
+- **Attachment:** `.wav` or `.mp3` (required for transcription)
+
+Full filter rules: [reference/outlook-voicemail-intake.md](reference/outlook-voicemail-intake.md).
+
+**Batch REST (preferred for automation and cloud agents):**
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_all.py
+```
+
+Runs Outlook first via `outlook_graph_helper.mjs` (same Graph auth path as
+`sf-case-email-sync`). Flags: `--dry-run`, `--since-last-batch`.
+
+**Folder resolution:** default **Inbox → VM** subfolder. Override with
+`VM_MAIL_FOLDER_NAME` (use `Inbox` when voicemails stay in Inbox) or
+`VM_MAIL_FOLDER_ID`. Verify:
+
+```bash
+node .agents/skills/sp-voicemail-triage/scripts/outlook_graph_helper.mjs list-mail-folders
+```
+
+**Interactive (M365 MCP fallback):** when MCP is logged in on Desktop:
+
+1. `verify-login` on Microsoft 365 MCP.
+2. Resolve VM folder (`list-mail-folders` / inbox child folders).
+3. `list-mail-folder-messages` — `mailFolderId` = resolved folder id.
+4. Apply the same inclusion filter as
+   [reference/outlook-voicemail-intake.md](reference/outlook-voicemail-intake.md).
+5. `download-bytes` on the **audio attachment**; transcribe via Whisper.
+
+### 2. Freshdesk — KSOnboarding queue (legacy, optional)
+
+Use only when `--freshdesk` is passed to `batch_process_all.py` or the user
+explicitly asks to include the Freshdesk queue. Dedupe against Outlook when
+both exist.
 
 ```
 group_id:159000485013 AND status:2 AND type:'KSOnboarding'
@@ -80,32 +123,16 @@ subject does not include `New voicemail`. Log skipped IDs; do not triage.
   **email body does not contain the spoken message** — only caller metadata and
   routing boilerplate.
 
-**Batch REST script (Freshdesk-only):** When running
-`scripts/batch_process_freshdesk.py`, the script downloads the ticket **audio
-attachment** (`.wav` or `.mp3`) and transcribes via **local faster-whisper**
-(no API key). Transcription **must succeed** before any note, forward, or resolve —
-failed STT leaves the ticket open. For scheduled automation without external vetting,
-use sibling **`sp-voicemail-triage-fast`**. See
+**Freshdesk-only batch:**
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_freshdesk.py
+```
+
+Transcription **must succeed** before any note, forward, or resolve — failed STT
+leaves the ticket open. For scheduled automation without external vetting, use
+sibling **`sp-voicemail-triage-fast`**. See
 [reference/automation-setup.md](reference/automation-setup.md).
-
-### 2. Outlook — {{employee_name}}'s **VM** folder
-
-Voicemail notifications are filed by rule into the Outlook subfolder **`VM`**
-(not Inbox). Resolve that folder first (`list-mail-folders` / inbox child
-folders); override with `VM_MAIL_FOLDER_NAME` or `VM_MAIL_FOLDER_ID` when
-needed.
-
-1. `verify-login` on Microsoft 365 MCP.
-2. `list-mail-folder-messages` — `mailFolderId` = the **VM** folder id.
-3. Candidate filter (run sequential passes if needed — do not combine
-   `$search` and `$filter` on one Graph call):
-   - **Subject includes** `New voicemail` (case-insensitive) — required
-   - Do **not** include messages that only mention voicemail, ACH, or payment in
-     the body or quoted thread with a different subject
-   - Default window: **last 7 days**, unread first; user may override
-4. `download-bytes` on the **audio attachment** (`.wav` or `.mp3`); transcribe via
-   Whisper. The email body is notification metadata only — **not a transcript** and
-   not used for classification.
 
 Dedupe: if the same voicemail exists in Freshdesk and Outlook, triage once and
 link both IDs in the packet.
@@ -308,7 +335,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | [reference/company-vetting.md](reference/company-vetting.md) | Siebel, Gateway, JDE, SF |
 | [reference/salesforce-notes.md](reference/salesforce-notes.md) | SF SOQL, Tasks, Case create, dedupe |
 | [reference/routing-actions.md](reference/routing-actions.md) | Forwards + resolve rules |
-| [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | Voicemail-only queue filter |
+| [reference/outlook-voicemail-intake.md](reference/outlook-voicemail-intake.md) | Outlook ext 4046 filter + batch |
+| [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | Legacy Freshdesk queue filter |
 | [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
 | [reference/automation-setup.md](reference/automation-setup.md) | Scheduled cron + batch script |

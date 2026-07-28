@@ -4,6 +4,9 @@ import { createTokenCacheStorage } from "../../../../.cursor/bin/ms365-mcp/node_
 
 const args = parseArgs(process.argv.slice(2));
 const DEFAULT_VM_FOLDER_NAME = (process.env.VM_MAIL_FOLDER_NAME || "VM").trim() || "VM";
+const VM_EXTENSION = (process.env.VM_EXTENSION || "4046").trim();
+const VM_VIA_LABEL = (process.env.VM_VIA_LABEL || "VENDOR RELATIONS").trim();
+const VM_SENDER_DOMAIN = (process.env.VM_SENDER_DOMAIN || "8x8.com").trim().toLowerCase();
 
 function parseArgs(argv) {
   const out = { command: "list-voicemails", messageId: "", attachmentId: "", to: "", comment: "", subject: "" };
@@ -83,6 +86,14 @@ async function resolveVmFolder(token) {
     return { folder, source: "env:VM_MAIL_FOLDER_ID" };
   }
 
+  if (DEFAULT_VM_FOLDER_NAME.trim().toLowerCase() === "inbox") {
+    const folder = await graphFetch(
+      token,
+      `/me/mailFolders/inbox?$select=id,displayName,totalItemCount,parentFolderId`
+    );
+    return { folder, source: "inbox" };
+  }
+
   const inbox = await graphFetch(token, `/me/mailFolders/inbox?$select=id,displayName`);
   const childFolders = await listChildFolders(token, inbox.id);
   const childMatch = childFolders.find((folder) => folderNameMatches(folder.displayName, DEFAULT_VM_FOLDER_NAME));
@@ -105,6 +116,47 @@ async function resolveVmFolder(token) {
   );
 }
 
+function senderDomain(msg) {
+  return String(msg?.from?.emailAddress?.address || "")
+    .trim()
+    .toLowerCase()
+    .split("@")
+    .pop();
+}
+
+function extensionMatches(text, extension) {
+  if (!extension) return true;
+  const blob = String(text || "");
+  const extRe = new RegExp(`(?:extension\\s*\\*?\\*?|ext\\.?\\s*)${extension}\\b`, "i");
+  return extRe.test(blob) || new RegExp(`\\b${extension}\\b`).test(blob);
+}
+
+function viaLabelMatches(subject, viaLabel) {
+  if (!viaLabel) return true;
+  const subj = String(subject || "");
+  const label = viaLabel.trim();
+  return new RegExp(`\\bvia\\s+${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(subj);
+}
+
+function isExtensionVoicemail(msg, sinceMs) {
+  const subject = String(msg.subject || "");
+  const receivedMs = Date.parse(String(msg.receivedDateTime || ""));
+  const preview = String(msg.bodyPreview || "");
+  const blob = `${subject}\n${preview}`;
+
+  if (!/new voicemail/i.test(subject)) return false;
+  if (subject.trim().toUpperCase().startsWith("FW:")) return false;
+  if (msg.hasAttachments !== true) return false;
+  if (!Number.isFinite(receivedMs) || receivedMs < sinceMs) return false;
+  if (!viaLabelMatches(subject, VM_VIA_LABEL)) return false;
+  if (!extensionMatches(blob, VM_EXTENSION)) return false;
+  if (VM_SENDER_DOMAIN) {
+    const domain = senderDomain(msg);
+    if (domain && domain !== VM_SENDER_DOMAIN) return false;
+  }
+  return true;
+}
+
 async function listVoicemailMessages(token, { useSearch = false } = {}) {
   const days = Number(process.env.VM_LOOKBACK_DAYS || "7");
   const sinceMs = Date.now() - days * 24 * 60 * 60 * 1000;
@@ -123,19 +175,12 @@ async function listVoicemailMessages(token, { useSearch = false } = {}) {
     );
     let stop = false;
     for (const msg of page.value || []) {
-      const subject = String(msg.subject || "");
       const receivedMs = Date.parse(String(msg.receivedDateTime || ""));
       if (!useSearch && Number.isFinite(receivedMs) && receivedMs < sinceMs) {
         stop = true;
         continue;
       }
-      if (
-        /new voicemail/i.test(subject) &&
-        !subject.trim().toUpperCase().startsWith("FW:") &&
-        msg.hasAttachments === true &&
-        Number.isFinite(receivedMs) &&
-        receivedMs >= sinceMs
-      ) {
+      if (isExtensionVoicemail(msg, sinceMs)) {
         items.push(msg);
       }
     }
@@ -147,6 +192,11 @@ async function listVoicemailMessages(token, { useSearch = false } = {}) {
     value: items,
     count: items.length,
     lookbackDays: days,
+    intake: {
+      extension: VM_EXTENSION,
+      viaLabel: VM_VIA_LABEL,
+      senderDomain: VM_SENDER_DOMAIN,
+    },
     folder: {
       id: folder.id,
       displayName: folder.displayName,
