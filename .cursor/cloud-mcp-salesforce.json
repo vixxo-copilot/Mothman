@@ -1,0 +1,13 @@
+{
+  "_comment": "Paste into Cursor Cloud Agents MCP UI (stdio). Local Windows uses .cursor/bin/run-salesforce-mcp.cmd instead.",
+  "name": "salesforce",
+  "command": "npx",
+  "args": [
+    "-y",
+    "@salesforce/mcp",
+    "--orgs",
+    "DEFAULT_TARGET_ORG",
+    "--toolsets",
+    "orgs,metadata,data,users"
+  ]
+}

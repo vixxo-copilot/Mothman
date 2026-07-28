@@ -36,8 +36,26 @@
 This repo is a small Node.js CLI project (the Vixxo `assistants-template`). The
 "application" is the onboarding setup wizard at `bin/init` (also `npm start` /
 `npm run init`). Requires Node >= 20 (see `package.json` `engines`); the VM ships
-Node 22, which is fine. Dependencies are refreshed automatically by the startup
-update script (`npm install`), so you normally do not need to install anything.
+Node 22, which is fine. Cloud install is `.cursor/cloud-install-sf.sh` via
+`.cursor/environment.json` (JWT Salesforce auth + `npm install`).
+
+### Salesforce auth on Cloud / Automations
+
+Local `sf org login web` does **not** carry into Cloud VMs. Set these
+environment secrets in the Cloud Agents dashboard, then re-run environment
+setup:
+
+| Secret | Example |
+| --- | --- |
+| `SF_CLIENT_ID` | Connected App consumer key |
+| `SF_USERNAME` | `crystal.gagner@vixxo.com` |
+| `SF_INSTANCE_URL` | `https://vixxo.my.salesforce.com` |
+| `SF_ORG_ALIAS` | `vixxo` (optional) |
+| `SF_JWT_PRIVATE_KEY` or `SF_JWT_PRIVATE_KEY_B64` | PEM or base64 of `server.key` |
+
+For Cloud MCP, use the stdio config in `.cursor/cloud-mcp-salesforce.json`
+(not the Windows `.cmd` wrapper). Verify with
+`sf org display --target-org vixxo`.
 
 - Tests: run `node --test` (there is no `npm test` script). Uses the built-in
   Node test runner against `test/*.js`.

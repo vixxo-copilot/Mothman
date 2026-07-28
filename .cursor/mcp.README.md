@@ -77,6 +77,8 @@ Note on Vixxo tenant conditional-access: if the Vixxo tenant blocks device-code 
 
 Prerequisite: `@salesforce/cli` installed globally (`npm install -g @salesforce/cli`) or via the macOS installer. Epic 5 Story 5.3 may install the CLI automatically in a later iteration; for now, install manually.
 
+**Cursor Cloud / Automations:** local web login does not transfer to Cloud VMs. Use JWT secrets + `.cursor/cloud-install-sf.sh` (see `AGENTS.md` § Cursor Cloud and `.cursor/cloud-mcp-salesforce.json` for the Cloud MCP stdio config).
+
 ## Gong
 
 **Purpose:** Call recordings, transcripts, deal intelligence.
