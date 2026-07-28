@@ -17,6 +17,10 @@ def sf_path() -> str:
     npm_sf = Path(os.environ.get("APPDATA", "")) / "npm" / "sf.cmd"
     if npm_sf.is_file():
         return str(npm_sf)
+    # User-local npm global prefix (common on Linux cloud agents)
+    local_sf = Path.home() / ".local" / "bin" / "sf"
+    if local_sf.is_file():
+        return str(local_sf)
     return "sf"
 
 
