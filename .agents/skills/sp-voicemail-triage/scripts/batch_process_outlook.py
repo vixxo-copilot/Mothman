@@ -75,6 +75,15 @@ def load_skip_message_ids(report_path: Path | None = None) -> set[str]:
 
 def run_helper(*args: str, binary: bool = False) -> Any:
     env = os.environ.copy()
+    repo_root = SCRIPT_DIR.parent.parent.parent.parent
+    env.setdefault(
+        "MS365_MCP_TOKEN_CACHE_PATH",
+        str(repo_root / ".cursor" / "ms365-token-cache.json"),
+    )
+    env.setdefault(
+        "MS365_MCP_SELECTED_ACCOUNT_PATH",
+        str(repo_root / ".cursor" / "ms365-selected-account.json"),
+    )
     cmd = ["node", str(HELPER), *args]
     if binary:
         proc = subprocess.run(cmd, check=True, capture_output=True, env=env)

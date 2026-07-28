@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 import AuthManager, { resolveAuthScopes } from "../../../../.cursor/bin/ms365-mcp/node_modules/@softeria/ms-365-mcp-server/dist/auth.js";
 import { createTokenCacheStorage } from "../../../../.cursor/bin/ms365-mcp/node_modules/@softeria/ms-365-mcp-server/dist/token-cache-storage.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
+if (!process.env.MS365_MCP_TOKEN_CACHE_PATH) {
+  process.env.MS365_MCP_TOKEN_CACHE_PATH = path.join(repoRoot, ".cursor", "ms365-token-cache.json");
+}
+if (!process.env.MS365_MCP_SELECTED_ACCOUNT_PATH) {
+  process.env.MS365_MCP_SELECTED_ACCOUNT_PATH = path.join(repoRoot, ".cursor", "ms365-selected-account.json");
+}
 
 const args = parseArgs(process.argv.slice(2));
 const DEFAULT_VM_FOLDER_NAME = (process.env.VM_MAIL_FOLDER_NAME || "VM").trim() || "VM";
