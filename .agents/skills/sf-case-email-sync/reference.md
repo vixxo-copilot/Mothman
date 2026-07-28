@@ -154,3 +154,21 @@ Output lands in the morning brief **SF case mail to sync** section. Summary
 JSON: `.tmp/sf-email-sync-morning-summary.json`.
 
 For the full plan JSON, use `sync_case_emails.py --owner-me` directly.
+
+## EOD automation runner
+
+`scripts/eod_case_mail_sync.py` wraps the batch path for the Cursor cron
+automation:
+
+| Step | Behavior |
+| --- | --- |
+| Preflight | Require `sf --version` + `outlook_mail.mjs whoami` |
+| Dry-run | `sync_case_emails.py --owner-me --days 1` (no writes) |
+| Execute | Re-run with `--execute` when high/medium matches exist |
+| Skip | `manual_review` never auto-synced |
+| Reports | `.tmp/sf-email-sync-eod-{stamp}{,-plan,-execute}.json` |
+
+Schedule intent: **16:00 America/Chicago** via UTC cron `0 21 * * *`.
+
+If preflight fails in a cloud agent, the summary report still writes with
+`verdict: blocked` and lists auth remediations (local run or wire SF/M365 MCPs).
