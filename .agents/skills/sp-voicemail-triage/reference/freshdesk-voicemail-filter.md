@@ -1,8 +1,13 @@
-# Freshdesk Voicemail Filter
+# Freshdesk Voicemail Filter (Legacy)
+
+**Optional.** Primary intake is Outlook extension **4046** — see
+[outlook-voicemail-intake.md](outlook-voicemail-intake.md).
 
 The KSOnboarding queue (`group_id:159000485013`) receives **8x8 voicemail
 notifications** and **non-voicemail** KSOnboarding mail (invoice concerns, ACH
-updates, account threads, etc.). This skill triages **8x8 intake only**.
+updates, account threads, etc.). Include this queue only when running
+`batch_process_all.py --freshdesk` or when the user explicitly requests Freshdesk
+coverage.
 
 ## Include (process)
 
@@ -43,30 +48,20 @@ group_id:159000485013 AND status:2 AND type:'KSOnboarding'
 Paginate all pages, then **post-filter**: keep only tickets whose **subject**
 includes `New voicemail`. Do not use body or thread text for inclusion.
 
-## Outlook
+## Outlook (primary)
 
-**Folder:** {{employee_name}}'s Outlook subfolder **`VM`** (voicemail rule target).
-Do not scan Inbox only — messages land in **VM** after the rule runs.
-
-Same rule: **subject must include** `New voicemail` (case-insensitive).
-
-Do not include messages that only mention voicemail, ACH, or payment in the
-body or quoted thread while the subject lacks `New voicemail`.
-
-Optional secondary signal after subject match: **audio attachment** (`.wav` or
-`.mp3`) from 8x8/Teams — required for transcription. The email body does not
-contain the spoken message; never use body keywords alone to include a message or
-to classify.
+See [outlook-voicemail-intake.md](outlook-voicemail-intake.md). Extension **4046**,
+subject `via VENDOR RELATIONS`, sender `8x8.com`, audio attachment required.
 
 ## Transcription source
 
 **Audio attachment (`.wav` or `.mp3`) only.** 8x8 voicemail notifications include
 caller name, phone, and duration in the email/ticket body — **not** the spoken
 voicemail. Download the audio file and transcribe before triage. Missing audio
-attachment or failed STT → skip ticket (no Freshdesk writes).
+attachment or failed STT → skip item (no writes).
 
 ## Classification guardrail
 
 After intake, classify from **audio transcript only** — not from email body, ticket
 description, conversation thread, or incidental `ACH` / `voicemail` tokens in HTML
-boilerplate. Failed transcription → do not classify or route; leave ticket open.
+boilerplate. Failed transcription → do not classify or route; leave item unchanged.

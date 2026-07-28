@@ -96,8 +96,11 @@ python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load
 # First run only (or after env rebuild):
 python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
 
-# Every cron tick:
-python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
+# Every cron tick — Outlook extension 4046 (primary):
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_all.py
+
+# Include legacy Freshdesk KSOnboarding when needed:
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_all.py --freshdesk
 ```
 
 The fast wrapper runs a **preflight** verify automatically (skip with
@@ -106,30 +109,34 @@ The fast wrapper runs a **preflight** verify automatically (skip with
 ### Prompt template
 
 ```markdown
-Run the SP voicemail fast batch for Freshdesk KSOnboarding.
+Run the SP voicemail batch for Outlook extension 4046.
 
-1. Load `.agents/skills/sp-voicemail-triage-fast/SKILL.md`.
+1. Load `.agents/skills/sp-voicemail-triage/SKILL.md`.
 2. If first run on this host, execute setup_transcription.py once.
 3. Execute:
-   python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
-4. Report JSON summary: processed, transcribed, transcription_failed,
-   transcription_failed_ids, transcription_errors, foul_language_closed,
-   short_duration_closed, minimal_speech_closed, routed, closed, failed.
-5. Do not pass --no-transcribe. Do not invoke Gateway or Salesforce MCP.
+   python .agents/skills/sp-voicemail-triage/scripts/batch_process_all.py
+4. Report Outlook batch summary (candidates, groups, routed, failed).
+5. Pass `--freshdesk` only when the user explicitly wants the KSOnboarding queue.
 
 If preflight or setup fails, report the error and stop.
-If transcription_failed > 0, list ticket IDs and errors; tickets were left open.
+If transcription_failed > 0, list message/ticket IDs and errors.
 ```
 
-## What the batch script does
+## What the batch scripts do
+
+**Outlook (`batch_process_outlook.py`):**
+
+1. Resolve VM folder (or Inbox when `VM_MAIL_FOLDER_NAME=Inbox`)
+2. Filter extension **4046** / `via VENDOR RELATIONS` / `8x8.com` / `New voicemail`
+3. Download and transcribe `.wav` / `.mp3` via **faster-whisper**
+4. Classify, forward (or skip per no-forward rules)
+
+**Freshdesk (`batch_process_freshdesk.py`, optional `--freshdesk`):**
 
 1. Search open KSOnboarding tickets (paginated REST)
 2. Filter subjects that **include** `New voicemail`
-3. Load ticket + conversations; find **`.wav` or `.mp3`** attachment
-4. Download and transcribe via **faster-whisper** (`vad_filter=False` for short VMs)
-5. If **no-forward** rule matches (foul language, &lt;10s, blank/1–2 words) → note, no forward, resolve
-6. On success (forward allowed): classify, internal note, forward, resolve
-7. On failure: skip ticket — no Freshdesk updates
+3. Download and transcribe via **faster-whisper**
+4. On success: classify, internal note, forward, resolve
 
 ## Flags
 
