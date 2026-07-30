@@ -55,9 +55,11 @@ Record results:
 
 | Queue key | Queue Id | DeveloperName | Confirmed by |
 | --- | --- | --- | --- |
-| `ksonboarding` | _TBD_ | _TBD_ | |
-| `coi` | _TBD_ | _TBD_ | |
-| `spm` | _TBD_ | _TBD_ | |
+| `ksonboarding` | _N/A — no SF Queue_ | Leads owned by user `005TS000009gXC5YAM` (Michael Stucky) | 2026-07-28 batch |
+| `coi` | _N/A — no SF Queue_ | Cases owned by user `005TS000009gWazYAE` (Crystal Gagner) | 2026-07-28 batch |
+| `spm` | `00GTS00000MmfvS2AR` | `SP_Support` | 2026-07-28 batch |
+
+Related queue (not primary spm vetting target): **SPM Request** — `00GTS00000J9Byz2AF` / `SPM_Request`.
 
 ### Case pull SOQL (per queue)
 
