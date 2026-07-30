@@ -1,8 +1,13 @@
 # Freshdesk Voicemail Filter
 
-The KSOnboarding queue (`group_id:159000485013`) receives **8x8 voicemail
-notifications** and **non-voicemail** KSOnboarding mail (invoice concerns, ACH
-updates, account threads, etc.). This skill triages **8x8 intake only**.
+The SPM group (`group_id:159000485013`) receives **8x8 voicemail
+notifications** and **non-voicemail** mail (invoice concerns, ACH updates,
+account threads, etc.). This skill triages **8x8 intake only**, from two
+Freshdesk paths:
+
+1. **KSOnboarding** — `type:'KSOnboarding'`
+2. **QSIAP** — recipient `qsiap@vixxo.com` (often `type:'Invoice Support'` or
+   null) — see [qsiap-voicemail.md](qsiap-voicemail.md)
 
 ## Include (process)
 
@@ -16,6 +21,9 @@ New voicemail from {CALLER} via VENDOR RELATIONS
 
 Prefixes or suffixes before/after the phrase are allowed as long as `New voicemail`
 appears in the subject line.
+
+**QSIAP gate (additional):** after subject match, keep only tickets whose
+to/cc/support_email/description/conversations contain `qsiap@vixxo.com`.
 
 ## Exclude (skip)
 

@@ -2,16 +2,18 @@
 name: sp-voicemail-triage
 description: >-
   Auto-transcribes and triages service-provider voicemails from the Freshdesk
-  KSOnboarding queue and the user's Outlook inbox. Vets company names against
-  Siebel, Gateway, JDE, and Salesforce (Lead, Case, Account, Contact); classifies
-  the call reason; determines callback need; posts Freshdesk internal notes;
-  resolves tickets; adds Salesforce Lead/Case Tasks (and Cases when needed); and
-  automatically forwards to
-  service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
-  spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
-  voicemails from the same contact into one forward with a unified summary. Use when
-  the user asks to process SP voicemails, triage the voicemail queue, transcribe
-  voicemails,   or route onboarding, billing, COI, or SR callback mail. For triage
+  KSOnboarding queue, Freshdesk QSIAP AP mailbox (qsiap@vixxo.com), and the
+  user's Outlook VM folder. Vets company names against Siebel, Gateway, JDE,
+  and Salesforce (Lead, Case, Account, Contact); classifies the call reason;
+  determines callback need; posts Freshdesk internal notes; resolves tickets;
+  adds Salesforce Lead/Case Tasks (and Cases when needed); and automatically
+  forwards to service.providermanagement@vixxo.com, aphelp@vixxo.com,
+  COI@vixxo.com, spm-recruitment@vixxo.com, or Gateway SR PM/support staff.
+  QSIAP AP voicemails stay on qsiap when billing/payment; misroutes forward off
+  QSIAP. Combines multiple voicemails from the same contact into one forward
+  with a unified summary. Use when the user asks to process SP voicemails,
+  triage the voicemail queue, triage QSIAP/AP voicemails, transcribe
+  voicemails, or route onboarding, billing, COI, or SR callback mail. For triage
   without outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
   webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`. For
   scheduled automation with Whisper transcription and no external vetting, use
@@ -22,29 +24,35 @@ description: >-
 
 Work-only workflow for **service provider (SP) voicemails**. Default run:
 **auto-transcribe and triage all voicemails** in the Freshdesk **KSOnboarding**
-queue and {{employee_name}}'s **Outlook inbox**, vet the company across Vixxo
+queue, Freshdesk **QSIAP** (`qsiap@vixxo.com`) AP voicemails, and
+{{employee_name}}'s **Outlook VM folder**, vet the company across Vixxo
 systems, classify the reason, decide callback need, then **automatically**
-post internal notes, forward mail/tickets, add Salesforce Lead/Case Tasks (and
-Cases when no dedupe match), resolve Freshdesk. No separate approval step —
+post internal notes, forward mail/tickets (when applicable), add Salesforce
+Lead/Case Tasks (and Cases when no dedupe match), and resolve Freshdesk when
+the disposition calls for it. No separate approval step —
 {{employee_name}} has pre-authorized these actions for this skill.
 
-**Write order (every item):** internal note → forward → Salesforce (Lead Task,
-Case Task, and/or Case create) → resolve Freshdesk.
+**Write order (every item):** internal note → forward (when applicable) →
+Salesforce (Lead Task, Case Task, and/or Case create) → resolve Freshdesk
+(QSIAP AP stays may leave Open — see [qsiap-voicemail.md](reference/qsiap-voicemail.md)).
 
 ## When to use
 
 - "Process SP voicemails" / "run voicemail triage" / "triage the queue"
 - "Transcribe voicemails in KSOnboarding and my inbox"
+- "Triage QSIAP voicemails" / "process AP voicemails on qsiap"
 - Single voicemail: attach audio, paste transcript, or point at a ticket/message
 - **Webhook + WAV:** use **`sp-voicemail-triage-webhook`** (not this skill)
 - **No outbound email:** use **`sp-voicemail-triage-no-email`**
 - **Scheduled automation / fast batch:** use **`sp-voicemail-triage-fast`**
+  (KSOnboarding-focused; still run QSIAP via this skill or
+  `scripts/batch_process_qsiap.py`)
 
 ## Operating modes
 
 | Mode | Trigger | Behavior |
 | --- | --- | --- |
-| **Batch (default)** | "Process voicemails" without a single item | Scan both sources; full pipeline on every candidate |
+| **Batch (default)** | "Process voicemails" without a single item | Scan all three sources; full pipeline on every candidate |
 | **Single** | One ticket, message, or attachment | Full pipeline on one item |
 | **Dry-run (opt-in)** | User says "dry-run" / "preview only" | Triage + vet only; no writes |
 
@@ -123,6 +131,24 @@ window, **merge into one triage item** before routing. Produce:
 Do not send separate forwards to the same routing address for the same contact
 in one batch run.
 
+### 3. Freshdesk — QSIAP AP voicemails (`qsiap@vixxo.com`)
+
+Open SPM tickets with subject **`New voicemail`** gated to recipient
+**`qsiap@vixxo.com`**. Full rules:
+[reference/qsiap-voicemail.md](reference/qsiap-voicemail.md).
+
+- Discover via type-sliced SPM searches (`Invoice Support` + `type:null`), then
+  subject filter + QSIAP recipient gate (not limited to `type:'KSOnboarding'`).
+- **Transcript-first:** never use 8x8 caller ID as company; extract company /
+  contact / SR from Whisper transcript.
+- **Billing / Payment:** internal note + tags (`qsiap-source`,
+  `voicemail-triaged`) + `cf_sp`; **no forward** (already on QSIAP); leave Open
+  when callback Yes/Recommended; resolve only for short/foul/minimal branches.
+- **Misroute** (COI, onboarding, SPM, SR, etc.): forward to the normal triage
+  recipient, then resolve.
+- **Batch REST script:** `scripts/batch_process_qsiap.py`
+  (`--dry-run`, `--re-triage`).
+
 ## Output format
 
 ### Batch summary (top of every batch run)
@@ -133,8 +159,9 @@ in one batch run.
 | # | Source | ID | Company | Category | Callback | Entity | Route to | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | FD #12345 | … | Apex Mechanical | Payment | Yes | Known SP | aphelp@vixxo.com | routed |
+| 2 | QSIAP #86700 | … | Goodson Services | Payment | Recommended | Known SP | qsiap@ (stay) | noted / open |
 
-**Counts:** {n} triaged | {n} skipped (non-voicemail) | {n} callback Yes | {n} routed | {n} failed
+**Counts:** {n} triaged | {n} skipped (non-voicemail) | {n} QSIAP | {n} callback Yes | {n} routed | {n} failed
 ```
 
 Then one **triage packet** per item (see below).
@@ -312,7 +339,10 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
 | [reference/automation-setup.md](reference/automation-setup.md) | Scheduled cron + batch script |
+| [reference/qsiap-voicemail.md](reference/qsiap-voicemail.md) | QSIAP AP mailbox intake + disposition |
 
 Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
 **`sp-voicemail-triage-webhook`** (WAV webhook intake),
 **`sp-voicemail-triage-fast`** (Whisper + no vetting, for automation).
+**`sp-inbound-vetting`** owns non-voicemail AP Help / SF queue identity
+enrichment — QSIAP **voicemails** are owned here.

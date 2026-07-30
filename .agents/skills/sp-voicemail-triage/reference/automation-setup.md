@@ -1,7 +1,9 @@
 # Scheduled Cursor Automation Setup
 
 Wire **`sp-voicemail-triage-fast`** to a cron trigger for hands-off KSOnboarding
-voicemail processing.
+voicemail processing. For **QSIAP** AP voicemails (`qsiap@vixxo.com`), schedule
+`scripts/batch_process_qsiap.py` (or a full `sp-voicemail-triage` agent run that
+includes source 3).
 
 ## Transcription is mandatory
 
@@ -96,8 +98,11 @@ python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load
 # First run only (or after env rebuild):
 python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
 
-# Every cron tick:
+# Every cron tick (KSOnboarding fast path):
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
+
+# QSIAP AP voicemails (full triage disposition — stay on qsiap or misroute):
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_qsiap.py
 ```
 
 The fast wrapper runs a **preflight** verify automatically (skip with

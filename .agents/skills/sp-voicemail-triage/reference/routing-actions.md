@@ -12,8 +12,8 @@ decision, and [company vetting](company-vetting.md).
 | VixxoLink Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Include SP # if vetted |
 | Technical / Trade Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Same SPM path |
 | General Inquiry | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | When no sharper bucket fits |
-| Billing / Invoice Support | `aphelp@vixxo.com` | Internal note + forward; resolve when routed | |
-| Payment Information | `aphelp@vixxo.com` | Internal note + forward; resolve when routed | |
+| Billing / Invoice Support | `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on QSIAP** | See **QSIAP branch** when ticket is already on `qsiap@vixxo.com` | |
+| Payment Information | `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on QSIAP** | See **QSIAP branch** when ticket is already on `qsiap@vixxo.com` | |
 | COI / Compliance (Insurance) | `COI@vixxo.com` | Internal note + forward; resolve when routed | |
 | Coverage / Onboarding | See **Onboarding branch** below | Varies | |
 | Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
@@ -81,6 +81,23 @@ When matched:
 (Sean McCormick) checking in about work/losses for the week and asking to
 speak with a sourcing contact. Incorrectly sent to AP Help; correct path is
 SPM and/or {{employee_name}} review. See [examples.md](examples.md) Example 7.
+
+## QSIAP branch (`qsiap@vixxo.com`)
+
+Applies when the Freshdesk ticket is gated to **`qsiap@vixxo.com`** (subject
+`New voicemail`). Full intake:
+[qsiap-voicemail.md](qsiap-voicemail.md).
+
+1. Transcribe audio **first**. Never treat 8x8 caller ID as company.
+2. Classify from transcript.
+3. **Billing / Invoice Support** or **Payment Information**:
+   - Internal note + tags `qsiap-source` + `voicemail-triaged` + `cf_sp`
+   - **Do not forward** to `aphelp@vixxo.com` (already on QSIAP)
+   - Leave **Open** when callback Yes/Recommended
+   - Resolve only for foul language / &lt;10s / blank-minimal branches
+4. **Any other category** (COI, onboarding, SPM, SR, etc.):
+   - Treat as misroute off QSIAP — forward to the normal recipient in the
+     routing table, then resolve
 
 ## Onboarding branch (want to join as SP)
 

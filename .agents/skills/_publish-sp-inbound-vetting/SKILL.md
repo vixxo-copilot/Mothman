@@ -9,9 +9,9 @@ description: >-
   (AP Help). Recommends forwarding payment/AP-style asks from SF queues to AP
   Help — draft-then-approve only. Use when vetting KS onboarding, COI, SPM,
   or AP Help intake, confirming whether an SP exists, or enriching intake with
-  SP # and name. For voicemail KSOnboarding use sp-voicemail-triage. For qsiap
-  AP voicemails use the QSIAP batch script in this skill. For invoice
-  resolution use vixxo-spm-invoice-concerns or vixxo-freshdesk-invoice-review.
+  SP # and name. For voicemail KSOnboarding, Outlook VM, and qsiap@ AP
+  voicemails use sp-voicemail-triage. For invoice resolution use
+  vixxo-spm-invoice-concerns or vixxo-freshdesk-invoice-review.
 ---
 
 # SP Inbound Vetting (Salesforce + AP Help)
@@ -30,11 +30,11 @@ queue.
 | **COI** | **Salesforce** | `coi` | Open Cases in the COI queue |
 | **Service Provider Management** | **Salesforce** | `spm` | Open Cases in the service.providermanagement queue |
 | **AP Help** | **Freshdesk** | `aphelp` | Open SPM tickets sent to `aphelp@vixxo.com` |
-| **QSIAP AP Voicemail** | **Freshdesk** | `qsiap-voicemail` | Open SPM `New voicemail` tickets routed to `qsiap@vixxo.com` |
-
 **Salesforce is the primary intake and documentation path** for ksonboarding,
 COI, and service.providermanagement. **Freshdesk remains primary for AP Help**
-(invoice/AP/payment intake).
+(invoice/AP/payment intake). **QSIAP AP voicemails**
+(`qsiap@vixxo.com`, subject `New voicemail`) are owned by
+**`sp-voicemail-triage`** (not this skill).
 
 Gateway and VixxoLink remain required for **SP identity resolution** on all
 surfaces. Salesforce holds queue ownership, Case/Lead context, and Task notes
@@ -73,19 +73,15 @@ Freshdesk forwards unless {{employee_name}} explicitly approves
 - "Enrich with SP number and name" for inbound SPM mail or SF Cases
 - Batch: "vet all open ksonboarding, COI, and SPM cases" (SF SOQL)
 - Batch: "vet all open aphelp items" (Freshdesk)
-- Batch: "vet qsiap voicemails" / "vet AP voicemails on qsiap" (Freshdesk)
 - Single Case: "vet Salesforce Case 00012345"
 - Single ticket: "vet Freshdesk #51234"
 
-**Use `sp-voicemail-triage`** for subject `New voicemail` items with full SF Task
-writes and Outlook intake (KSOnboarding / general SPM routing).
-
-**QSIAP AP voicemails** (`qsiap@vixxo.com`, subject `New voicemail`) are vetted
-in this skill via `live_run_qsiap_voicemails.py`. Transcribe audio **before**
-entity extraction — do **not** use 8x8 caller ID (`LAST,FIRST`, `User ####`,
-`WIRELESS CALLER`) as company name. Prefer spoken company/contact from Whisper
-transcript, then Gateway + SF Account search. See
-[reference/troubleshooting.md](reference/troubleshooting.md#symptom-qsiap-voicemail-vetted-as-unknown-sp-using-caller-id).
+**Use `sp-voicemail-triage`** for subject `New voicemail` items — Freshdesk
+KSOnboarding, Outlook VM, and **QSIAP** (`qsiap@vixxo.com`) — with
+transcription, classification, routing, SF Task/Case writes, and Freshdesk
+disposition. Legacy shell
+`scripts/live_run_qsiap_voicemails.py` remains for vet-only enrichment; prefer
+`sp-voicemail-triage/scripts/batch_process_qsiap.py` for full triage.
 
 **Use `sp-voicemail-triage-fast`** (agent tier) to **lite-vet** KSOnboarding
 voicemails after transcription — load this skill via Skills MCP
@@ -142,11 +138,9 @@ Follow [reference/intake.md](reference/intake.md) and
    `ksonboarding`, `coi`, `spm` — via SOQL in [queues.md](reference/queues.md).
 2. Open SPM Freshdesk tickets (`group_id:159000485013`, `status:2`) sent to
    `aphelp@vixxo.com` (recipient gate).
-3. Open QSIAP AP voicemails — SPM group, `qsiap@vixxo.com` in ticket blob,
-   subject `New voicemail` (`live_run_qsiap_voicemails.py`).
 
 **Out of scope (default):** items already marked vetted; subject includes
-`New voicemail` on non-QSIAP queues (unless user says include voicemails).
+`New voicemail` (including QSIAP) — use **`sp-voicemail-triage`**.
 
 ## Output format
 
@@ -233,8 +227,7 @@ interactive session, then apply with `live_run_batch.py --data`.
 | `python scripts/dry_run_batch.py --queue aphelp` | Preview AP Help vetting (Gateway may be empty in shell) |
 | `python scripts/live_run_batch.py --data .tmp/gateway-mcp-revet-*.json` | Apply MCP-enriched vetting writes |
 | `python scripts/live_run_batch.py --queue aphelp` | Live vet + write AP Help |
-| `python scripts/live_run_qsiap_voicemails.py` | Live vet QSIAP AP voicemails (transcript-first) |
-| `python scripts/live_run_qsiap_voicemails.py --dry-run` | Preview QSIAP voicemail vetting |
+| `python scripts/live_run_qsiap_voicemails.py` | Legacy vet-only QSIAP path — prefer `sp-voicemail-triage/scripts/batch_process_qsiap.py` |
 | `python scripts/reapply_qsiap_corrections.py` | Manual override after bad caller-ID vetting |
 | SF queues `ksonboarding`, `coi`, `spm` | Run via Salesforce MCP SOQL + agent workflow (no batch script yet) |
 
