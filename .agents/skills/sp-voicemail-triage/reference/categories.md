@@ -26,12 +26,24 @@ work, mobile, dispatch board, time in/out
 ### Billing / Invoice Support
 
 Questions about submitting invoices, invoice rejection, invoice status in
-VixxoLink, billing workflow, or correcting invoice data.
+VixxoLink, billing workflow, correcting invoice data, **or payment-status
+updates on a specific ticket/invoice** (including old **KS** ticket numbers).
 
 **Signals:** invoice, rejected, submit invoice, billing, invoice status,
-correction, resubmit, short pay dispute on invoice line
+correction, resubmit, short pay dispute on invoice line, **pay date**,
+payment update on a ticket/WO, old KS ticket (e.g. `1300-####` / bare
+`1300####`)
 
-**Forward to:** `aphelp@vixxo.com`
+**Forward to:** `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on
+QSIAP** when already on `qsiap@vixxo.com`
+
+**Salesforce:** **none** — Freshdesk only. Do not create SF Cases or Tasks.
+Do **not** forward to SPM because a KS ticket number appears — that is still
+AP/billing.
+
+**Known misroute:** Freshdesk **#86699** (Select Mechanical / Greg Bourff) —
+pay date on Columbia Sportswear, KS ticket **1300-1484**. Incorrectly
+forwarded to SPM; correct path is **stay on QSIAP**.
 
 **Related skills:** `vixxo-freshdesk-invoice-review`, `vixxo-spm-invoice-concerns`
 
@@ -40,16 +52,29 @@ correction, resubmit, short pay dispute on invoice line
 ### Payment Information
 
 Payment timing, check status, remittance, ACH/wire, "when will I get paid",
-missing payment, payment amount questions.
+missing payment, payment amount questions, **or an SP chasing a payment /
+account update on past-due invoices** (collections-style callback).
 
 **Signals:** payment, paid, check, remittance, ACH, wire, when paid, haven't
-received payment, payment status, balance due from Vixxo
+received payment, payment status, balance due from Vixxo, **past due /
+past-due**, pay date, service interruption(s) tied to unpaid invoices,
+"update your account" / "update my account" in an AP context
 
-**Forward to:** `aphelp@vixxo.com`
+**Forward to:** `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on
+QSIAP** when already on `qsiap@vixxo.com`
+
+**Salesforce:** **none** on the AP/QSIAP stay path — Freshdesk only. Do not
+forward to SPM and do not create SF Cases/Tasks.
 
 **Anti-misroute:** Do **not** use this category when the caller is asking to
 speak with **sourcing**, **procurement**, or the **account team** about work
 opportunities — use **Sourcing / Account Team** instead (see below).
+Do **not** route to SPM because the caller says "your account" or names
+past-due invoices — that is still AP/Payment.
+
+**Known misroute:** Freshdesk **#86774** (B&B Mechanical / Alexis) — past-due
+invoices + callback for account update. Incorrectly forwarded to SPM;
+correct path is **stay on QSIAP** as Payment Information.
 
 **Related skills:** `vixxo-freshdesk-invoice-review`, `vixxo-spm-invoice-concerns`
 

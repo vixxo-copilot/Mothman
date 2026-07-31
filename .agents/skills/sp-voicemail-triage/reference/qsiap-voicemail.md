@@ -73,9 +73,13 @@ When category is **not** AP (COI, onboarding, SPM/sourcing, VixxoLink, SR, etc.)
 
 ### Salesforce
 
-Same Lead/Case/Account/Contact searches and Task / Case create rules as other
-sources ([salesforce-notes.md](salesforce-notes.md)). Include `Freshdesk #{id}`
-and `qsiap@vixxo.com` in Case/Task bodies for dedupe.
+- **Billing / Invoice Support** and **Payment Information:** Freshdesk
+  **only** — Account/Contact lookup for the packet is OK; **do not** create
+  SF Cases or Tasks; **do not** forward Payment/past-due inquiries to SPM.
+- All other categories: same Lead/Case/Account/Contact searches and Task /
+  Case create rules as other sources
+  ([salesforce-notes.md](salesforce-notes.md)). Include `Freshdesk #{id}` and
+  `qsiap@vixxo.com` in Case/Task bodies for dedupe.
 
 ## Dedupe
 

@@ -103,7 +103,8 @@ warrants SF queue ownership. Map category → queue:
 | Coverage / Onboarding | KS Onboarding | `ksonboarding` |
 | COI / Compliance | COI | `coi` |
 | Sourcing / Account Team, VixxoLink, Technical, General | Service Provider Management | `spm` |
-| Billing / Payment (AP forward path) | Usually **no new Case** — document on FD only; optional Task on open onboarding Case if Lead/Case exists | — |
+| **Billing / Invoice Support** | **No SF writes** — Freshdesk only (stay on QSIAP or AP forward). Account/Contact SOQL for the packet is OK; **never** create Case or Task | — |
+| **Payment Information** | **No SF writes** on AP/QSIAP stay path — Freshdesk only. Same ban as Billing. Do **not** create SPM Cases for past-due / payment-update callbacks | — |
 
 Resolve queue OwnerId via Group SOQL (see
 [sp-inbound-vetting/reference/queues.md](../../sp-inbound-vetting/reference/queues.md)
@@ -153,6 +154,8 @@ Include in every packet (agent runs):
 
 | Condition | SF action |
 | --- | --- |
+| **Billing / Invoice Support** | **Never** create Case or Task — Freshdesk only. Record `SF writes: N/A — billing FD-only` in the packet / internal note |
+| **Payment Information** (AP / QSIAP) | **Never** create Case or Task — Freshdesk only. Record `SF writes: N/A — payment FD-only` |
 | `--skip-vetting` / fast skill | No SF reads or writes |
 | No-forward branch (foul language, &lt;10s, minimal speech) | Optional Task on open Case only if one already exists; do **not** create Case |
 | Dry-run | SOQL allowed; no CLI writes |

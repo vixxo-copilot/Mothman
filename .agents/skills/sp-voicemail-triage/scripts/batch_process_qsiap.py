@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -91,11 +92,22 @@ def discover_qsiap_voicemails(api_key: str) -> list[dict]:
             tid = int(row["id"])
             if tid in by_id or not is_voicemail_ticket(row):
                 continue
-            ticket = http_json(
-                "GET",
-                f"/api/v2/tickets/{tid}?include=requester,conversations",
-                api_key,
-            )
+            time.sleep(2.5)
+            try:
+                ticket = http_json(
+                    "GET",
+                    f"/api/v2/tickets/{tid}?include=requester,conversations",
+                    api_key,
+                )
+            except urllib.error.HTTPError as exc:
+                if exc.code != 429:
+                    raise
+                time.sleep(45)
+                ticket = http_json(
+                    "GET",
+                    f"/api/v2/tickets/{tid}?include=requester,conversations",
+                    api_key,
+                )
             if not qsiap_gate(ticket):
                 continue
             by_id[tid] = ticket
@@ -301,25 +313,21 @@ def process_qsiap_ticket(
             "not-sent:stay-on-qsiap" if stay_on_qsiap else f"not-sent:{skip_reason or 'none'}"
         )
 
+    # Invoice Support requires cf_sr on some close paths; use KSOnboarding when
+    # resolving misroutes (matches KSOnboarding voicemail resolve shape).
     if do_resolve:
         update["status"] = 5
-        if not ticket.get("type") and category not in AP_CATEGORIES:
-            update["type"] = ticket.get("type") or "Invoice Support"
-        try:
-            http_json("PUT", f"/api/v2/tickets/{tid}", api_key, update)
-            result.resolve = "closed"
-        except urllib.error.HTTPError as exc:
-            result.resolve = f"failed:{exc.code}"
-            if not result.error:
-                result.error = f"resolve:{exc.reason}"
-    else:
-        try:
-            http_json("PUT", f"/api/v2/tickets/{tid}", api_key, update)
-            result.resolve = "left-open"
-        except urllib.error.HTTPError as exc:
-            result.resolve = f"failed:{exc.code}"
-            if not result.error:
-                result.error = f"update:{exc.reason}"
+        update["type"] = "KSOnboarding"
+    elif not ticket.get("type"):
+        update["type"] = "Invoice Support"
+
+    try:
+        http_json("PUT", f"/api/v2/tickets/{tid}", api_key, update)
+        result.resolve = "closed" if do_resolve else "left-open"
+    except urllib.error.HTTPError as exc:
+        result.resolve = f"failed:{exc.code}"
+        if not result.error:
+            result.error = f"{'resolve' if do_resolve else 'update'}:{exc.reason}"
 
     return result
 

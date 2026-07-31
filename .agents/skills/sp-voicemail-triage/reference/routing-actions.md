@@ -90,12 +90,18 @@ Applies when the Freshdesk ticket is gated to **`qsiap@vixxo.com`** (subject
 
 1. Transcribe audio **first**. Never treat 8x8 caller ID as company.
 2. Classify from transcript.
-3. **Billing / Invoice Support** or **Payment Information**:
+3. **Billing / Invoice Support**:
    - Internal note + tags `qsiap-source` + `voicemail-triaged` + `cf_sp`
    - **Do not forward** to `aphelp@vixxo.com` (already on QSIAP)
    - Leave **Open** when callback Yes/Recommended
    - Resolve only for foul language / &lt;10s / blank-minimal branches
-4. **Any other category** (COI, onboarding, SPM, SR, etc.):
+   - **No Salesforce Case or Task** — Freshdesk only
+4. **Payment Information** (includes past-due / payment-update inquiries):
+   - Same QSIAP stay disposition as billing (note / tags / leave Open)
+   - **Do not forward to SPM** — AP owns payment updates even when the
+     transcript mentions "account" or past-due invoices
+   - **No Salesforce Case or Task** — Freshdesk only (same as Billing)
+5. **Any other category** (COI, onboarding, SPM, SR, etc.):
    - Treat as misroute off QSIAP — forward to the normal recipient in the
      routing table, then resolve
 
@@ -233,6 +239,10 @@ Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`, `No Action Required`,
 
 ## Salesforce branch (all categories)
 
+**Exception — Billing / Invoice Support and Payment Information:** skip this
+entire branch for SF **writes**. Keep the ticket on Freshdesk only.
+Account/Contact read for the packet is optional.
+
 After forward (or on no-forward paths when an open Case already exists):
 
 1. Run dedupe SOQL — `Description LIKE '%Freshdesk #{ticket_id}%'` when a
@@ -245,8 +255,9 @@ After forward (or on no-forward paths when an open Case already exists):
    include `Freshdesk #{id}` when present) then post **Task**.
 5. Record write status in the FD internal note.
 
-Skip SF writes on `--skip-vetting`, dry-run, and no-forward branches unless an
-open Case already exists (Task-only update).
+Skip SF writes on **Billing / Invoice Support**, **Payment Information**,
+`--skip-vetting`, dry-run, and no-forward branches unless an open Case already
+exists (Task-only update — still **not** for Billing/Payment).
 
 ## Internal note template
 
@@ -262,9 +273,9 @@ approval step. Opt out only when the user explicitly requests **dry-run**.
 | Post Freshdesk internal note | Every routed item |
 | Forward email / Freshdesk forward | Per routing table or branch rules |
 | SF dedupe search | Every FD voicemail before Case create |
-| Salesforce Lead Task | Lead match or onboarding branch |
-| Salesforce Case Task | Open Case match or after Case create |
-| Salesforce Case create | No dedupe match + category maps to SF queue |
+| Salesforce Lead Task | Lead match or onboarding branch (**not** Billing/Payment) |
+| Salesforce Case Task | Open Case match or after Case create (**not** Billing/Payment) |
+| Salesforce Case create | No dedupe match + category maps to SF queue (**not** Billing/Payment) |
 | Resolve Freshdesk ticket | After note + forward + SF writes (or note-only paths) |
 
 **Write order:** internal note → forward → Salesforce (Lead Task, Case Task,

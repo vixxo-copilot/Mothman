@@ -6,11 +6,14 @@ description: >-
   user's Outlook VM folder. Vets company names against Siebel, Gateway, JDE,
   and Salesforce (Lead, Case, Account, Contact); classifies the call reason;
   determines callback need; posts Freshdesk internal notes; resolves tickets;
-  adds Salesforce Lead/Case Tasks (and Cases when needed); and automatically
-  forwards to service.providermanagement@vixxo.com, aphelp@vixxo.com,
-  COI@vixxo.com, spm-recruitment@vixxo.com, or Gateway SR PM/support staff.
-  QSIAP AP voicemails stay on qsiap when billing/payment; misroutes forward off
-  QSIAP. Combines multiple voicemails from the same contact into one forward
+  adds Salesforce Lead/Case Tasks (and Cases when needed; Billing / Invoice
+  Support and Payment Information stay Freshdesk-only — no SF Case/Task);
+  and automatically forwards to service.providermanagement@vixxo.com,
+  aphelp@vixxo.com, COI@vixxo.com, spm-recruitment@vixxo.com, or Gateway SR
+  PM/support staff. QSIAP AP voicemails stay on qsiap when billing/payment
+  (including past-due payment updates — never SPM); AP categories are
+  FD-only (no SF); misroutes forward off QSIAP. Combines multiple voicemails
+  from the same contact into one forward
   with a unified summary. Use when the user asks to process SP voicemails,
   triage the voicemail queue, triage QSIAP/AP voicemails, transcribe
   voicemails, or route onboarding, billing, COI, or SR callback mail. For triage
@@ -33,8 +36,10 @@ the disposition calls for it. No separate approval step —
 {{employee_name}} has pre-authorized these actions for this skill.
 
 **Write order (every item):** internal note → forward (when applicable) →
-Salesforce (Lead Task, Case Task, and/or Case create) → resolve Freshdesk
-(QSIAP AP stays may leave Open — see [qsiap-voicemail.md](reference/qsiap-voicemail.md)).
+Salesforce (Lead Task, Case Task, and/or Case create; **skip SF writes for
+Billing / Invoice Support and Payment Information** — FD only) → resolve
+Freshdesk (QSIAP AP stays may leave Open — see
+[qsiap-voicemail.md](reference/qsiap-voicemail.md)).
 
 ## When to use
 
@@ -228,8 +233,9 @@ Then one **triage packet** per item (see below).
 7. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
 8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
 9. **Salesforce** — Lead Task, Case Task, and/or Case create per
-   [reference/salesforce-notes.md](reference/salesforce-notes.md). Search for
-   existing Case with `Freshdesk #{id}` before creating.
+   [reference/salesforce-notes.md](reference/salesforce-notes.md). **Skip for
+   Billing / Invoice Support and Payment Information** (Freshdesk only).
+   Search for existing Case with `Freshdesk #{id}` before creating.
 10. **Resolve Freshdesk** — `status: 5` with valid `type` and required
     `custom_fields.cf_sp` (use `Unknown` when SP is not identified).
 
