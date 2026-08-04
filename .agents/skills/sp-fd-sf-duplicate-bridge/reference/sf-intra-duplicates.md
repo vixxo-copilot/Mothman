@@ -19,6 +19,36 @@ Use when the operator asks to review **duplicate Cases within Salesforce only**
 
 Skip `@vixxo.com` requester emails for subject+email grouping.
 
+## Unified shell triage (all-org)
+
+For Shell Account duplicate review, use **one pass** that mirrors
+`sp-inbound-vetting` — do not run separate sender/broker/COI enrichment scans.
+
+```bash
+cd .agents/skills/sp-fd-sf-duplicate-bridge/scripts
+RUN_DATE=YYYYMMDD python run_allorg_duplicate_vet_pipeline.py
+```
+
+Pipeline:
+
+1. Export SF Cases to `.tmp/sf-cases-window-allorg-{RUN_DATE}.json`
+2. Seed duplicate clusters from subject/metadata
+3. Full **EmailMessage + attachment** intake for shell open cases and duplicate
+   cluster members (body context clues, FD cross-refs, attachment KS tokens)
+4. Re-cluster duplicates using intake-enriched text
+5. Shell vetting: Gateway + SF Account per case (`vet_shell_accounts_allorg.py`)
+6. Write vetted JSON/Markdown/HTML under `.tmp/`
+
+Outputs: `shell-account-vet-allorg-{RUN_DATE}.json`,
+`sf-intra-duplicate-scan-allorg-vetted-{RUN_DATE}.html`
+
+Vet-only (cache already exported):
+
+```bash
+RUN_DATE=YYYYMMDD SF_CACHE_PATH=../.tmp/sf-cases-window-allorg-YYYYMMDD.json \
+  python vet_shell_accounts_allorg.py
+```
+
 ## Primary Case selection
 
 1. Prefer **open** status (`New`, `Working`, `Pending`, `On Hold`, …)
