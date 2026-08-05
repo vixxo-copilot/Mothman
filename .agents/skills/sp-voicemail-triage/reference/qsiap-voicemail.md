@@ -10,8 +10,8 @@ tickets routed to **`qsiap@vixxo.com`** with subject **`New voicemail`**.
 | Group | SPM `159000485013` |
 | Status | Open (`2`) |
 | Recipient gate | `qsiap@vixxo.com` in to / cc / support_email / description / conversations |
-| Subject | Must include `New voicemail` (same filter as KSOnboarding) |
-| Typical type | Often `Invoice Support` or null — do **not** require `KSOnboarding` |
+| Subject | Must include `New voicemail` |
+| Typical type | Often `Invoice Support` or null — not SPM Vendor Relations (4046 is SF) |
 
 **Discovery (REST):** Freshdesk search caps force type-sliced pulls. Scan:
 
@@ -68,7 +68,7 @@ When category is **not** AP (COI, onboarding, SPM/sourcing, VixxoLink, SR, etc.)
 
 1. Post internal note documenting misroute + transcript + vetting.
 2. **Forward** to the normal triage recipient for that category.
-3. Resolve after forward (same as KSOnboarding path), with `cf_sp` when known.
+3. Resolve after forward, with `cf_sp` when known.
 4. Keep tags `qsiap-source` + `voicemail-triaged`.
 
 ### Salesforce

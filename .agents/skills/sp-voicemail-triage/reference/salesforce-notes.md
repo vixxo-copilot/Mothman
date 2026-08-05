@@ -163,13 +163,18 @@ Include in every packet (agent runs):
 
 ## Dual-intake awareness
 
-Voicemail often exists in **both** Freshdesk (8x8 notification + `.wav`) and
-Salesforce (Case from triage forward or Email-to-Case). Always:
+**SPM Vendor Relations (extension 4046):** Email-to-Case already creates the
+Salesforce Case. Prefer that Case over Outlook VM duplicates — see
+[salesforce-4046-voicemail.md](salesforce-4046-voicemail.md). Do **not** create
+Freshdesk KSOnboarding tickets (mailbox retired).
 
-1. Search SF before creating Case
-2. Link FD `#` in Case Description / Task body
-3. Note the paired id in the internal note (**SF Case:** 0000xxxx ↔ **FD:** #nnnnn)
+**QSIAP:** Voicemail may exist in Freshdesk only, or also as a mistaken SF Case.
+Always:
+
+1. Search SF before creating Case (Outlook-only / misroute paths)
+2. Link FD `#` in Case Description / Task body when a Freshdesk ticket exists
+3. Note paired ids (**SF Case:** 0000xxxx ↔ **FD:** #nnnnn / **Outlook:** id)
 
 See **`sp-fd-sf-duplicate-bridge`** ([SKILL.md](../../sp-fd-sf-duplicate-bridge/SKILL.md),
-[examples.md](../../sp-fd-sf-duplicate-bridge/reference/examples.md)) for voicemail
-dual-intake detection, batch scan, and FD → SF attachment sync.
+[examples.md](../../sp-fd-sf-duplicate-bridge/reference/examples.md)) for dual-intake
+detection and attachment sync when both FD and SF still apply.

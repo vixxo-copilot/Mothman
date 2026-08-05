@@ -34,10 +34,12 @@ correction, resubmit, short pay dispute on invoice line, **pay date**,
 payment update on a ticket/WO, old KS ticket (e.g. `1300-####` / bare
 `1300####`)
 
-**Forward to:** `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on
-QSIAP** when already on `qsiap@vixxo.com`
+**Forward to:** `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP** when
+already on `qsiap@vixxo.com`. On SF **4046** Cases: close as Duplicate (AP
+owns) — no SPM Task.
 
-**Salesforce:** **none** — Freshdesk only. Do not create SF Cases or Tasks.
+**Salesforce:** **none** on the AP path — Freshdesk only for QSIAP; close
+mistaken 4046 Cases. Do not create SF Cases or Tasks for Billing.
 Do **not** forward to SPM because a KS ticket number appears — that is still
 AP/billing.
 
@@ -60,11 +62,12 @@ received payment, payment status, balance due from Vixxo, **past due /
 past-due**, pay date, service interruption(s) tied to unpaid invoices,
 "update your account" / "update my account" in an AP context
 
-**Forward to:** `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on
-QSIAP** when already on `qsiap@vixxo.com`
+**Forward to:** `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP** when
+already on `qsiap@vixxo.com`. On SF **4046** Cases: close as Duplicate (AP
+owns) — no SPM Task.
 
-**Salesforce:** **none** on the AP/QSIAP stay path — Freshdesk only. Do not
-forward to SPM and do not create SF Cases/Tasks.
+**Salesforce:** **none** on the AP/QSIAP stay path — Freshdesk only for QSIAP;
+close mistaken 4046 Cases. Do not forward to SPM and do not create SF Cases/Tasks.
 
 **Anti-misroute:** Do **not** use this category when the caller is asking to
 speak with **sourcing**, **procurement**, or the **account team** about work

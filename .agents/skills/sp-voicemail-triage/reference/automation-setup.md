@@ -1,9 +1,14 @@
 # Scheduled Cursor Automation Setup
 
-Wire **`sp-voicemail-triage-fast`** to a cron trigger for hands-off KSOnboarding
-voicemail processing. For **QSIAP** AP voicemails (`qsiap@vixxo.com`), schedule
-`scripts/batch_process_qsiap.py` (or a full `sp-voicemail-triage` agent run that
-includes source 3).
+**SPM Vendor Relations (extension 4046)** is Salesforce Email-to-Case — run the
+full **`sp-voicemail-triage`** agent (SOQL + ContentVersion STT + Case Tasks),
+not Freshdesk KSOnboarding. The FD KSOnboarding mailbox is **retired**.
+
+For **QSIAP** AP voicemails (`qsiap@vixxo.com`), schedule
+`scripts/batch_process_qsiap.py` (or a full `sp-voicemail-triage` agent run).
+
+Legacy **`sp-voicemail-triage-fast`** / `batch_process_freshdesk.py` targeted
+KSOnboarding and should not be used for default SPM intake.
 
 ## Transcription is mandatory
 

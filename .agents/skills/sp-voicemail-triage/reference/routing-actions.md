@@ -12,8 +12,8 @@ decision, and [company vetting](company-vetting.md).
 | VixxoLink Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Include SP # if vetted |
 | Technical / Trade Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Same SPM path |
 | General Inquiry | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | When no sharper bucket fits |
-| Billing / Invoice Support | `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on QSIAP** | See **QSIAP branch** when ticket is already on `qsiap@vixxo.com` | |
-| Payment Information | `aphelp@vixxo.com` (KSOnboarding / Outlook) or **stay on QSIAP** | See **QSIAP branch** when ticket is already on `qsiap@vixxo.com` | |
+| Billing / Invoice Support | `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP**; SF 4046 → close Case | See **QSIAP branch** / [salesforce-4046-voicemail.md](salesforce-4046-voicemail.md) | |
+| Payment Information | `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP**; SF 4046 → close Case | Same as Billing — AP owns; no SPM Task | |
 | COI / Compliance (Insurance) | `COI@vixxo.com` | Internal note + forward; resolve when routed | |
 | Coverage / Onboarding | See **Onboarding branch** below | Varies | |
 | Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
@@ -119,7 +119,7 @@ Onboarding category, or clear recruitment intent).
      [salesforce-notes.md](salesforce-notes.md)). Post automatically.
    - When an open **Case** also matches, post a **Case Task** as well (both ids
      in the internal note).
-   - **Resolve** the Freshdesk ticket (`status: 5`). Set `type: KSOnboarding`
+   - **Resolve** the Freshdesk ticket (`status: 5`) when on QSIAP. Set a valid `type`
      when updating if not already set.
 3. **No Lead found**:
    - **Forward** ticket to `spm-recruitment@vixxo.com` via `forward_ticket`
@@ -217,7 +217,7 @@ Use `update_ticket`:
   "ticket_id": "<id>",
   "ticket": {
     "status": 5,
-    "type": "<KSOnboarding | VixxoLink Support | Invoice Support | COIs | as appropriate>",
+    "type": "<VixxoLink Support | Invoice Support | COIs | as appropriate>",
     "custom_fields": {
       "cf_sp": "<SP number or Unknown>"
     }
@@ -232,10 +232,10 @@ Only resolve tickets that pass the voicemail filter in
 [freshdesk-voicemail-filter.md](freshdesk-voicemail-filter.md) (subject includes
 `New voicemail`).
 
-Freshdesk requires a valid `type` when changing status. Allowed values include:
-`Account Update`, `Invoice Support`, `VixxoLink Support`, `Credit/Debit
-Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`, `No Action Required`,
-`KSOnboarding`.
+Freshdesk requires a valid `type` when changing status (QSIAP path only).
+Allowed values include: `Account Update`, `Invoice Support`, `VixxoLink
+Support`, `Credit/Debit Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`,
+`No Action Required`. Prefer `Invoice Support` for QSIAP AP stays.
 
 ## Salesforce branch (all categories)
 

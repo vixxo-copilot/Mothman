@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Batch sp-voicemail-triage for Freshdesk KSOnboarding queue (REST)."""
+"""LEGACY — Freshdesk KSOnboarding batch (REST).
+
+KSOnboarding mailbox is retired. Default SPM voicemail intake is Salesforce
+Cases for 8x8 extension 4046 (see reference/salesforce-4046-voicemail.md).
+Do not use this script for default `sp-voicemail-triage` runs.
+QSIAP AP voicemails: use batch_process_qsiap.py instead.
+"""
 
 from __future__ import annotations
 

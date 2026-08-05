@@ -86,7 +86,7 @@ needed.
 
 ## Example 4 — Onboarding, Salesforce Lead found
 
-**Input:** Freshdesk KSOnboarding ticket with voicemail transcript
+**Input:** SF Case (4046 Vendor Relations) or Outlook VM with voicemail transcript
 
 > Hi, this is Tom with Summit Electric. We're interested in becoming a Vixxo
 > service provider in Colorado. Please call 555-111-2222.
@@ -94,9 +94,8 @@ needed.
 **Company vetting:** Salesforce Lead `00Qxx000001AbCd` — Company Summit Electric,
 Status Open. No Siebel SP match.
 
-**Routing:** Lead found → internal note referencing Lead Id, Salesforce **Lead
-Task** with transcript, **Case Task** if open Case exists, resolve Freshdesk. No
-forward to recruitment when Lead is active.
+**Routing:** Lead found → Salesforce **Lead Task** with transcript, **Case Task**
+on the 4046 Case. No forward to recruitment when Lead is active. No Freshdesk.
 
 See [salesforce-notes.md](salesforce-notes.md).
 
@@ -172,22 +171,20 @@ overrides incidental billing/payment keywords in email boilerplate. See
 
 ---
 
-## Example 8 — Freshdesk + Salesforce dual intake
+## Example 8 — Salesforce 4046 Vendor Relations (primary SPM path)
 
-**Source:** Freshdesk **#58752** → Salesforce Case **00005784** (voicemail
-dual-intake pattern)
+**Source:** Salesforce Case **00008035** — subject
+`New voicemail from CORREA,LUIS via VENDOR RELATIONS` (8x8 extension **4046**)
 
 **Flow:**
 
-1. 8x8 creates Freshdesk KSOnboarding ticket with `.wav` attachment.
-2. Triage transcribes, vets (Gateway + SF Lead/Case search), forwards email.
-3. **Before Case create:** SOQL finds no existing `Freshdesk #58752` Case.
-4. **Case create** on `ksonboarding` queue; Description includes
-   `Freshdesk #58752` + transcript.
-5. **Case Task** posted with category, posture, and route.
-6. Freshdesk internal note records **SF Case 00005784** ↔ **FD #58752**.
-7. Freshdesk resolved.
+1. 8x8 Email-to-Case creates the SF Case with `.wav` on the inbound EmailMessage.
+2. Triage downloads ContentVersion audio, transcribes (faster-whisper).
+3. Vets company (Gateway + SF Account/Lead/Contact).
+4. Posts **Completed Case Task** with category, posture, route, transcript.
+5. No Freshdesk ticket — KSOnboarding mailbox is retired.
+6. If the same message is also in Outlook **VM**, skip a second forward; link
+   Outlook id on the Task when known.
 
-**Dedupe:** Re-running triage on FD #58752 must find Case 00005784 via
-`Description LIKE '%Freshdesk #58752%'` and post only a **Task** — no second
-Case.
+**Dedupe:** Do not create a second Case for the same 4046 voicemail. Re-runs
+check for an existing `SP Voicemail Triage` Task on the Case.
