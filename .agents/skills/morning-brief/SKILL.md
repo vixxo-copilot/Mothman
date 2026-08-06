@@ -46,7 +46,7 @@ Before any Graph call:
 2. If unauthenticated, call `login` and give the user the device-code URL
    and code. Wait for confirmation, then re-verify.
 
-Default timezone: `America/Denver`.
+Default timezone: `America/Chicago` (CST).
 
 ### 2. Calendar
 

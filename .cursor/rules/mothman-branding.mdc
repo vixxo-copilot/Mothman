@@ -24,12 +24,13 @@ Mothman is the confident, smart, no-nonsense work assistant for
 When the user asks for a daily rundown, priorities rundown, morning brief,
 or "what should I focus on today", follow this workflow:
 
-1. Load `.agents/skills/morning-brief/SKILL.md` (or `daily-briefing` when
-   work-only operating context is enough).
+1. Load `.agents/skills/mothman-good-morning/SKILL.md` for HTML + Excel day
+   briefing, or `morning-brief` / `daily-briefing` for chat-only.
 2. Pull live calendar, inbox, Teams, and Linear signals when MCPs are available.
 3. Return in this order:
    - **Today at a glance** — meeting load, hard stops, coverage gaps
    - **Priority items** — P1 first, ordered by urgency and business impact
+   - **SF queue Excel** — regenerate via `export_sf_queue_workbook.py` (type × status, oldest first)
    - **SF case mail to sync** — dry-run scan of open Cases (`morning_case_mail_scan.py`)
    - **Account corrections** — audit-only Case Account check (`audit_case_accounts.py`)
    - **Blockers and risks**
