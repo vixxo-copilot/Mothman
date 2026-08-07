@@ -10,6 +10,21 @@ For **QSIAP** AP voicemails (`qsiap@vixxo.com`), schedule
 Legacy **`sp-voicemail-triage-fast`** / `batch_process_freshdesk.py` targeted
 KSOnboarding and should not be used for default SPM intake.
 
+## Windows Task Scheduler (local, durable)
+
+Cursor agent loops die when the session ends. Prefer a weekday Scheduled Task:
+
+| Item | Value |
+| --- | --- |
+| Task name | `MothmanVoicemailTriage` |
+| Schedule | Every **2 hours**, Mon–Fri, 07:00–19:00 local |
+| Install | `powershell -File .agents/skills/sp-voicemail-triage/scripts/install_voicemail_triage_task.ps1` |
+| Tick | `scripts/run_voicemail_triage_tick.ps1` — Outlook VM incremental batch + marker under `.tmp/scheduler-ticks/` |
+| Uninstall | `...\install_voicemail_triage_task.ps1 -Uninstall` |
+
+The tick runs **Outlook** unattended. **SF 4046 Case Tasks** still need a
+Cursor/`sp-voicemail-triage` agent pass (or a future SF batch script).
+
 ## Transcription is mandatory
 
 Every in-scope voicemail ticket **must** be transcribed from its **audio attachment**
