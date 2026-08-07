@@ -38,30 +38,12 @@ def auth_headers(api_key: str) -> dict[str, str]:
 
 
 def load_credentials() -> str:
-    root = Path(__file__).resolve().parents[4]
-    env_path = root / ".env"
-    if env_path.is_file():
-        for raw in env_path.read_text(encoding="utf-8").splitlines():
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, val = line.split("=", 1)
-            key = key.strip()
-            val = val.strip().strip('"').strip("'")
-            if key and val and not os.environ.get(key):
-                os.environ[key] = val
     api_key = os.environ.get("FRESHDESK_API_KEY", "").strip()
-    home_vixxo = Path.home() / ".vixxo"
-    for name in ("freshdesk_api_key", "freshdesk_token"):
-        token_path = home_vixxo / name
-        if not api_key and token_path.is_file():
-            api_key = token_path.read_text(encoding="utf-8").strip()
-    if not api_key and os.environ.get("FRESHDESK_TOKEN"):
-        api_key = os.environ["FRESHDESK_TOKEN"].strip()
+    token_path = Path.home() / ".vixxo" / "freshdesk_token"
+    if not api_key and token_path.is_file():
+        api_key = token_path.read_text(encoding="utf-8").strip()
     if not api_key:
-        raise SystemExit(
-            "FRESHDESK_API_KEY not set — configure .env or ~/.vixxo/freshdesk_token"
-        )
+        raise SystemExit("FRESHDESK_API_KEY not set and ~/.vixxo/freshdesk_token missing")
     return api_key
 
 
@@ -82,6 +64,22 @@ FEDCOI_AUTOREPLY_RE = re.compile(
     r"\s*-\s*Federated Insurance Auto Reply:.*$", re.I
 )
 FEDCERTS_SENDER = "fedcerts-donotreply@fedins.com"
+HARTFORD_SENDER = "donotreplycommercial@thehartford.com"
+CSR24_SENDER = "mail-server@csr24.email"
+HARTFORD_ACCOUNT_RE = re.compile(r"Account\s*#\s*(\d+)\s*(.*)$", re.I)
+INVOICE_SP_RE = re.compile(
+    r"(?:invoice|overdue|past due|payment)[^·\n]*[·\-]\s*(.+?)\s*$", re.I
+)
+COI_SUBJECT_SP_RE = re.compile(
+    r"(?:COI|certificate of insurance|insurance|proof of insurance)"
+    r"[^A-Za-z0-9]*(?:for|regarding|-)\s*(.+?)"
+    r"(?:\s+auto|\s+workers|\s+general|\s*$)",
+    re.I,
+)
+GENERIC_SUBJECT_SP_RE = re.compile(
+    r"^Re:\s*(?:FW:\s*)*(.+?)\s+(?:auto insurance COI|COI|certificate)",
+    re.I,
+)
 VIXXO_SKIP = re.compile(
     r"@vixxo\.com$|@8x8\.com$|@notification\.intuit\.com$|@vixxo-helpdesk",
     re.I,
@@ -177,6 +175,98 @@ def is_federated_coi_subject(subject: str | None) -> bool:
 
 def is_fedcerts_requester(email: str | None) -> bool:
     return (email or "").strip().lower() == FEDCERTS_SENDER
+
+
+def is_hartford_requester(email: str | None) -> bool:
+    return (email or "").strip().lower() == HARTFORD_SENDER
+
+
+def extract_hartford_account_subject(subject: str | None) -> tuple[str, str] | None:
+    """Return (account_number, provider_tail) from Hartford batch COI subjects."""
+    if not subject:
+        return None
+    m = HARTFORD_ACCOUNT_RE.search(subject.strip())
+    if not m:
+        return None
+    return m.group(1), (m.group(2) or "").strip()
+
+
+def extract_subject_sp_hint(subject: str | None, fd_meta: dict | None = None) -> str | None:
+    """Best-effort SP name from subject (and FD coi_provider when present)."""
+    if fd_meta and fd_meta.get("coi_provider"):
+        return fd_meta["coi_provider"]
+    if not subject:
+        return None
+    subj = subject.strip()
+    fed = extract_federated_coi_provider(subj)
+    if fed:
+        return fed
+    hart = extract_hartford_account_subject(subj)
+    if hart:
+        return hart[1] or None
+    for pat in (GENERIC_SUBJECT_SP_RE, COI_SUBJECT_SP_RE, INVOICE_SP_RE):
+        m = pat.search(subj)
+        if m and m.group(1).strip():
+            return m.group(1).strip()
+    return None
+
+
+def is_csr24_requester(email: str | None) -> bool:
+    return (email or "").strip().lower() == CSR24_SENDER
+
+
+def classify_contact_collision_pairs(pairs: list[dict]) -> None:
+    """Split contact collisions into COI-vet candidates vs subject-mismatch skips."""
+    for pair in pairs:
+        if pair.get("dup_type") != "contact_collision":
+            continue
+        reasons = pair.setdefault("match_reasons", [])
+        fd = pair.get("freshdesk") or {}
+        sf = pair.get("salesforce") or {}
+        fd_subj = fd.get("subject") or ""
+        sf_subj = sf.get("subject") or ""
+        sim = float(pair.get("subject_similarity") or 0.0)
+
+        fd_hint = extract_subject_sp_hint(fd_subj, fd)
+        sf_hint = extract_subject_sp_hint(sf_subj, None)
+        fd_norm = normalize_coi_provider(fd_hint or "")
+        sf_norm = normalize_coi_provider(sf_hint or "")
+
+        req = (fd.get("requester") or "").lower()
+        sf_emails = {
+            (sf.get("contact_email") or "").lower(),
+            (sf.get("supplied_email") or "").lower(),
+        }
+        if is_csr24_requester(req) and CSR24_SENDER in sf_emails:
+            if fd_norm and sf_norm and fd_norm != sf_norm:
+                pair["dup_type"] = "subject_mismatch_skip"
+                if "csr24_sender_mismatch" not in reasons:
+                    reasons.append("csr24_sender_mismatch")
+                continue
+            if sim < 0.35:
+                pair["dup_type"] = "subject_mismatch_skip"
+                if "csr24_subject_mismatch" not in reasons:
+                    reasons.append("csr24_subject_mismatch")
+                continue
+
+        if fd_norm and sf_norm and fd_norm != sf_norm:
+            pair["dup_type"] = "subject_mismatch_skip"
+            if "subject_sp_mismatch" not in reasons:
+                reasons.append("subject_sp_mismatch")
+            continue
+
+        if sim < 0.25 and not (fd_norm and sf_norm and fd_norm == sf_norm):
+            pair["dup_type"] = "subject_mismatch_skip"
+            if "subject_low_overlap" not in reasons:
+                reasons.append("subject_low_overlap")
+            continue
+
+        pair["dup_type"] = "coi_vet_required"
+        if fd_norm and sf_norm and fd_norm == sf_norm:
+            if "subject_sp_match_needs_coi" not in reasons:
+                reasons.append("subject_sp_match_needs_coi")
+        elif "shared_requester_needs_coi_vet" not in reasons:
+            reasons.append("shared_requester_needs_coi_vet")
 
 
 def _search_fd_filter(
@@ -405,6 +495,47 @@ def make_pair_entry(
     }
 
 
+def reclassify_fedcerts_pairs(pairs: list[dict]) -> None:
+    """Promote same-provider Federated pairs; suppress sender-only mismatches."""
+    for pair in pairs:
+        if "fd_id_in_sf_description" in pair.get("match_reasons", []):
+            continue
+        if "coi_req_id_match" in pair.get("match_reasons", []):
+            continue
+        fd = pair.get("freshdesk") or {}
+        sf = pair.get("salesforce") or {}
+        fd_fields = extract_federated_coi_fields(fd.get("subject") or "")
+        sf_fields = extract_federated_coi_fields(sf.get("subject") or "")
+        if coi_req_key(fd_fields) and coi_req_key(fd_fields) == coi_req_key(sf_fields):
+            continue
+        fd_provider = normalize_coi_provider(
+            fd.get("coi_provider")
+            or extract_federated_coi_provider(fd.get("subject") or "")
+            or ""
+        )
+        sf_provider = normalize_coi_provider(
+            extract_federated_coi_provider(sf.get("subject") or "") or ""
+        )
+        if fd_provider and sf_provider and fd_provider == sf_provider:
+            pair["dup_type"] = "same_sp_duplicate"
+            reasons = pair.setdefault("match_reasons", [])
+            if "coi_provider_name_match" not in reasons:
+                reasons.append("coi_provider_name_match")
+            if "fedcerts_sender_collision" in reasons:
+                reasons.remove("fedcerts_sender_collision")
+            continue
+        req = fd.get("requester")
+        sf_emails = {
+            (sf.get("contact_email") or "").lower(),
+            (sf.get("supplied_email") or "").lower(),
+        }
+        if is_fedcerts_requester(req) and FEDCERTS_SENDER in sf_emails:
+            pair["dup_type"] = "fedcerts_sender_noise"
+            reasons = pair.setdefault("match_reasons", [])
+            if "fedcerts_sender_collision" not in reasons:
+                reasons.append("fedcerts_sender_collision")
+
+
 def apply_fedcerts_downgrade(pairs: list[dict]) -> None:
     """Downgrade fedcerts-sender-only matches without Req-id or provider alignment."""
     for pair in pairs:
@@ -432,9 +563,57 @@ def apply_fedcerts_downgrade(pairs: list[dict]) -> None:
             (sf.get("supplied_email") or "").lower(),
         }
         if is_fedcerts_requester(req) and FEDCERTS_SENDER in sf_emails:
-            pair["dup_type"] = "contact_collision"
+            pair["dup_type"] = "fedcerts_sender_noise"
             if "fedcerts_sender_collision" not in pair["match_reasons"]:
                 pair["match_reasons"].append("fedcerts_sender_collision")
+
+
+def apply_hartford_downgrade(pairs: list[dict]) -> None:
+    """Downgrade Hartford batch-sender matches when account # or SP name differs."""
+    for pair in pairs:
+        if pair["dup_type"] not in ("true_same_thread", "likely_same_thread"):
+            continue
+        if "fd_id_in_sf_description" in pair["match_reasons"]:
+            continue
+        if "coi_req_id_match" in pair["match_reasons"]:
+            continue
+        if "coi_provider_name_match" in pair["match_reasons"]:
+            continue
+
+        fd = pair["freshdesk"]
+        sf = pair["salesforce"]
+        fd_subj = fd.get("subject") or ""
+        sf_subj = sf.get("subject") or ""
+        fd_acct = extract_hartford_account_subject(fd_subj)
+        sf_acct = extract_hartford_account_subject(sf_subj)
+
+        if fd_acct and sf_acct:
+            fd_num, fd_provider = fd_acct
+            sf_num, sf_provider = sf_acct
+            if fd_num != sf_num:
+                pair["dup_type"] = "contact_collision"
+                if "hartford_account_mismatch" not in pair["match_reasons"]:
+                    pair["match_reasons"].append("hartford_account_mismatch")
+                continue
+            fd_name = normalize_coi_provider(fd_provider)
+            sf_name = normalize_coi_provider(sf_provider)
+            if fd_name and sf_name and fd_name != sf_name:
+                pair["dup_type"] = "contact_collision"
+                if "hartford_provider_mismatch" not in pair["match_reasons"]:
+                    pair["match_reasons"].append("hartford_provider_mismatch")
+                continue
+
+        req = fd.get("requester")
+        sf_emails = {
+            (sf.get("contact_email") or "").lower(),
+            (sf.get("supplied_email") or "").lower(),
+        }
+        if is_hartford_requester(req) and HARTFORD_SENDER in sf_emails:
+            if fd_acct and sf_acct:
+                continue
+            pair["dup_type"] = "contact_collision"
+            if "hartford_sender_collision" not in pair["match_reasons"]:
+                pair["match_reasons"].append("hartford_sender_collision")
 
 
 def add_coi_req_id_pairs(
@@ -537,7 +716,7 @@ def add_coi_provider_pairs(
                     ):
                         if "coi_provider_name_match" not in existing["match_reasons"]:
                             existing["match_reasons"].append("coi_provider_name_match")
-                        existing["dup_type"] = "true_same_thread"
+                        existing["dup_type"] = "same_sp_duplicate"
                         if "fedcerts_sender_collision" in existing["match_reasons"]:
                             existing["match_reasons"].remove("fedcerts_sender_collision")
                 continue
@@ -550,7 +729,7 @@ def add_coi_provider_pairs(
                     summary,
                     sf,
                     reasons,
-                    "true_same_thread",
+                    "same_sp_duplicate",
                     sim,
                     api_key,
                     req_email,
@@ -638,8 +817,11 @@ def scan(
             )
 
     apply_fedcerts_downgrade(pairs)
+    apply_hartford_downgrade(pairs)
     add_coi_req_id_pairs(fd_summaries, sf_cases, pairs, seen_pair, api_key, enrich)
     add_coi_provider_pairs(fd_summaries, sf_cases, pairs, seen_pair, api_key, enrich)
+    reclassify_fedcerts_pairs(pairs)
+    classify_contact_collision_pairs(pairs)
     return pairs
 
 
@@ -715,10 +897,16 @@ def write_report_markdown(result: dict, path: Path) -> None:
     coi_pairs = [
         p
         for p in pairs
-        if "coi_provider_name_match" in p["match_reasons"]
-        and p["dup_type"] == "true_same_thread"
-        and "coi_req_id_match" not in p["match_reasons"]
+        if p.get("dup_type") == "same_sp_duplicate"
+        and "coi_provider_name_match" in p["match_reasons"]
     ]
+    reportable = [
+        p
+        for p in pairs
+        if p.get("dup_type") not in ("fedcerts_sender_noise", "subject_mismatch_skip")
+    ]
+    coi_vet_pairs = [p for p in pairs if p.get("dup_type") == "coi_vet_required"]
+    skip_pairs = [p for p in pairs if p.get("dup_type") == "subject_mismatch_skip"]
     lines = [
         "# Freshdesk ↔ Salesforce Duplicate Scan (COI widened)",
         "",
@@ -730,12 +918,15 @@ def write_report_markdown(result: dict, path: Path) -> None:
         "|--------|------:|",
         f"| FD inbound | {result['fd_count']} |",
         f"| SF Cases | {result['sf_count']} |",
-        f"| Duplicate pairs | {result['pair_count']} |",
+        f"| Reportable pairs | {result.get('reportable_pair_count', len(reportable))} |",
         f"| True same-thread | {result['true_same_thread']} |",
+        f"| Same SP (Federated subject) | {result.get('same_sp_duplicate', len(coi_pairs))} |",
+        f"| COI vet required | {result.get('coi_vet_required', len(coi_vet_pairs))} |",
         f"| Likely same-thread | {result['likely_same_thread']} |",
-        f"| Contact collision | {result['contact_collision']} |",
+        f"| Contact collision (residual) | {result['contact_collision']} |",
+        f"| Subject mismatch (suppressed) | {result.get('subject_mismatch_skip', len(skip_pairs))} |",
+        f"| Fedcerts sender-only (suppressed) | {result.get('fedcerts_sender_noise', 0)} |",
         f"| COI Req-id matched | {result.get('coi_req_id_matched', 0)} |",
-        f"| COI provider-matched | {len(coi_pairs)} |",
         "",
     ]
     intra = result.get("intra_system_req_duplicates") or {}
@@ -796,49 +987,100 @@ def write_report_markdown(result: dict, path: Path) -> None:
     if coi_pairs:
         lines.extend(
             [
-                "## Federated COI provider-matched pairs",
+                "## Same SP duplicates — Federated COI (subject provider match)",
                 "",
-                "| FD | Provider | SF Case | Origin |",
-                "|----|----------|---------|--------|",
+                "Vet before merge: parse insured name / DBA from COI attachment, then "
+                "cross-check SP name in Gateway or SF Account.",
+                "",
+                "| FD | Provider (subject) | SF Case | Origin |",
+                "|----|--------------------|---------|--------|",
             ]
         )
         for p in sorted(coi_pairs, key=lambda x: x["freshdesk"]["id"]):
             fd = p["freshdesk"]
             sf = p["salesforce"]
-            provider = fd.get("coi_provider") or "—"
+            provider = fd.get("coi_provider") or extract_federated_coi_provider(
+                fd.get("subject") or ""
+            ) or "—"
             lines.append(
                 f"| [#{fd['id']}](https://{DOMAIN}/a/tickets/{fd['id']}) "
                 f"| {provider} | {sf.get('case_number')} | {p['origin']} |"
             )
         lines.append("")
 
-    fedcerts_collisions = [
-        p
-        for p in pairs
-        if "fedcerts_sender_collision" in p.get("match_reasons", [])
-        or (
-            is_fedcerts_requester(p["freshdesk"].get("requester"))
-            and p["dup_type"] == "contact_collision"
-            and is_federated_coi_subject(p["freshdesk"].get("subject"))
-        )
-    ]
-    if fedcerts_collisions:
+    if coi_vet_pairs:
         lines.extend(
             [
-                "## Federated sender collisions (no provider match)",
+                "## COI vet required (shared requester, subject unclear)",
                 "",
-                "| FD | FD provider | SF Case | SF subject |",
-                "|----|-------------|---------|------------|",
+                "Review COI insured name / DBA; cross-check Gateway and SF Account. "
+                "See [coi-vetting.md](coi-vetting.md).",
+                "",
+                "| FD | SF Case | FD subject | SF subject | Signals |",
+                "|----|---------|------------|------------|---------|",
             ]
         )
-        for p in fedcerts_collisions[:20]:
+        for p in coi_vet_pairs[:30]:
             fd = p["freshdesk"]
             sf = p["salesforce"]
-            fd_provider = fd.get("coi_provider") or extract_federated_coi_provider(fd.get("subject") or "") or "—"
-            sf_subj = (sf.get("subject") or "")[:60]
+            sig = ", ".join(p.get("match_reasons") or [])[:60]
             lines.append(
-                f"| #{fd['id']} | {fd_provider} | {sf.get('case_number')} | {sf_subj} |"
+                f"| [#{fd['id']}](https://{DOMAIN}/a/tickets/{fd['id']}) "
+                f"| {sf.get('case_number')} "
+                f"| {(fd.get('subject') or '')[:45]} "
+                f"| {(sf.get('subject') or '')[:45]} | {sig} |"
             )
+        if len(coi_vet_pairs) > 30:
+            lines.append(f"| … | +{len(coi_vet_pairs) - 30} more | | | |")
+        lines.append("")
+
+    fedcerts_noise = result.get("fedcerts_sender_noise") or sum(
+        1 for p in pairs if p.get("dup_type") == "fedcerts_sender_noise"
+    )
+    if fedcerts_noise:
+        lines.extend(
+            [
+                "## Fedcerts sender-only pairs (suppressed from report)",
+                "",
+                f"{fedcerts_noise} FD↔SF pair(s) shared only `fedcerts-donotreply@fedins.com` "
+                "with mismatched provider names in subject — not listed as contact collisions. "
+                "Review individually only when COI insured name / DBA aligns after cert scan.",
+                "",
+            ]
+        )
+
+    if skip_pairs:
+        lines.extend(
+            [
+                "## Subject mismatch (suppressed)",
+                "",
+                f"{len(skip_pairs)} pair(s) share requester email but subject SP names "
+                "or overlap indicate different threads — skipped unless COI review overrides.",
+                "",
+            ]
+        )
+
+    contact_pairs = [p for p in pairs if p.get("dup_type") == "contact_collision"]
+    if contact_pairs:
+        lines.extend(
+            [
+                "## Contact collisions (non-Fedcerts batch sender)",
+                "",
+                "| FD | SF Case | FD subject | SF subject |",
+                "|----|---------|------------|------------|",
+            ]
+        )
+        for p in contact_pairs[:25]:
+            fd = p["freshdesk"]
+            sf = p["salesforce"]
+            lines.append(
+                f"| [#{fd['id']}](https://{DOMAIN}/a/tickets/{fd['id']}) "
+                f"| {sf.get('case_number')} "
+                f"| {(fd.get('subject') or '')[:50]} "
+                f"| {(sf.get('subject') or '')[:50]} |"
+            )
+        if len(contact_pairs) > 25:
+            lines.append(f"| … | +{len(contact_pairs) - 25} more | | |")
         lines.append("")
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -881,14 +1123,26 @@ def main(argv: list[str] | None = None) -> int:
         "fd_count": len(fd_summaries),
         "sf_count": len(sf_cases),
         "pair_count": len(pairs),
+        "reportable_pair_count": sum(
+            1
+            for p in pairs
+            if p["dup_type"]
+            not in ("fedcerts_sender_noise", "subject_mismatch_skip")
+        ),
         "true_same_thread": sum(1 for p in pairs if p["dup_type"] == "true_same_thread"),
         "likely_same_thread": sum(1 for p in pairs if p["dup_type"] == "likely_same_thread"),
+        "same_sp_duplicate": sum(1 for p in pairs if p["dup_type"] == "same_sp_duplicate"),
+        "coi_vet_required": sum(1 for p in pairs if p["dup_type"] == "coi_vet_required"),
+        "subject_mismatch_skip": sum(1 for p in pairs if p["dup_type"] == "subject_mismatch_skip"),
         "contact_collision": sum(1 for p in pairs if p["dup_type"] == "contact_collision"),
+        "fedcerts_sender_noise": sum(
+            1 for p in pairs if p["dup_type"] == "fedcerts_sender_noise"
+        ),
         "coi_req_id_matched": sum(
             1 for p in pairs if "coi_req_id_match" in p["match_reasons"]
         ),
         "coi_provider_matched": sum(
-            1 for p in pairs if "coi_provider_name_match" in p["match_reasons"]
+            1 for p in pairs if p["dup_type"] == "same_sp_duplicate"
         ),
         "intra_system_req_duplicates": intra,
         "pairs": pairs,

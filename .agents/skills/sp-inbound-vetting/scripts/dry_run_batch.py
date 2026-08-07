@@ -205,13 +205,20 @@ def sf_query(soql: str) -> list[dict]:
     for sf_bin in sf_candidates:
         cmd = [sf_bin, "data", "query", "--query", soql, "--json"]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
+            )
         except FileNotFoundError:
             continue
         if proc.returncode != 0:
             continue
         try:
-            return json.loads(proc.stdout).get("result", {}).get("records", [])
+            return json.loads(proc.stdout or "").get("result", {}).get("records", [])
         except json.JSONDecodeError:
             continue
     return [{"_error": "Salesforce CLI unavailable"}]

@@ -13,6 +13,7 @@ from typing import Callable
 from entity_extraction import (
     contact_search_name,
     extract_amazon_connect_voicemail,
+    extract_body_company_mentions,
     extract_body_emails,
     extract_email_domains_from_messages,
     extract_service_contractor,
@@ -25,6 +26,7 @@ from entity_extraction import (
     email_domain_search_tokens,
     is_internal_email,
     is_voicemail_noise_subject,
+    is_vixxo_internal_company,
     parse_sf_case_subject,
     pick_best_company,
     company_from_spoken_text,
@@ -59,25 +61,45 @@ EMAIL_MESSAGE_SOQL = (
     "ORDER BY MessageDate ASC"
 )
 
+EMAIL_MESSAGE_BATCH_SOQL = (
+    "SELECT Id, RelatedToId, Subject, TextBody, HtmlBody, FromAddress, ToAddress, CcAddress, "
+    "MessageDate, Incoming FROM EmailMessage WHERE RelatedToId IN ({ids}) "
+    "ORDER BY RelatedToId, MessageDate ASC"
+)
+
 ATTACHMENT_SOQL = (
     "SELECT ContentDocument.Title, ContentDocument.FileExtension "
     "FROM ContentDocumentLink WHERE LinkedEntityId = '{case_id}'"
 )
 
+ATTACHMENT_BATCH_SOQL = (
+    "SELECT LinkedEntityId, ContentDocument.Title, ContentDocument.FileExtension "
+    "FROM ContentDocumentLink WHERE LinkedEntityId IN ({ids})"
+)
+
 
 def sf_query(query: str, *, sf_cli: str = SF_CLI, target_org: str = "vixxo") -> list[dict]:
-    result = subprocess.run(
-        [sf_cli, "data", "query", "--query", query, "--target-org", target_org, "--json"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    timeout_s = float(os.environ.get("SF_QUERY_TIMEOUT_S", "60"))
+    try:
+        result = subprocess.run(
+            [sf_cli, "data", "query", "--query", query, "--target-org", target_org, "--json"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=timeout_s,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"sf query timed out after {timeout_s}s") from exc
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout[:500])
     payload = json.loads(result.stdout)
     return payload.get("result", {}).get("records", [])
+
+
+def _soql_id_list(case_ids: list[str]) -> str:
+    return ", ".join(f"'{cid}'" for cid in case_ids if cid)
 
 
 def pull_email_messages(case_id: str, *, query_fn: Callable[[str], list[dict]] | None = None) -> list[dict]:
@@ -96,6 +118,79 @@ def pull_attachment_names(case_id: str, *, query_fn: Callable[[str], list[dict]]
         if title:
             names.append(f"{title}.{ext}" if ext and not title.endswith(f".{ext}") else title)
     return names
+
+
+def _attachment_name_from_row(row: dict) -> str | None:
+    doc = row.get("ContentDocument") or {}
+    title = str(doc.get("Title") or "").strip()
+    ext = str(doc.get("FileExtension") or "").strip()
+    if not title:
+        return None
+    return f"{title}.{ext}" if ext and not title.endswith(f".{ext}") else title
+
+
+def pull_email_messages_batch(
+    case_ids: list[str],
+    *,
+    batch_size: int = 15,
+    query_fn: Callable[[str], list[dict]] | None = None,
+) -> dict[str, list[dict]]:
+    """Pull EmailMessage threads for many Cases in fewer SF CLI round-trips."""
+    runner = query_fn or sf_query
+    out: dict[str, list[dict]] = {cid: [] for cid in case_ids if cid}
+    ids = [cid for cid in case_ids if cid]
+    for i in range(0, len(ids), batch_size):
+        chunk = ids[i : i + batch_size]
+        id_list = _soql_id_list(chunk)
+        if not id_list:
+            continue
+        try:
+            rows = runner(EMAIL_MESSAGE_BATCH_SOQL.format(ids=id_list))
+        except RuntimeError:
+            # Fall back to per-case if batch query is too large / rejected
+            for cid in chunk:
+                try:
+                    out[cid] = runner(EMAIL_MESSAGE_SOQL.format(case_id=cid))
+                except RuntimeError:
+                    out[cid] = []
+            continue
+        for row in rows:
+            cid = row.get("RelatedToId")
+            if cid in out:
+                out[cid].append(row)
+    return out
+
+
+def pull_attachment_names_batch(
+    case_ids: list[str],
+    *,
+    batch_size: int = 40,
+    query_fn: Callable[[str], list[dict]] | None = None,
+) -> dict[str, list[str]]:
+    """Pull attachment filenames for many Cases in fewer SF CLI round-trips."""
+    runner = query_fn or sf_query
+    out: dict[str, list[str]] = {cid: [] for cid in case_ids if cid}
+    ids = [cid for cid in case_ids if cid]
+    for i in range(0, len(ids), batch_size):
+        chunk = ids[i : i + batch_size]
+        id_list = _soql_id_list(chunk)
+        if not id_list:
+            continue
+        try:
+            rows = runner(ATTACHMENT_BATCH_SOQL.format(ids=id_list))
+        except RuntimeError:
+            for cid in chunk:
+                try:
+                    out[cid] = pull_attachment_names(cid, query_fn=runner)
+                except RuntimeError:
+                    out[cid] = []
+            continue
+        for row in rows:
+            cid = row.get("LinkedEntityId")
+            name = _attachment_name_from_row(row)
+            if cid in out and name:
+                out[cid].append(name)
+    return out
 
 
 def build_case_intake_text(
@@ -179,11 +274,14 @@ def extract_sf_case_entities(
     sig_company = extract_signature_company(intake_text, requester_email if requester_email != "Not stated" else "")
     subj_company = extract_subject_company(subject)
     sig_contact = extract_signature_contact_name(intake_text)
+    body_companies = extract_body_company_mentions(intake_text)
 
     company_candidates: list[str] = []
+    # Subject + insured-business body beats Vixxo signature / certificate-holder text.
     for candidate in (
         subject_parsed.get("company"),
         subj_company,
+        *body_companies,
         sig_company,
     ):
         if candidate:
@@ -209,6 +307,8 @@ def extract_sf_case_entities(
         company_candidates.append(spoken)
 
     company = pick_best_company(company_candidates, requester_email if requester_email != "Not stated" else "")
+    if company and is_vixxo_internal_company(company):
+        company = None
     if not company and is_voicemail_noise_subject(subject):
         company = None
     company = company or "Not stated"

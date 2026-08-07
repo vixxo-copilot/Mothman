@@ -91,9 +91,13 @@ def case_summary(c: dict) -> dict:
     }
 
 
+def is_open_status(status: str | None) -> bool:
+    return (status or "").lower() in OPEN
+
+
 def pick_primary(cases: list[dict]) -> dict:
     cases = sorted(cases, key=lambda x: x.get("CreatedDate") or "")
-    open_cases = [c for c in cases if (c.get("Status") or "").lower() in OPEN]
+    open_cases = [c for c in cases if is_open_status(c.get("Status"))]
     if open_cases:
         substantive = [
             c
@@ -103,6 +107,69 @@ def pick_primary(cases: list[dict]) -> dict:
         ]
         return substantive[0] if substantive else open_cases[0]
     return cases[0]
+
+
+def pick_primary_summary(cases: list[dict]) -> dict:
+    cases = sorted(cases, key=lambda x: x.get("created_date") or "")
+    substantive = [
+        c
+        for c in cases
+        if "auto reply" not in (c.get("subject") or "").lower()
+        and not (c.get("subject") or "").lower().startswith("re:")
+    ]
+    return substantive[0] if substantive else cases[0]
+
+
+def filter_group_open_only(group: dict) -> dict | None:
+    """Keep duplicate clusters with at least two open/new Cases."""
+    open_cases = [c for c in group.get("cases") or [] if is_open_status(c.get("status"))]
+    if len(open_cases) < 2:
+        return None
+    primary = pick_primary_summary(open_cases)
+    pid = primary.get("id")
+    return {
+        **group,
+        "cases": open_cases,
+        "case_count": len(open_cases),
+        "open_count": len(open_cases),
+        "recommended_primary": primary,
+        "merge_candidates": [c for c in open_cases if c.get("id") != pid],
+    }
+
+
+def filter_email_pairs_open_only(pairs: list[dict]) -> list[dict]:
+    """Keep subject+email pairs where both Cases are open/new."""
+    out: list[dict] = []
+    for pair in pairs:
+        primary = pair.get("recommended_primary") or {}
+        other = pair.get("merge_candidate") or {}
+        if is_open_status(primary.get("status")) and is_open_status(other.get("status")):
+            out.append(pair)
+    return out
+
+
+def apply_open_only_filter(result: dict) -> dict:
+    """Restrict duplicate findings to open/new Cases only."""
+    coi = [g for g in (filter_group_open_only(g) for g in result.get("coi_duplicates") or []) if g]
+    fd = [g for g in (filter_group_open_only(g) for g in result.get("fd_xref_duplicates") or []) if g]
+    phone = [g for g in (filter_group_open_only(g) for g in result.get("phone_duplicates") or []) if g]
+    email = filter_email_pairs_open_only(result.get("subject_email_duplicates") or [])
+
+    filtered = dict(result)
+    filtered["filter"] = "open_new_only"
+    filtered["coi_duplicates"] = coi
+    filtered["fd_xref_duplicates"] = fd
+    filtered["phone_duplicates"] = phone
+    filtered["subject_email_duplicates"] = email
+    filtered["coi_dupe_groups"] = len(coi)
+    filtered["coi_excess"] = sum(g["case_count"] - 1 for g in coi)
+    filtered["fd_xref_groups"] = len(fd)
+    filtered["phone_groups"] = len(phone)
+    filtered["subject_email_pairs"] = len(email)
+    scope = filtered.get("scope") or ""
+    if "open/new only" not in scope.lower():
+        filtered["scope"] = f"{scope} · open/new duplicate matches only"
+    return filtered
 
 
 def coi_duplicate_groups(records: list[dict]) -> list[dict]:
@@ -375,6 +442,7 @@ def build_scan_result(
     *,
     sf_cache: str = "",
     scope: str = "",
+    open_only: bool = False,
 ) -> dict:
     """Build duplicate-scan payload from Case records (reusable from unified triage)."""
     coi_dupes = coi_duplicate_groups(records)
@@ -382,7 +450,7 @@ def build_scan_result(
     phone_dupes = phone_duplicate_groups(records)
     email_pairs = subject_email_pairs(records)
 
-    open_records = [r for r in records if (r.get("Status") or "").lower() in OPEN]
+    open_records = [r for r in records if is_open_status(r.get("Status"))]
     coi_parsed = sum(
         1 for r in records if sd.extract_federated_coi_fields(r.get("Subject") or "")
     )
@@ -393,7 +461,7 @@ def build_scan_result(
         and (c.get("Status") or "").lower() in OPEN
     ]
 
-    return {
+    result = {
         "scan": "sf-intra-duplicates",
         "generated": datetime.now(timezone.utc).isoformat(),
         "sf_cache": sf_cache,
@@ -417,6 +485,9 @@ def build_scan_result(
         "subject_email_duplicates": email_pairs,
         "shell_open": shell_open,
     }
+    if open_only:
+        result = apply_open_only_filter(result)
+    return result
 
 
 def duplicate_member_ids(scan: dict) -> set[str]:
@@ -444,13 +515,20 @@ def main(argv: list[str] | None = None) -> int:
         "--scope",
         default="Owner.Username = crystal.gagner@vixxo.com, CreatedDate >= 2026-06-26",
     )
+    parser.add_argument(
+        "--include-closed",
+        action="store_true",
+        help="Include closed Cases in duplicate clusters (default: open/new only)",
+    )
     args = parser.parse_args(argv)
 
     records = load_records(args.sf_cache)
+    open_only = not args.include_closed
     result = build_scan_result(
         records,
         sf_cache=str(args.sf_cache),
         scope=args.scope,
+        open_only=open_only,
     )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

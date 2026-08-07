@@ -107,18 +107,61 @@ def intake_target_ids(records: list[dict], seed_scan: dict) -> set[str]:
     return shell_open_ids(records) | duplicate_member_ids(seed_scan)
 
 
+def _fallback_pack(case: dict, exc: Exception) -> dict:
+    subject = case.get("Subject") or ""
+    coi_fields = sd.extract_federated_coi_fields(subject)
+    email = sd.norm_email(case.get("ContactEmail") or case.get("SuppliedEmail"))
+    company = (coi_fields or {}).get("provider") or "Not stated"
+    hint_fn = getattr(sd, "extract_subject_sp_hint", None)
+    if hint_fn:
+        company = hint_fn(subject) or company
+    return {
+        "intake_error": str(exc),
+        "entities": {
+            "company": company,
+            "ks_number": None,
+            "sr_number": None,
+            "requester_email": email or "Not stated",
+            "email_domain_tokens": [],
+            "gateway_precheck": None,
+            "intake_sources": {"intake_error": str(exc)},
+        },
+        "intake_text": subject,
+        "attachment_names": [],
+    }
+
+
 def pull_intake_batch(
     records: list[dict],
     target_ids: set[str],
     load_case_intake,
 ) -> dict[str, dict]:
-    """One SF pull per target case; shared cache inside load_case_intake."""
+    """Batched SF prefetch + parallel entity extraction (much faster than per-case CLI)."""
+    import os
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     by_id = {c["Id"]: c for c in records if c.get("Id")}
+    ids = [cid for cid in sorted(target_ids) if cid in by_id]
     packs: dict[str, dict] = {}
-    for i, cid in enumerate(sorted(target_ids), 1):
-        case = by_id.get(cid)
-        if not case:
-            continue
+    if not ids:
+        return packs
+
+    # Warm caches with batched SOQL (orders of magnitude fewer SF CLI calls)
+    try:
+        from shell_sf_intake import prefetch_intake_for_ids  # noqa: WPS433
+
+        prefetch_intake_for_ids(
+            ids,
+            email_batch_size=int(os.environ.get("INTAKE_EMAIL_BATCH", "12")),
+            attach_batch_size=int(os.environ.get("INTAKE_ATTACH_BATCH", "40")),
+        )
+    except Exception as exc:
+        print(f"  Prefetch warning (falling back to per-case): {exc}", flush=True)
+
+    workers = max(1, int(os.environ.get("INTAKE_WORKERS", "8")))
+
+    def _one(cid: str) -> tuple[str, dict]:
+        case = by_id[cid]
         try:
             entities, intake_text, _, attachments = load_case_intake(case, queue="coi")
             clues = extract_context_clues(
@@ -127,7 +170,7 @@ def pull_intake_batch(
                 attachment_names=attachments,
                 entities=entities,
             )
-            packs[cid] = {
+            return cid, {
                 "entities": entities,
                 "intake_text": intake_text,
                 "attachment_names": attachments,
@@ -135,9 +178,17 @@ def pull_intake_batch(
                 "requester_email": clues.get("requester_email"),
             }
         except Exception as exc:
-            packs[cid] = {"intake_error": str(exc)}
-        if i % 25 == 0:
-            print(f"  Intake {i}/{len(target_ids)}...", flush=True)
+            return cid, _fallback_pack(case, exc)
+
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(_one, cid) for cid in ids]
+        for fut in as_completed(futures):
+            cid, pack = fut.result()
+            packs[cid] = pack
+            done += 1
+            if done % 25 == 0 or done == len(ids):
+                print(f"  Intake extract {done}/{len(ids)}...", flush=True)
     return packs
 
 
@@ -153,6 +204,15 @@ def build_enriched_records(records: list[dict], intake_packs: dict[str, dict]) -
 
 
 def run_duplicate_scan(records: list[dict], *, sf_cache: str, scope: str) -> dict:
+    import os
+
     from scan_sf_duplicates import build_scan_result  # noqa: WPS433
 
-    return build_scan_result(records, sf_cache=sf_cache, scope=scope)
+    # Default open/new-only — shrinks duplicate-member intake targets
+    open_only = os.environ.get("SCAN_INCLUDE_CLOSED", "0") != "1"
+    return build_scan_result(
+        records,
+        sf_cache=sf_cache,
+        scope=scope,
+        open_only=open_only,
+    )

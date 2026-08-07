@@ -28,6 +28,7 @@ from shell_sf_intake import (  # noqa: E402
     clear_intake_cache,
     load_case_intake,
     norm_email_domain,
+    to_sf_case,
 )
 from sf_vetting import determine_posture, is_autoreply_noise  # noqa: E402
 
@@ -74,7 +75,9 @@ AUTO_REPLY_PATTERNS = [
     re.compile(r"quickbooks.*past due", re.I),
 ]
 
-GATEWAY_SLEEP_S = 0.35
+# Override with GATEWAY_SLEEP_S / SF_ACCOUNT_SLEEP_S env vars for slower/safer runs
+GATEWAY_SLEEP_S = float(os.environ.get("GATEWAY_SLEEP_S", "0.05"))
+SF_ACCOUNT_SLEEP_S = float(os.environ.get("SF_ACCOUNT_SLEEP_S", "0.05"))
 
 
 def load_records(path: Path) -> list[dict]:
@@ -87,14 +90,19 @@ def load_records(path: Path) -> list[dict]:
 
 
 def sf_query(query: str) -> list[dict]:
-    result = subprocess.run(
-        [SF, "data", "query", "--query", query, "--target-org", "vixxo", "--json"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    timeout_s = float(os.environ.get("SF_QUERY_TIMEOUT_S", "60"))
+    try:
+        result = subprocess.run(
+            [SF, "data", "query", "--query", query, "--target-org", "vixxo", "--json"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=timeout_s,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"sf query timed out after {timeout_s}s") from exc
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout[:500])
     payload = json.loads(result.stdout)
@@ -120,28 +128,43 @@ def detect_auto_reply(case: dict, intake_text: str | None = None) -> str | None:
     return None
 
 
+def fallback_entities_from_case(case: dict, *, error: str | None = None) -> tuple[dict, str]:
+    """Metadata-only entities when full EmailMessage intake is unavailable."""
+    sf_case = to_sf_case(case)
+    subject = sf_case.get("Subject") or case.get("subject") or ""
+    description = sf_case.get("Description") or case.get("description") or ""
+    coi_fields = sd.extract_federated_coi_fields(subject)
+    email = sd.norm_email(
+        sf_case.get("ContactEmail") or sf_case.get("SuppliedEmail") or case.get("contact_email")
+    )
+    ks_m = KS_RE.search(f"{subject} {description}")
+    sr_m = SR_RE.search(f"{subject} {description}")
+    company = (coi_fields or {}).get("provider") or "Not stated"
+    hint_fn = getattr(sd, "extract_subject_sp_hint", None)
+    if hint_fn:
+        company = hint_fn(subject) or company
+    sources: dict = {"intake_fallback": True}
+    if error:
+        sources["intake_error"] = error
+    entities = {
+        "company": company,
+        "ks_number": ks_m.group(1).upper() if ks_m else None,
+        "sr_number": sr_m.group(0) if sr_m else None,
+        "requester_email": email or "Not stated",
+        "email_domain_tokens": [],
+        "gateway_precheck": None,
+        "intake_sources": sources,
+    }
+    return entities, f"{subject} {description}".strip()
+
+
 def intake_case(case: dict) -> tuple[dict, str]:
     """Full-thread intake — same path as sp-inbound-vetting COI queue."""
     try:
         entities, intake_text, _, _ = load_case_intake(case, queue="coi")
         return entities, intake_text
     except Exception as exc:
-        subject = case.get("Subject") or ""
-        description = case.get("Description") or ""
-        coi_fields = sd.extract_federated_coi_fields(subject)
-        email = sd.norm_email(case.get("ContactEmail") or case.get("SuppliedEmail"))
-        ks_m = KS_RE.search(f"{subject} {description}")
-        sr_m = SR_RE.search(f"{subject} {description}")
-        entities = {
-            "company": sd.extract_subject_sp_hint(subject) or (coi_fields or {}).get("provider") or "Not stated",
-            "ks_number": ks_m.group(1).upper() if ks_m else None,
-            "sr_number": sr_m.group(0) if sr_m else None,
-            "requester_email": email or "Not stated",
-            "email_domain_tokens": [],
-            "gateway_precheck": None,
-            "intake_sources": {"intake_error": str(exc)},
-        }
-        return entities, f"{subject} {description}"
+        return fallback_entities_from_case(case, error=str(exc))
 
 
 def account_search_terms_from_entities(entities: dict, subject: str) -> list[str]:
@@ -317,20 +340,44 @@ def lookup_sf_account(
     except RuntimeError:
         rows = []
     cache[key] = rows
-    time.sleep(0.15)
+    time.sleep(SF_ACCOUNT_SLEEP_S)
     return rows
+
+
+_BLOCKED_ACCOUNT_NAMES = {
+    "vixxo corporation",
+    "vixxo corp",
+    "service provider support shell account",
+    "vixxo facility solutions",
+}
+
+
+def _is_blocked_account(name: str | None) -> bool:
+    n = (name or "").strip().lower()
+    if not n:
+        return True
+    if n in _BLOCKED_ACCOUNT_NAMES:
+        return True
+    if n.startswith("vixxo ") and "ks -" not in n:
+        return True
+    return False
 
 
 def pick_best_account(rows: list[dict], hints: dict) -> dict | None:
     if not rows:
         return None
+    usable = [r for r in rows if not _is_blocked_account(r.get("Name"))]
+    if not usable:
+        return None
     target = sd.normalize_coi_provider(hints.get("provider") or hints.get("company") or "")
-    if not target:
-        return rows[0]
+    if not target or _is_blocked_account(hints.get("company")) or _is_blocked_account(
+        hints.get("provider")
+    ):
+        return usable[0] if len(usable) == 1 else None
 
-    best = rows[0]
+    best = usable[0]
     best_score = -1
-    for row in rows:
+    for row in usable:
         name = row.get("Name") or ""
         norm = sd.normalize_coi_provider(name)
         score = 0
@@ -341,7 +388,7 @@ def pick_best_account(rows: list[dict], hints: dict) -> dict | None:
         if score > best_score:
             best_score = score
             best = row
-    return best if best_score >= 2 or len(rows) == 1 else None
+    return best if best_score >= 2 or len(usable) == 1 else None
 
 
 def assign_vet_status(
@@ -372,37 +419,92 @@ def vet_shell_cases(
     records: list[dict],
     duplicate_scan: dict,
     intake_packs: dict[str, dict] | None = None,
+    *,
+    checkpoint_path: Path | None = None,
 ) -> dict:
+    import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     shell_cases = [
         c
         for c in records
         if (c.get("Account") or {}).get("Name") == SHELL
         and (c.get("Status") or "").lower() in OPEN
+        and (c.get("Id") or c.get("id"))
     ]
     cluster_index = build_cluster_index(duplicate_scan)
     account_cache: dict[str, list[dict]] = {}
     gateway_cache: dict[str, dict | None] = {}
+    cache_lock = threading.Lock()
     vetted: list[dict] = []
+    done_ids: set[str] = set()
     packs = intake_packs or {}
 
-    for i, case in enumerate(sorted(shell_cases, key=lambda x: x.get("CreatedDate") or "")):
-        cid = case.get("Id")
+    if checkpoint_path and checkpoint_path.exists():
+        try:
+            ck = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+            vetted = ck.get("cases") or []
+            done_ids = {v["id"] for v in vetted if v.get("id")}
+            if done_ids:
+                print(f"Resuming vetting from checkpoint ({len(done_ids)} cases)...", flush=True)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    pending = [
+        c
+        for c in sorted(shell_cases, key=lambda x: x.get("CreatedDate") or "")
+        if (c.get("Id") or c.get("id")) not in done_ids
+    ]
+    workers = max(1, int(os.environ.get("VET_WORKERS", "6")))
+    print(f"Vetting {len(pending)} cases with {workers} workers...", flush=True)
+
+    def _vet_one_parallel(case: dict) -> dict:
+        cid = case.get("Id") or case.get("id")
         subject = case.get("Subject") or ""
         pack = packs.get(cid) or {}
         if pack.get("entities"):
             entities = pack["entities"]
             intake_text = pack.get("intake_text") or ""
+        elif pack.get("intake_error"):
+            entities, intake_text = fallback_entities_from_case(case, error=pack["intake_error"])
         else:
             entities, intake_text = intake_case(case)
         auto_pat = detect_auto_reply(case, intake_text)
-        cluster = cluster_index.get(case["Id"])
+        cluster = cluster_index.get(cid)
 
         account = None
         account_rows: list[dict] = []
         gateway = None
         if not auto_pat:
-            gateway = resolve_gateway(entities, gateway_cache)
-            account, account_rows = resolve_sf_account(entities, subject, account_cache)
+            # Cache-aware resolve without holding lock across sleeps
+            pre = entities.get("gateway_precheck")
+            if pre and pre.get("sp_number"):
+                gateway = pre
+            else:
+                keys: list[str] = []
+                if entities.get("ks_number"):
+                    keys.append(f"ks:{entities['ks_number']}")
+                if entities.get("company") and entities["company"] != "Not stated":
+                    keys.append(f"co:{entities['company'].lower()[:30]}")
+                email_key = entities.get("requester_email")
+                if email_key and email_key != "Not stated":
+                    keys.append(f"em:{email_key.lower()}")
+                cache_key = "|".join(keys) or "empty"
+                with cache_lock:
+                    hit = gateway_cache.get(cache_key, "__miss__")
+                if hit == "__miss__":
+                    try:
+                        hit = _enrich_sp_hit(gateway_find_sp(entities))
+                    except Exception:
+                        hit = None
+                    with cache_lock:
+                        gateway_cache[cache_key] = hit
+                    time.sleep(GATEWAY_SLEEP_S)
+                else:
+                    hit = hit  # cached
+                gateway = hit
+            with cache_lock:
+                account, account_rows = resolve_sf_account(entities, subject, account_cache)
 
         coi_fields = sd.extract_federated_coi_fields(subject)
         email = entities.get("requester_email")
@@ -410,8 +512,7 @@ def vet_shell_cases(
             email = None
         vet_status = assign_vet_status(entities, subject, cluster, auto_pat, account, gateway)
         posture = determine_posture(entities, gateway)
-
-        entry = {
+        return {
             "id": case.get("Id"),
             "case_number": case.get("CaseNumber"),
             "subject": subject,
@@ -456,9 +557,29 @@ def vet_shell_cases(
             "context_clues": pack.get("context_clues"),
             "attachment_names": pack.get("attachment_names") or [],
         }
-        vetted.append(entry)
-        if (i + 1) % 25 == 0:
-            print(f"Vetted {i + 1}/{len(shell_cases)}...", flush=True)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(_vet_one_parallel, case) for case in pending]
+        for fut in as_completed(futures):
+            try:
+                entry = fut.result()
+            except Exception as exc:
+                print(f"  Vet worker error (continuing): {exc}", flush=True)
+                continue
+            vetted.append(entry)
+            done_count = len(vetted)
+            if done_count % 5 == 0 or done_count == len(shell_cases):
+                print(f"Vetted {done_count}/{len(shell_cases)}...", flush=True)
+            if checkpoint_path and (done_count % 10 == 0 or done_count == len(shell_cases)):
+                ordered = sorted(vetted, key=lambda x: x.get("created_date") or "")
+                checkpoint_path.write_text(
+                    json.dumps({"cases": ordered}, indent=2),
+                    encoding="utf-8",
+                )
+
+    vetted = sorted(vetted, key=lambda x: x.get("created_date") or "")
+    if checkpoint_path and checkpoint_path.exists():
+        checkpoint_path.unlink(missing_ok=True)
 
     by_status = Counter(v["vet_status"] for v in vetted)
     return {
@@ -830,14 +951,34 @@ def main() -> int:
     print("Phase 1: Seed duplicate clusters (subject/metadata)...", flush=True)
     seed_scan = run_duplicate_scan(records, sf_cache=str(SF_CACHE), scope=scope)
 
-    targets = intake_target_ids(records, seed_scan)
-    print(
-        f"Phase 2: Full intake (email body + attachments) for {len(targets)} cases "
-        f"(shell open + duplicate members)...",
-        flush=True,
+    run_date = os.environ.get("RUN_DATE", datetime.now(timezone.utc).strftime("%Y%m%d"))
+    intake_packs_path = _path(
+        "INTAKE_PACKS_PATH",
+        TMP / f"intake-packs-allorg-{run_date}.json",
     )
-    clear_intake_cache()
-    intake_packs = pull_intake_batch(records, targets, load_case_intake)
+    vet_checkpoint_path = _path(
+        "VET_CHECKPOINT_PATH",
+        TMP / f"shell-vet-checkpoint-allorg-{run_date}.json",
+    )
+
+    targets = intake_target_ids(records, seed_scan)
+    if intake_packs_path.exists() and os.environ.get("FORCE_INTAKE") != "1":
+        intake_packs = json.loads(intake_packs_path.read_text(encoding="utf-8"))
+        print(
+            f"Phase 2: Loaded {len(intake_packs)} cached intake packs "
+            f"({intake_packs_path.name})",
+            flush=True,
+        )
+    else:
+        print(
+            f"Phase 2: Full intake (email body + attachments) for {len(targets)} cases "
+            f"(shell open + duplicate members)...",
+            flush=True,
+        )
+        clear_intake_cache()
+        intake_packs = pull_intake_batch(records, targets, load_case_intake)
+        intake_packs_path.write_text(json.dumps(intake_packs, indent=2), encoding="utf-8")
+        print(f"Saved intake packs -> {intake_packs_path}", flush=True)
 
     print("Phase 3: Duplicate clusters from intake-enriched context...", flush=True)
     enriched = build_enriched_records(records, intake_packs)
@@ -850,7 +991,12 @@ def main() -> int:
     SCAN_OUT.write_text(json.dumps(dup_scan, indent=2), encoding="utf-8")
 
     print("Phase 4: Shell vetting (sp-inbound-vetting path)...", flush=True)
-    vet = vet_shell_cases(records, dup_scan, intake_packs)
+    vet = vet_shell_cases(
+        records,
+        dup_scan,
+        intake_packs,
+        checkpoint_path=vet_checkpoint_path,
+    )
 
     vet["by_vet_status"] = dict(Counter(c.get("vet_status") for c in vet["cases"]).most_common())
     VET_JSON.write_text(json.dumps(vet, indent=2), encoding="utf-8")

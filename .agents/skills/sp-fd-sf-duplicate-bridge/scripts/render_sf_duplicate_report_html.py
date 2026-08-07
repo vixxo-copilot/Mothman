@@ -136,7 +136,7 @@ def high_confidence_pairs(data: dict) -> list[tuple[dict, dict, str]]:
 
     for group in data.get("phone_duplicates") or []:
         primary = group.get("recommended_primary") or {}
-        others = group.get("others") or []
+        others = group.get("merge_candidates") or group.get("others") or []
         if not primary or not others:
             continue
         key = frozenset(
@@ -219,7 +219,9 @@ def render_html(data: dict) -> str:
     phone_rows = []
     for group in data.get("phone_duplicates") or []:
         primary = group.get("recommended_primary") or {}
-        others = ", ".join(case_link(o) for o in group.get("others") or [])
+        others = ", ".join(
+            case_link(o) for o in (group.get("merge_candidates") or group.get("others") or [])
+        )
         phone_rows.append(
             [
                 esc(group.get("phone")),

@@ -13,14 +13,23 @@ VETTING = SKILL_ROOT.parent / "sp-inbound-vetting" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(VETTING))
 
-from entity_extraction import email_domain_search_tokens, is_internal_email, pick_best_company
+from entity_extraction import (
+    email_domain_search_tokens,
+    extract_body_company_mentions,
+    is_internal_email,
+    is_vixxo_internal_company,
+    pick_best_company,
+    sanitize_company,
+)
 from gateway_vetting import gateway_find_sp
 from sf_vetting import (
     build_case_intake_text,
     extract_sf_case_entities,
     is_autoreply_noise,
     pull_attachment_names,
+    pull_attachment_names_batch,
     pull_email_messages,
+    pull_email_messages_batch,
 )
 
 _email_cache: dict[str, list[dict]] = {}
@@ -40,6 +49,53 @@ CERT_FOR_RE = re.compile(
 def clear_intake_cache() -> None:
     _email_cache.clear()
     _attach_cache.clear()
+
+
+def prefetch_intake_for_ids(
+    case_ids: list[str] | set[str],
+    *,
+    email_batch_size: int = 15,
+    attach_batch_size: int = 40,
+) -> None:
+    """Warm EmailMessage + attachment caches with batched SF queries (parallel chunks)."""
+    import os
+    from concurrent.futures import ThreadPoolExecutor
+
+    ids = [cid for cid in case_ids if cid and cid not in _email_cache]
+    if not ids:
+        return
+    workers = max(1, int(os.environ.get("INTAKE_PREFETCH_WORKERS", "4")))
+    print(
+        f"  Prefetching email/attachments for {len(ids)} cases "
+        f"(email batch={email_batch_size}, workers={workers})...",
+        flush=True,
+    )
+
+    def _email_chunk(chunk: list[str]) -> dict[str, list[dict]]:
+        return pull_email_messages_batch(chunk, batch_size=len(chunk))
+
+    def _attach_chunk(chunk: list[str]) -> dict[str, list[str]]:
+        return pull_attachment_names_batch(chunk, batch_size=len(chunk))
+
+    email_chunks = [
+        ids[i : i + email_batch_size] for i in range(0, len(ids), email_batch_size)
+    ]
+    attach_chunks = [
+        ids[i : i + attach_batch_size] for i in range(0, len(ids), attach_batch_size)
+    ]
+    emails: dict[str, list[dict]] = {}
+    attaches: dict[str, list[str]] = {}
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        email_futs = [pool.submit(_email_chunk, c) for c in email_chunks]
+        attach_futs = [pool.submit(_attach_chunk, c) for c in attach_chunks]
+        for fut in email_futs:
+            emails.update(fut.result())
+        for fut in attach_futs:
+            attaches.update(fut.result())
+    for cid in ids:
+        _email_cache[cid] = emails.get(cid) or []
+        _attach_cache[cid] = attaches.get(cid) or []
+    print(f"  Prefetch complete ({len(ids)} cases cached).", flush=True)
 
 
 def to_sf_case(case: dict, sf_rec: dict | None = None) -> dict:
@@ -65,23 +121,32 @@ def to_sf_case(case: dict, sf_rec: dict | None = None) -> dict:
 
 def supplement_company_from_body(entities: dict, intake_text: str) -> None:
     """Broker/carrier COI emails often name the insured SP in the body, not Description."""
-    if entities.get("company") and entities["company"] != "Not stated":
+    current = entities.get("company")
+    if current and current != "Not stated" and not is_vixxo_internal_company(current):
         return
     candidates: list[str] = []
+    for name in extract_body_company_mentions(intake_text or ""):
+        candidates.append(name)
     for pat in (BODY_CLIENT_RE, BODY_DUE_FROM_RE, CERT_FOR_RE):
         m = pat.search(intake_text or "")
         if m:
-            candidates.append(re.sub(r"\s+", " ", m.group(1).strip(" -.,;")))
+            cleaned = sanitize_company(re.sub(r"\s+", " ", m.group(1).strip(" -.,;")))
+            if cleaned:
+                candidates.append(cleaned)
     if not candidates:
+        if current and is_vixxo_internal_company(current):
+            entities["company"] = "Not stated"
         return
     email = entities.get("requester_email") if entities.get("requester_email") != "Not stated" else ""
     company = pick_best_company(candidates, email)
-    if company:
+    if company and not is_vixxo_internal_company(company):
         entities["company"] = company
         entities.setdefault("intake_sources", {})["broker_body"] = True
         hit = gateway_find_sp(entities)
         if hit:
             entities["gateway_precheck"] = hit
+    elif current and is_vixxo_internal_company(current):
+        entities["company"] = "Not stated"
 
 
 def load_case_intake(
@@ -145,8 +210,10 @@ def hints_from_entities(case: dict, entities: dict, *, fallback_company: str | N
     provider = coi_fields["provider"] if coi_fields else None
 
     company = entities.get("company")
-    if not company or company == "Not stated":
+    if not company or company == "Not stated" or is_vixxo_internal_company(company):
         company = fallback_company or sd.extract_subject_sp_hint(subject) or provider
+    if company and is_vixxo_internal_company(company):
+        company = None
 
     email = entities.get("requester_email")
     if not email or email == "Not stated":
