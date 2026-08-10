@@ -1,0 +1,10 @@
+{
+  "day": "2026-08-09",
+  "captured_at": "2026-08-10T13:08:59-05:00",
+  "sources": [
+    "salesforce(cache)",
+    "outlook",
+    "teams"
+  ],
+  "owner_email": "Crystal.Gagner@vixxo.com"
+}

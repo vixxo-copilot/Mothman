@@ -1,0 +1,15 @@
+{
+  "day": "2026-08-08",
+  "captured_at": "2026-08-10T13:04:42-05:00",
+  "source": "salesforce",
+  "closed": {
+    "total": 0,
+    "by_type": {}
+  },
+  "new": {
+    "total": 1,
+    "by_type": {
+      "Service Provider Support": 1
+    }
+  }
+}

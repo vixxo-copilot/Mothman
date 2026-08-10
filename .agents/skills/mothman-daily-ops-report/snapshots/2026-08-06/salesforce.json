@@ -1,0 +1,38 @@
+{
+  "day": "2026-08-06",
+  "captured_at": "2026-08-10T13:04:28-05:00",
+  "source": "salesforce",
+  "closed": {
+    "total": 1,
+    "by_type": {
+      "Rate Negotiation": 1
+    }
+  },
+  "new": {
+    "total": 7,
+    "by_type": {
+      "Service Provider Support": 7
+    }
+  },
+  "open": {
+    "total": 293,
+    "by_type": {
+      "Service Provider Support": 266,
+      "Rate Negotiation": 21,
+      "Provider Onboarding": 5,
+      "Coverage Change": 1
+    },
+    "by_status": {
+      "New": 239,
+      "Working": 42,
+      "In Negotiation": 5,
+      "Agreement Sent": 2,
+      "Enablement": 2,
+      "Setup/Training": 2,
+      "Compliance In Progress": 1
+    },
+    "point_in_time": true,
+    "source": "good-afternoon",
+    "source_path": "C:/Users/CGagner/source/mothman/.tmp/mothman-good-morning/data-afternoon-2026-08-06.json"
+  }
+}
