@@ -1,0 +1,28 @@
+name: sp-account-review-pack
+title: "SP Account Review Pack"
+description: >-
+  Builds a consolidated Account Review PDF for a named service provider:
+  optional Service Provider Vetting Analyst run (bypassable), Outlook/Teams/calendar
+  communication timeline, phone-log screenshots, license artifacts, and
+  state license-scope appendices (MA CSL complete; other states stubbed).
+category: operations
+agents:
+  - cursor
+  - claude-code
+author: vixxo-copilot
+version: "1.0.0"
+tags:
+  - service-provider
+  - account-review
+  - vetting
+  - licensing
+  - pdf
+  - communications
+  - onboarding
+status: draft
+requires_mcp:
+  - microsoft-365
+requires_skills:
+  - service-provider-vetting-analyst
+source: vixxo
+provenance: mothman
