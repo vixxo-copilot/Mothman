@@ -108,15 +108,35 @@ def pull_email_messages(case_id: str, *, query_fn: Callable[[str], list[dict]] |
 
 
 def pull_attachment_names(case_id: str, *, query_fn: Callable[[str], list[dict]] | None = None) -> list[str]:
+    """Filenames linked to the Case **and** its EmailMessages (COI PDFs often land on email only)."""
     runner = query_fn or sf_query
-    rows = runner(ATTACHMENT_SOQL.format(case_id=case_id))
     names: list[str] = []
-    for row in rows:
-        doc = row.get("ContentDocument") or {}
-        title = str(doc.get("Title") or "").strip()
-        ext = str(doc.get("FileExtension") or "").strip()
-        if title:
-            names.append(f"{title}.{ext}" if ext and not title.endswith(f".{ext}") else title)
+    seen: set[str] = set()
+
+    def _add_rows(rows: list[dict]) -> None:
+        for row in rows:
+            name = _attachment_name_from_row(row)
+            if name and name not in seen:
+                seen.add(name)
+                names.append(name)
+
+    _add_rows(runner(ATTACHMENT_SOQL.format(case_id=case_id)))
+    # Email-to-Case: ContentDocumentLink is frequently on EmailMessage, not Case
+    try:
+        emails = runner(
+            "SELECT Id FROM EmailMessage WHERE ParentId = '{case_id}' OR RelatedToId = '{case_id}' "
+            "ORDER BY MessageDate DESC LIMIT 10".format(case_id=case_id)
+        )
+    except RuntimeError:
+        emails = []
+    for em in emails:
+        eid = em.get("Id")
+        if not eid:
+            continue
+        try:
+            _add_rows(runner(ATTACHMENT_SOQL.format(case_id=eid)))
+        except RuntimeError:
+            continue
     return names
 
 

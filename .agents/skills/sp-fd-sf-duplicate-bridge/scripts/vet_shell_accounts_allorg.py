@@ -998,6 +998,26 @@ def main() -> int:
         checkpoint_path=vet_checkpoint_path,
     )
 
+    # Required: open COI PDFs (Case + EmailMessage links) for insured / SP name.
+    # Filename-only intake misses broker forwards (e.g. 00008353 Pelczar).
+    if os.environ.get("SKIP_COI_PDF_ENRICHMENT", "0") != "1":
+        print("Phase 4b: COI PDF insured extraction (batched attachments)...", flush=True)
+        from extract_shell_coi_insured import run_coi_enrichment  # noqa: E402
+
+        coi_batch = max(1, int(os.environ.get("COI_BATCH_SIZE", "15")))
+        vet, coi_results = run_coi_enrichment(
+            vet,
+            batch_size=coi_batch,
+            resume=os.environ.get("COI_RESUME", "1") != "0",
+        )
+        print(
+            json.dumps(
+                dict(Counter(r.get("post_pdf_vet_status") for r in coi_results).most_common()),
+                indent=2,
+            ),
+            flush=True,
+        )
+
     vet["by_vet_status"] = dict(Counter(c.get("vet_status") for c in vet["cases"]).most_common())
     VET_JSON.write_text(json.dumps(vet, indent=2), encoding="utf-8")
     write_vet_report(vet, VET_MD)

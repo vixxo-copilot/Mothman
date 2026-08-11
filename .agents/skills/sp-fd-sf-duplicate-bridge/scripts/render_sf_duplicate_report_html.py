@@ -5,9 +5,39 @@ from __future__ import annotations
 
 import html
 import json
+import os
+import shutil
+import subprocess
 import sys
 import webbrowser
 from pathlib import Path
+
+
+def open_html_in_chrome(path: Path) -> None:
+    """Open report in Google Chrome (default for this skill). Fall back to system browser."""
+    resolved = path.resolve()
+    uri = resolved.as_uri()
+    if os.name == "nt":
+        for candidate in (
+            os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
+            os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
+            os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"),
+        ):
+            if candidate and Path(candidate).is_file():
+                subprocess.Popen([candidate, uri], close_fds=True)
+                return
+        # PATH / App PATH alias
+        chrome = shutil.which("chrome") or shutil.which("chrome.exe")
+        if chrome:
+            subprocess.Popen([chrome, uri], close_fds=True)
+            return
+    else:
+        for name in ("google-chrome", "chromium", "chromium-browser", "chrome"):
+            chrome = shutil.which(name)
+            if chrome:
+                subprocess.Popen([chrome, uri], close_fds=True)
+                return
+    webbrowser.open(uri)
 
 FONT_LINKS = (
     "<link rel='preconnect' href='https://fonts.googleapis.com'>"
@@ -310,7 +340,8 @@ def main() -> int:
     out_path.write_text(render_html(data), encoding="utf-8")
     resolved = out_path.resolve()
     print(resolved)
-    webbrowser.open(resolved.as_uri())
+    if os.environ.get("OPEN_REPORT", "1") != "0":
+        open_html_in_chrome(resolved)
     return 0
 
 

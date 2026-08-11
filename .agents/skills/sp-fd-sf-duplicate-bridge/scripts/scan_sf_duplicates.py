@@ -326,7 +326,11 @@ def write_markdown(result: dict, path: Path) -> None:
         f"| Federated COI (Req id parsed) | {result['coi_parsed']} |",
         f"| COI duplicate Req groups | {result['coi_dupe_groups']} |",
         f"| COI excess Cases | {result['coi_excess']} |",
-        f"| FD cross-ref duplicate groups | {result['fd_xref_groups']} |",
+        (
+            f"| FD cross-ref duplicate groups | {result['fd_xref_groups']} |"
+            if result.get("include_fd_xref")
+            else "| FD cross-ref duplicate groups | skipped (SF-only default) |"
+        ),
         f"| Voicemail phone duplicate groups | {result['phone_groups']} |",
         f"| Subject+email likely pairs | {result['subject_email_pairs']} |",
         f"| Open on Shell Account | {result['shell_open_count']} |",
@@ -353,10 +357,10 @@ def write_markdown(result: dict, path: Path) -> None:
             )
         lines.append("")
 
-    if result["fd_xref_duplicates"]:
+    if result.get("include_fd_xref") and result.get("fd_xref_duplicates"):
         lines.extend(
             [
-                "## Freshdesk cross-ref duplicates",
+                "## Freshdesk cross-ref duplicates (opt-in)",
                 "",
                 "Multiple SF Cases reference the same Freshdesk ticket id.",
                 "",
@@ -443,10 +447,16 @@ def build_scan_result(
     sf_cache: str = "",
     scope: str = "",
     open_only: bool = False,
+    include_fd_xref: bool = False,
 ) -> dict:
-    """Build duplicate-scan payload from Case records (reusable from unified triage)."""
+    """Build SF-only duplicate-scan payload (reusable from unified triage).
+
+    Default excludes Freshdesk cross-ref clustering. FD pairing is a separate
+    opt-in (``include_fd_xref`` / ``--include-fd-xref``) — use for AP-related
+    SF Cases via ``scan_duplicates.py``, not as part of the default SF scan.
+    """
     coi_dupes = coi_duplicate_groups(records)
-    fd_dupes = fd_xref_duplicate_groups(records)
+    fd_dupes = fd_xref_duplicate_groups(records) if include_fd_xref else []
     phone_dupes = phone_duplicate_groups(records)
     email_pairs = subject_email_pairs(records)
 
@@ -466,6 +476,7 @@ def build_scan_result(
         "generated": datetime.now(timezone.utc).isoformat(),
         "sf_cache": sf_cache,
         "scope": scope,
+        "include_fd_xref": include_fd_xref,
         "total_cases": len(records),
         "open_total": len(open_records),
         "coi_parsed": coi_parsed,
@@ -493,7 +504,10 @@ def build_scan_result(
 def duplicate_member_ids(scan: dict) -> set[str]:
     """Case Ids appearing in any duplicate cluster."""
     ids: set[str] = set()
-    for key in ("coi_duplicates", "fd_xref_duplicates", "phone_duplicates"):
+    keys = ["coi_duplicates", "phone_duplicates"]
+    if scan.get("include_fd_xref") or scan.get("fd_xref_duplicates"):
+        keys.append("fd_xref_duplicates")
+    for key in keys:
         for g in scan.get(key) or []:
             for c in g.get("cases") or []:
                 if c.get("id"):
@@ -520,6 +534,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Include closed Cases in duplicate clusters (default: open/new only)",
     )
+    parser.add_argument(
+        "--include-fd-xref",
+        action="store_true",
+        help=(
+            "Opt-in: cluster SF Cases that share a Freshdesk # in Description. "
+            "Off by default — SF-only scan does not compare to Freshdesk. "
+            "For AP-related SF Cases, run scan_duplicates.py separately."
+        ),
+    )
     args = parser.parse_args(argv)
 
     records = load_records(args.sf_cache)
@@ -529,6 +552,7 @@ def main(argv: list[str] | None = None) -> int:
         sf_cache=str(args.sf_cache),
         scope=args.scope,
         open_only=open_only,
+        include_fd_xref=args.include_fd_xref,
     )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Export SF cases, unified triage + duplicate scan + shell vet + HTML report.
 
-Single efficient pass:
-  1. Seed duplicate clusters from Case metadata
+SF-only pipeline (no Freshdesk comparison). Single efficient pass:
+  1. Seed duplicate clusters from Case metadata (COI Req, subject+email, phone)
   2. Full EmailMessage + attachment intake for shell cases + duplicate members
   3. Re-cluster duplicates using body/attachment context clues
   4. sp-inbound-vetting identity resolution on shell cases
+  4b. COI PDF insured extraction (open Case + EmailMessage PDFs — required)
+
+FD↔SF pairing is out of scope here. For AP-related SF Cases, run
+scan_duplicates.py separately when the operator asks.
 """
 from __future__ import annotations
 

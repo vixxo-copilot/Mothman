@@ -210,9 +210,13 @@ def run_duplicate_scan(records: list[dict], *, sf_cache: str, scope: str) -> dic
 
     # Default open/new-only — shrinks duplicate-member intake targets
     open_only = os.environ.get("SCAN_INCLUDE_CLOSED", "0") != "1"
+    # SF-only by default — do not cluster/compare via Freshdesk refs.
+    # Opt-in: SCAN_INCLUDE_FD_XREF=1 (rare). AP FD pairing uses scan_duplicates.py.
+    include_fd_xref = os.environ.get("SCAN_INCLUDE_FD_XREF", "0") == "1"
     return build_scan_result(
         records,
         sf_cache=sf_cache,
         scope=scope,
         open_only=open_only,
+        include_fd_xref=include_fd_xref,
     )

@@ -14,6 +14,7 @@ sys.path.insert(0, str(TMP))
 from render_sf_duplicate_report_html import (  # noqa: E402
     case_link,
     esc,
+    open_html_in_chrome,
     render_table,
     stat_card,
 )
@@ -561,7 +562,10 @@ def main() -> int:
     )
 
     OUT_HTML.write_text(html, encoding="utf-8")
-    print(OUT_HTML.resolve())
+    resolved = OUT_HTML.resolve()
+    print(resolved)
+    if os.environ.get("OPEN_REPORT", "1") != "0":
+        open_html_in_chrome(resolved)
     return 0
 
 

@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
-"""Extract insured name from COI PDFs on open Shell Account cases (report only)."""
+"""Extract insured name from COI PDFs on open Shell Account cases (report only).
+
+Batching (recommended — avoids SF CLI / PDF bog-down on large shell sets):
+
+  RUN_DATE=YYYYMMDD python extract_shell_coi_insured.py --batch-size 10
+  RUN_DATE=YYYYMMDD python extract_shell_coi_insured.py --batch-size 10 --offset 10
+  RUN_DATE=YYYYMMDD python extract_shell_coi_insured.py --resume   # skip case_ids already in OUT_JSON
+
+Env: COI_BATCH_SIZE (default 15), COI_OFFSET, COI_LIMIT, COI_RESUME=1
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -76,6 +86,30 @@ FILENAME_SP_RE = re.compile(
     r"_(?:Vixxo[^_]*_)?(.+?)(?:,\s*DBA|_DBA|_Until|\s+Until\s|\.\w+$)",
     re.I,
 )
+# Broker packets: "Vixxo Corporation_The Pelczar Corporation_'26-27 GL_..."
+FILENAME_VIXXO_FIRST_RE = re.compile(
+    r"^(?:Vixxo(?:\s+Corporation)?|VIXXO)_(.+?)(?:_['\"`]?\d|_Until|_GL\b|_WC\b|_Auto\b|\.\w+$)",
+    re.I,
+)
+COMPANY_LINE_RE = re.compile(
+    r"\b(Corporation|Corp\.?|Incorporated|Inc\.?|LLC|L\.L\.C\.|Ltd\.?|Limited|Company|Co\.?)\s*$",
+    re.I,
+)
+ADDRESS_LINE_RE = re.compile(
+    r"^(?:\d+\s+\w|P\.?\s*O\.?\s*Box\b|Suite\b|Ste\.?\b)",
+    re.I,
+)
+JUNK_INSURED_LINE_RE = re.compile(
+    r"^(REVISION|CERTIFICATE\s*NUMBER|COVERAGES|IMPORTANT|THIS CERTIFICATE|"
+    r"DATE\s*\(|ACORD|CONTACT|PRODUCER|PHONE|FAX|E-MAIL|ADDRESS:|NAME:|"
+    r"INSURER|NAIC|POLICY|LIMITS|COMMERCIAL|AUTOMOBILE|WORKERS)\b",
+    re.I,
+)
+BROKER_PRODUCER_RE = re.compile(
+    r"\b(Insurance\s+Brokers?|Insurance\s+Agency|Insurance\s+Services|"
+    r"Insurance\s+Group|Insurance\s+Company|Underwriters?|Brokerage)\b",
+    re.I,
+)
 NOISE = {
     "the", "and", "of", "for", "dba", "llc", "inc", "corp", "co", "ltd", "company",
     "service", "services", "insured", "address", "city", "state", "zip",
@@ -132,11 +166,38 @@ def is_holder_or_noise(name: str) -> bool:
         return True
     if INSURED_BOILERPLATE.search(n):
         return True
+    if JUNK_INSURED_LINE_RE.search(n):
+        return True
+    if BROKER_PRODUCER_RE.search(n):
+        return True
     if re.match(r"^\d{5}", n):
         return True
     if re.match(r"^(street|po box|suite|scottsdale|address)\b", n, re.I):
         return True
+    # Subject crumbs like "REVISED" / "UPDATED"
+    if re.fullmatch(r"(revised|updated|renewal|new|coi|certificate)", n, re.I):
+        return True
     return False
+
+
+def extract_company_before_address(lines: list[str]) -> str | None:
+    """ACORD text extractors often dump insured near street address, far from INSURED label.
+
+    PDF extract order is frequently scrambled — CERTIFICATE HOLDER may appear
+    before the insured block — so scan all company+address pairs and prefer
+    non-Vixxo / non-holder names.
+    """
+    candidates: list[str] = []
+    for i, ln in enumerate(lines):
+        if is_holder_or_noise(ln) or not COMPANY_LINE_RE.search(ln):
+            continue
+        nxt = lines[i + 1] if i + 1 < len(lines) else ""
+        if nxt and ADDRESS_LINE_RE.search(nxt):
+            candidates.append(ln)
+    for cand in candidates:
+        if not is_holder_or_noise(cand) and "vixxo" not in cand.lower():
+            return cand
+    return candidates[0] if candidates else None
 
 
 def extract_insured_fields(text: str) -> dict:
@@ -154,21 +215,34 @@ def extract_insured_fields(text: str) -> dict:
     for i, ln in enumerate(lines):
         if re.fullmatch(r"INSURED", ln, re.I) or ln.upper() == "INSURED":
             block = []
-            for nxt in lines[i + 1 : i + 6]:
-                if re.match(r"^(POLICY|INSURER|COVERAGES|CERTIFICATE HOLDER|DATE)\b", nxt, re.I):
+            for nxt in lines[i + 1 : i + 8]:
+                if re.match(
+                    r"^(POLICY|INSURER|COVERAGES|CERTIFICATE HOLDER|DATE|REVISION|IMPORTANT)\b",
+                    nxt,
+                    re.I,
+                ):
+                    break
+                if JUNK_INSURED_LINE_RE.search(nxt):
                     break
                 if not is_holder_or_noise(nxt):
                     block.append(nxt)
-            if block:
+            if block and is_valid_insured(block[0]):
                 legal = block[0]
                 method = "line_after_insured"
                 for extra in block[1:]:
                     m = re.match(r"(?:D/B/A|DBA)\s+(.+)", extra, re.I)
                     if m:
                         dba_names.append(m.group(1).strip())
-                    elif not is_holder_or_noise(extra):
+                    elif not is_holder_or_noise(extra) and not ADDRESS_LINE_RE.search(extra):
                         alternate_names.append(extra)
             break
+
+    # Company name immediately above a street address (jumbled ACORD extract)
+    if not legal:
+        cand = extract_company_before_address(lines)
+        if cand and is_valid_insured(cand):
+            legal = cand
+            method = "company_before_address"
 
     # Regex fallback on flattened text
     if not legal:
@@ -227,8 +301,9 @@ def list_case_pdfs(case_id: str) -> list[dict]:
 
 def list_email_pdfs(case_id: str) -> list[dict]:
     emails = sf_query(
-        f"SELECT Id, Subject, HasAttachment FROM EmailMessage WHERE ParentId = '{case_id}' "
-        "AND HasAttachment = true ORDER BY CreatedDate DESC LIMIT 5"
+        f"SELECT Id, Subject, HasAttachment FROM EmailMessage "
+        f"WHERE (ParentId = '{case_id}' OR RelatedToId = '{case_id}') "
+        "AND HasAttachment = true ORDER BY CreatedDate DESC LIMIT 10"
     )
     pdfs = []
     for em in emails:
@@ -438,10 +513,12 @@ def extract_filename_sp(title: str | None) -> str | None:
     if not title:
         return None
     base = re.sub(r"\.pdf$", "", title.strip(), flags=re.I)
-    for pat in (FILENAME_CSR24_RE, FILENAME_SP_RE):
+    for pat in (FILENAME_VIXXO_FIRST_RE, FILENAME_CSR24_RE, FILENAME_SP_RE):
         m = pat.search(base)
         if m:
-            name = m.group(1).replace("_", " ").strip()
+            name = m.group(1).replace("_", " ").strip(" '\"`")
+            # Drop trailing policy/date crumbs: "'26-27 GL" already cut by regex
+            name = re.sub(r"\s+'?\d{2}-\d{2}.*$", "", name).strip()
             if is_valid_insured(name):
                 return name
     return None
@@ -464,7 +541,7 @@ def collect_search_names(
     pdf_title: str | None,
     fields: dict,
 ) -> tuple[list[str], dict]:
-    """Build SP name candidates: valid PDF insured, filename, subject (priority order)."""
+    """Build SP name candidates: filename (Vixxo_* packets), PDF insured, subject."""
     sources: dict = {}
     names: list[str] = []
 
@@ -475,6 +552,9 @@ def collect_search_names(
             names.append(name)
         sources.setdefault(source, name)
 
+    # Filename first for broker packets named Vixxo*_SP_*
+    add(extract_filename_sp(pdf_title), "pdf_filename")
+
     legal = fields.get("legal_insured")
     if is_valid_insured(legal):
         add(legal, fields.get("extraction_method") or "pdf_text")
@@ -482,7 +562,6 @@ def collect_search_names(
         fields["legal_insured"] = None
         fields["extraction_error"] = "insured_boilerplate_rejected"
 
-    add(extract_filename_sp(pdf_title), "pdf_filename")
     for hint in subject_sp_hints(subject):
         add(hint, "subject")
     for dba in fields.get("dba_names") or []:
@@ -494,18 +573,56 @@ def collect_search_names(
 
 
 def resolve_insured_display(fields: dict, sources: dict) -> str | None:
-    for key in ("pdf_text", "line_after_insured", "regex_block", "pdf_filename", "subject", "pdf_dba"):
+    for key in (
+        "pdf_filename",
+        "line_after_insured",
+        "company_before_address",
+        "regex_block",
+        "pdf_text",
+        "subject",
+        "pdf_dba",
+    ):
         if key in sources:
             return sources[key]
     return fields.get("legal_insured")
 
 
+def _company_is_emailish(value: str | None) -> bool:
+    s = (value or "").strip()
+    return bool(s) and ("@" in s or s.lower().startswith("mail-server"))
+
+
 def coi_cases(vet: dict) -> list[dict]:
-    return [
-        c
-        for c in vet.get("cases") or []
-        if COI_SUBJECT.search(c.get("subject") or "")
-    ]
+    """COI-like shell Cases that still need PDF insured extraction.
+
+    Always include certificate subjects. Also re-process weak
+    ``account_resolved`` hits where company was an email/mail-server
+    (recurring false match — e.g. Pelczar PDF on broker-forwarded COI).
+    """
+    out: list[dict] = []
+    for c in vet.get("cases") or []:
+        subject = c.get("subject") or ""
+        if not COI_SUBJECT.search(subject):
+            continue
+        vs = c.get("vet_status") or ""
+        hints = c.get("hints") or {}
+        company = hints.get("company") or (c.get("vetting") or {}).get("company")
+        already_pdf = (c.get("vet_source") == "coi_pdf_extraction") or bool(
+            (c.get("coi_pdf") or {}).get("legal_insured")
+        )
+        if already_pdf and vs == "account_resolved":
+            continue
+        if vs in ("needs_manual", "needs_manual_pdf_insured", "onboarding"):
+            out.append(c)
+            continue
+        if vs == "account_resolved" and _company_is_emailish(company):
+            out.append(c)
+            continue
+        if vs in ("auto_reply_noise", "duplicate_cluster", "sr_routing"):
+            continue
+        # Default: still scan COI subjects so PDF insured is never skipped
+        out.append(c)
+    return out
 
 
 def process_case(case: dict, account_cache: dict[str, list[dict]]) -> dict:
@@ -647,46 +764,50 @@ def merge_vet(vet: dict, results: list[dict]) -> None:
             "match_source": r.get("match_source"),
         }
         hints = c.get("hints") or {}
-        if is_holder_or_noise(hints.get("company") or ""):
+        prior_company = hints.get("company") or (c.get("vetting") or {}).get("company")
+        legal = r.get("legal_insured")
+        if legal and is_valid_insured(legal):
+            hints["company"] = legal
+            hints["provider"] = hints.get("provider") or legal
+            c["hints"] = hints
+            vetting = c.get("vetting") or {}
+            vetting["company"] = legal
+            c["vetting"] = vetting
+        elif is_holder_or_noise(hints.get("company") or "") or _company_is_emailish(prior_company):
             subj_hints = subject_sp_hints(c.get("subject"))
             if subj_hints:
                 hints["company"] = subj_hints[0]
                 c["hints"] = hints
+        weak_prior = _company_is_emailish(prior_company) or c.get("vet_source") != "coi_pdf_extraction"
         if r.get("recommended_account"):
             c["recommended_account"] = r["recommended_account"]
             c["vet_status"] = "account_resolved"
             c["vet_source"] = "coi_pdf_extraction"
-        elif r.get("legal_insured") and is_valid_insured(r.get("legal_insured")):
-            if c.get("vet_status") == "needs_manual":
+        elif legal and is_valid_insured(legal):
+            # Prefer PDF insured over email-as-company false Account hits
+            if weak_prior or c.get("vet_status") in (
+                "needs_manual",
+                "account_resolved",
+                "onboarding",
+            ):
+                if weak_prior and c.get("vet_status") == "account_resolved":
+                    c["recommended_account"] = None
+                    c["account_search_candidates"] = []
                 c["vet_status"] = "needs_manual_pdf_insured"
+                c["vet_source"] = "coi_pdf_extraction"
 
 
-def run_coi_enrichment(vet: dict) -> tuple[dict, list]:
-    """Extract COI PDF insured names and merge into vet; return (vet, sidecar results)."""
-    targets = coi_cases(vet)
-    print(f"COI shell cases to process: {len(targets)}", flush=True)
+def _load_prior_results() -> list[dict]:
+    if not OUT_JSON.is_file():
+        return []
+    try:
+        prior = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+    return list(prior.get("results") or [])
 
-    account_cache: dict[str, list[dict]] = {}
-    results = []
-    for i, case in enumerate(targets, 1):
-        print(f"[{i}/{len(targets)}] {case.get('case_number')} ...", flush=True)
-        try:
-            results.append(process_case(case, account_cache))
-        except Exception as exc:
-            results.append(
-                {
-                    "case_id": case.get("id"),
-                    "case_number": case.get("case_number"),
-                    "subject": case.get("subject"),
-                    "extraction_error": f"exception:{exc}",
-                    "post_pdf_vet_status": case.get("vet_status"),
-                }
-            )
-        time.sleep(0.08)
 
-    merge_vet(vet, results)
-    vet["coi_pdf_extraction"] = str(OUT_JSON)
-
+def _write_sidecar(results: list[dict], *, batch_meta: dict | None = None) -> None:
     payload = {
         "generated": datetime.now(timezone.utc).isoformat(),
         "case_count": len(results),
@@ -694,24 +815,182 @@ def run_coi_enrichment(vet: dict) -> tuple[dict, list]:
             Counter(r.get("post_pdf_vet_status") for r in results).most_common()
         ),
         "by_extraction_error": dict(
-            Counter(r.get("extraction_error") for r in results if r.get("extraction_error")).most_common()
+            Counter(
+                r.get("extraction_error") for r in results if r.get("extraction_error")
+            ).most_common()
         ),
         "results": results,
     }
+    if batch_meta:
+        payload["batch"] = batch_meta
+    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     write_report(results, OUT_MD)
+
+
+def run_coi_enrichment(
+    vet: dict,
+    *,
+    batch_size: int = 15,
+    offset: int = 0,
+    limit: int | None = None,
+    resume: bool = True,
+) -> tuple[dict, list]:
+    """Extract COI PDF insured names and merge into vet; return (vet, sidecar results).
+
+    Processes in batches and checkpoints OUT_JSON + VET_JSON after each batch so a
+    bogged SF CLI run can resume without redoing completed Cases.
+    """
+    targets = coi_cases(vet)
+    prior = _load_prior_results() if resume else []
+    by_id = {r.get("case_id"): r for r in prior if r.get("case_id")}
+    if resume and by_id:
+        before = len(targets)
+        targets = [c for c in targets if c.get("id") not in by_id]
+        print(
+            f"Resume: {len(by_id)} already in {OUT_JSON.name}; "
+            f"{before - len(targets)} skipped, {len(targets)} remaining",
+            flush=True,
+        )
+
+    if offset:
+        targets = targets[offset:]
+    if limit is not None:
+        targets = targets[:limit]
+
+    print(
+        f"COI shell cases to process: {len(targets)} "
+        f"(batch_size={batch_size}, offset={offset}, limit={limit})",
+        flush=True,
+    )
+    if not targets:
+        results = list(by_id.values())
+        merge_vet(vet, results)
+        vet["coi_pdf_extraction"] = str(OUT_JSON)
+        _write_sidecar(results, batch_meta={"done": True, "remaining": 0})
+        return vet, results
+
+    account_cache: dict[str, list[dict]] = {}
+    results = list(by_id.values())
+    total = len(targets)
+    batch_size = max(1, batch_size)
+
+    for batch_start in range(0, total, batch_size):
+        batch = targets[batch_start : batch_start + batch_size]
+        batch_num = batch_start // batch_size + 1
+        batch_total = (total + batch_size - 1) // batch_size
+        print(
+            f"--- COI batch {batch_num}/{batch_total} "
+            f"({len(batch)} cases) ---",
+            flush=True,
+        )
+        for j, case in enumerate(batch, 1):
+            idx = batch_start + j
+            print(f"[{idx}/{total}] {case.get('case_number')} ...", flush=True)
+            try:
+                row = process_case(case, account_cache)
+            except Exception as exc:
+                row = {
+                    "case_id": case.get("id"),
+                    "case_number": case.get("case_number"),
+                    "subject": case.get("subject"),
+                    "extraction_error": f"exception:{exc}",
+                    "post_pdf_vet_status": case.get("vet_status"),
+                }
+            results.append(row)
+            by_id[row.get("case_id")] = row
+            time.sleep(0.08)
+
+        # Checkpoint after every batch
+        merge_vet(vet, results)
+        vet["coi_pdf_extraction"] = str(OUT_JSON)
+        vet["by_vet_status"] = dict(
+            Counter(c.get("vet_status") for c in vet.get("cases") or []).most_common()
+        )
+        VET_JSON.write_text(json.dumps(vet, indent=2), encoding="utf-8")
+        remaining = total - (batch_start + len(batch))
+        _write_sidecar(
+            results,
+            batch_meta={
+                "batch_num": batch_num,
+                "batch_total": batch_total,
+                "batch_size": batch_size,
+                "remaining": remaining,
+                "done": remaining == 0,
+            },
+        )
+        print(
+            f"Checkpoint: {len(results)} results → {OUT_JSON.name} "
+            f"(remaining this run: {remaining})",
+            flush=True,
+        )
+
     return vet, results
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=int(os.environ.get("COI_BATCH_SIZE", "15")),
+        help="Cases per checkpoint batch (default 15; env COI_BATCH_SIZE)",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=int(os.environ.get("COI_OFFSET", "0")),
+        help="Skip first N pending targets (after resume filter)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=int(os.environ["COI_LIMIT"]) if os.environ.get("COI_LIMIT") else None,
+        help="Max cases this run (env COI_LIMIT)",
+    )
+    parser.add_argument(
+        "--resume",
+        action=argparse.BooleanOptionalAction,
+        default=os.environ.get("COI_RESUME", "1") != "0",
+        help="Skip case_ids already present in OUT_JSON (default on)",
+    )
+    parser.add_argument(
+        "--no-write-vet",
+        action="store_true",
+        help="Do not rewrite VET_JSON (sidecar only) — unused; batches always checkpoint vet",
+    )
+    args = parser.parse_args(argv)
+
     vet = json.loads(VET_JSON.read_text(encoding="utf-8"))
-    vet, results = run_coi_enrichment(vet)
-    vet["by_vet_status"] = dict(Counter(c.get("vet_status") for c in vet["cases"]).most_common())
+    vet, results = run_coi_enrichment(
+        vet,
+        batch_size=args.batch_size,
+        offset=args.offset,
+        limit=args.limit,
+        resume=args.resume,
+    )
+    vet["by_vet_status"] = dict(
+        Counter(c.get("vet_status") for c in vet["cases"]).most_common()
+    )
     VET_JSON.write_text(json.dumps(vet, indent=2), encoding="utf-8")
 
-    print(json.dumps(dict(Counter(r.get("post_pdf_vet_status") for r in results).most_common()), indent=2))
+    print(
+        json.dumps(
+            dict(Counter(r.get("post_pdf_vet_status") for r in results).most_common()),
+            indent=2,
+        )
+    )
     print(f"OUT_JSON: {OUT_JSON.resolve()}")
     print(f"OUT_MD: {OUT_MD.resolve()}")
+    remaining = (json.loads(OUT_JSON.read_text(encoding="utf-8")).get("batch") or {}).get(
+        "remaining"
+    )
+    if remaining:
+        print(
+            f"NEXT: RUN_DATE={RUN_DATE} python extract_shell_coi_insured.py "
+            f"--batch-size {args.batch_size} --resume",
+            flush=True,
+        )
     return 0
 
 
