@@ -45,6 +45,12 @@ def mcp_call(base_url: str, tool_name: str, arguments: dict | None = None) -> An
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream",
         "Authorization": auth_header_value(token),
+        # Cloudflare on vixxonow.com bans bare urllib signatures (Error 1010).
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/122.0.0.0 Safari/537.36 MothmanMCP/1.0"
+        ),
     }
     req = urllib.request.Request(base_url, data=data, headers=headers, method="POST")
     try:

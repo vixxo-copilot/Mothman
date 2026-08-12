@@ -102,7 +102,9 @@ ADDRESS_LINE_RE = re.compile(
 JUNK_INSURED_LINE_RE = re.compile(
     r"^(REVISION|CERTIFICATE\s*NUMBER|COVERAGES|IMPORTANT|THIS CERTIFICATE|"
     r"DATE\s*\(|ACORD|CONTACT|PRODUCER|PHONE|FAX|E-MAIL|ADDRESS:|NAME:|"
-    r"INSURER|NAIC|POLICY|LIMITS|COMMERCIAL|AUTOMOBILE|WORKERS)\b",
+    r"INSURER|NAIC|POLICY|LIMITS|"
+    r"COMMERCIAL\s+(GENERAL|LIABILITY|AUTO|PROPERTY|UMBRELLA)|"
+    r"AUTOMOBILE|WORKERS)\b",
     re.I,
 )
 BROKER_PRODUCER_RE = re.compile(
@@ -113,7 +115,12 @@ BROKER_PRODUCER_RE = re.compile(
 NOISE = {
     "the", "and", "of", "for", "dba", "llc", "inc", "corp", "co", "ltd", "company",
     "service", "services", "insured", "address", "city", "state", "zip",
+    "subsidiary", "subsidiaries", "topco", "holding", "holdings", "lp", "l.p",
 }
+HOLDING_OPERATING_RE = re.compile(
+    r"\band\s+subsidiar(?:y|ies)\s+(.+)$",
+    re.I,
+)
 
 
 def sf_json(args: list[str]) -> dict:
@@ -162,6 +169,11 @@ def is_holder_or_noise(name: str) -> bool:
     n = name.lower().strip()
     if not n or len(n) < 3:
         return True
+    # Email-thread crumbs / empty shells
+    if re.fullmatch(r"(re|fw|fwd|aw|rv)\s*:?", n, re.I):
+        return True
+    if re.fullmatch(r"(revised|updated|renewal|new|coi|certificate)", n, re.I):
+        return True
     if n in HOLDER_NAMES or n.startswith("vixxo "):
         return True
     if INSURED_BOILERPLATE.search(n):
@@ -173,9 +185,6 @@ def is_holder_or_noise(name: str) -> bool:
     if re.match(r"^\d{5}", n):
         return True
     if re.match(r"^(street|po box|suite|scottsdale|address)\b", n, re.I):
-        return True
-    # Subject crumbs like "REVISED" / "UPDATED"
-    if re.fullmatch(r"(revised|updated|renewal|new|coi|certificate)", n, re.I):
         return True
     return False
 
@@ -373,13 +382,159 @@ def tokens(name: str) -> set[str]:
     return {t for t in norm(name).split() if len(t) > 2 and t not in NOISE}
 
 
+def operating_company_aliases(name: str | None) -> list[str]:
+    """Peel holding-company COI strings to the operating SP.
+
+    Example: "Palmetto Topco L.P. and Subsidiaries Commercial Foodservice Repair Inc."
+    → "Commercial Foodservice Repair Inc."
+    """
+    if not name:
+        return []
+    out: list[str] = []
+    m = HOLDING_OPERATING_RE.search(name.strip())
+    if m:
+        op = m.group(1).strip(" ,.-")
+        if op and is_valid_insured(op):
+            out.append(op)
+    return out
+
+
 def search_variants(name: str) -> list[str]:
     base = re.sub(r"\s+d/b/a.*", "", name, flags=re.I).strip()
     out = [base, re.sub(r"\s+", " ", re.sub(r"[,.\-/&']", " ", base)).strip()]
     for suffix in (" LLC", " Inc.", " Inc", " LLC.", ", LLC", ", Inc.", " INC", " Company"):
         if base.endswith(suffix):
             out.append(base[: -len(suffix)].strip())
-    return list(dict.fromkeys(v for v in out if v))
+    # Holding + Subsidiaries → also search the operating company
+    for op in operating_company_aliases(base):
+        out.append(op)
+        out.extend(search_variants(op))
+    # Distinctive cores: "CECCO, Inc." -> CECCO; "ASAP Sands Outdoor..." -> ASAP Sands
+    parts = [t for t in norm(base).split() if t not in NOISE and len(t) >= 3]
+    if parts:
+        # Single-token cores only when the company itself is short (CECCO).
+        # Multi-token names keep 2–3 token cores so "ASAP" alone does not drive LIKE+score.
+        if len(parts) == 1:
+            out.append(parts[0].upper() if len(parts[0]) <= 6 else parts[0].title())
+            out.append(parts[0])
+        if len(parts) >= 2:
+            out.append(f"{parts[0]} {parts[1]}")
+        if len(parts) >= 3:
+            out.append(f"{parts[0]} {parts[1]} {parts[2]}")
+    return list(dict.fromkeys(v for v in out if v and len(v) >= 3))
+
+
+def _score_one_account_match(insured: str, account_name: str) -> int:
+    ins, acc = norm(insured), norm(account_name)
+    it, at = tokens(insured), tokens(account_name)
+    if not ins or not acc:
+        return 0
+    score = 0
+    if ins == acc:
+        score = 100
+    elif ins in acc or acc in ins:
+        if len(it) >= 2:
+            shared = it & at
+            if len(shared) >= max(2, (len(it) + 1) // 2):
+                score = 85
+        elif len(ins) >= 4:
+            # Short legal names like CECCO
+            score = 85
+    elif it:
+        shared = it & at
+        score = int((len(shared) / len(it)) * 70)
+        if len(it) >= 2 and len(shared) < 2:
+            score = 0
+    if score >= 55 and any((account_name or "").startswith(p) for p in ACCOUNT_PREFIXES):
+        score = min(100, score + 10)
+    return score
+
+
+def score_account_match(insured: str, account_name: str) -> int:
+    """Score Account vs insured name (and peeled operating-company aliases)."""
+    anchors = [insured, *operating_company_aliases(insured)]
+    return max((_score_one_account_match(a, account_name) for a in anchors), default=0)
+
+
+def names_agree(a: str | None, b: str | None) -> bool:
+    if not a or not b:
+        return False
+    na, nb = norm(a), norm(b)
+    if not na or not nb:
+        return False
+    if na == nb or na in nb or nb in na:
+        return True
+    ta, tb = tokens(a), tokens(b)
+    if not ta or not tb:
+        return False
+    overlap = len(ta & tb) / max(len(ta), len(tb))
+    return overlap >= 0.6
+
+
+def score_identity_consensus(
+    subject: str | None,
+    legal_insured: str | None,
+    hint_sources: dict,
+) -> dict:
+    """Rank how clearly subject / PDF / filename agree on the SP name."""
+    agreeing: list[str] = []
+    subj_hits = subject_sp_hints(subject)
+    filename = hint_sources.get("pdf_filename")
+    pdf_name = (
+        legal_insured
+        or hint_sources.get("company_before_address")
+        or hint_sources.get("line_after_insured")
+        or hint_sources.get("pdf_text")
+    )
+    if pdf_name and any(names_agree(pdf_name, s) for s in subj_hits):
+        agreeing.append("subject+pdf")
+    if pdf_name and filename and names_agree(pdf_name, filename):
+        agreeing.append("pdf+filename")
+    if filename and any(names_agree(filename, s) for s in subj_hits):
+        agreeing.append("subject+filename")
+    if len(agreeing) >= 2 or "subject+pdf" in agreeing:
+        confidence = "high"
+    elif pdf_name and (subj_hits or filename):
+        confidence = "medium"
+    elif pdf_name or subj_hits:
+        confidence = "low"
+    else:
+        confidence = "none"
+    display = pdf_name or (subj_hits[0] if subj_hits else filename)
+    return {
+        "confidence": confidence,
+        "agreeing_signals": agreeing,
+        "sp_name": display,
+        "subject_hints": subj_hits,
+    }
+
+
+def gateway_lookup_company(name: str) -> dict | None:
+    """Resolve SP # via Gateway invoice/company search (best-effort)."""
+    if not name or not is_valid_insured(name):
+        return None
+    try:
+        from gateway_vetting import gateway_find_sp, _enrich_sp_hit  # noqa: WPS433
+    except Exception:
+        return None
+    entities = {
+        "company": name,
+        "ks_number": None,
+        "sr_number": None,
+        "requester_email": "Not stated",
+        "contact_name": "Not stated",
+    }
+    try:
+        hit = _enrich_sp_hit(gateway_find_sp(entities))
+    except Exception:
+        return None
+    if not hit:
+        return None
+    return {
+        "sp_number": hit.get("sp_number"),
+        "name": hit.get("name"),
+        "source": hit.get("source"),
+    }
 
 
 def prefixed_like(token: str) -> str:
@@ -391,35 +546,60 @@ def prefixed_like(token: str) -> str:
     return " OR ".join(parts)
 
 
+def _region_tiebreak(insured: str, account_name: str) -> int:
+    """Small boost when Account region matches clues in the insured string."""
+    ins = (insured or "").lower()
+    acc = (account_name or "").lower()
+    bonus = 0
+    # Palmetto Topco / SC holding companies → prefer SC-tagged Accounts
+    if "palmetto" in ins and re.search(r"\bsc\b|- sc\b", acc):
+        bonus += 5
+    for st in ("tx", "sc", "nc", "ga", "fl", "ca", "ny", "oh", "pa"):
+        if re.search(rf"\b{st}\b", ins) and re.search(rf"\b{st}\b|- {st}\b", acc):
+            bonus += 3
+            break
+    return bonus
+
+
 def lookup_account(names: list[str], cache: dict[str, list[dict]]) -> dict | None:
+    """LIKE-search with variants; always score against the strongest insured name."""
+    anchors = [n for n in names if n and is_valid_insured(n)]
+    for name in list(anchors):
+        for op in operating_company_aliases(name):
+            if op not in anchors:
+                anchors.append(op)
+    if not anchors:
+        return None
+    # Prefer multi-token / longer legal names as the scoring anchor
+    primary = sorted(anchors, key=lambda n: (len(tokens(n)), len(norm(n))), reverse=True)[0]
+    variants: list[str] = []
+    for name in anchors:
+        variants.extend(search_variants(name))
+    variants = list(dict.fromkeys(v for v in variants if v))
+
     best = None
     best_score = 0
-    for name in names:
-        for variant in search_variants(name):
-            key = variant.lower()
-            if key not in cache:
-                rows = sf_query(
-                    "SELECT Id, Name FROM Account WHERE Type = 'Service Provider' AND "
-                    f"({prefixed_like(variant)}) LIMIT 15"
-                )
-                cache[key] = rows
-                time.sleep(0.12)
-            for row in cache[key]:
-                ins, acc = norm(name), norm(row.get("Name") or "")
-                score = 0
-                if ins == acc:
-                    score = 100
-                elif ins in acc or acc in ins:
-                    score = 85
-                else:
-                    it, at = tokens(name), tokens(row.get("Name") or "")
-                    if it:
-                        score = int((len(it & at) / len(it)) * 60)
-                if any((row.get("Name") or "").startswith(p) for p in ACCOUNT_PREFIXES):
-                    score += 10
-                if score > best_score:
-                    best_score = score
-                    best = {"id": row["Id"], "name": row["Name"], "score": score, "matched_on": name}
+    for variant in variants:
+        key = variant.lower()
+        if key not in cache:
+            rows = sf_query(
+                "SELECT Id, Name FROM Account WHERE Type = 'Service Provider' AND "
+                f"({prefixed_like(variant)}) LIMIT 15"
+            )
+            cache[key] = rows
+            time.sleep(0.12)
+        for row in cache[key]:
+            score = score_account_match(primary, row.get("Name") or "")
+            score += _region_tiebreak(primary, row.get("Name") or "")
+            if score > best_score:
+                best_score = score
+                best = {
+                    "id": row["Id"],
+                    "name": row["Name"],
+                    "score": score,
+                    "matched_on": primary,
+                    "search_variant": variant,
+                }
     return best if best and best["score"] >= 55 else None
 
 
@@ -489,7 +669,9 @@ def is_valid_insured(name: str | None) -> bool:
 def clean_subject_sp(name: str | None) -> str | None:
     if not name:
         return None
-    s = re.sub(r"\s*-\s*Vixxo\b.*$", "", name.strip(), flags=re.I).strip(" -–—,")
+    s = re.sub(r"\s*-\s*Vixxo\b.*$", "", name.strip(), flags=re.I)
+    s = re.sub(r"\s*-\s*Renewal(?:\s+COI|\s+Certificate)?\b.*$", "", s, flags=re.I)
+    s = s.strip(" -–—,")
     return s if is_valid_insured(s) else None
 
 
@@ -497,13 +679,20 @@ def extract_subject_fallback(subject: str | None) -> str | None:
     if not subject:
         return None
     subj = subject.strip()
+    # Strip leading RE:/FW: chain so "RE: FW: COI - Rhyno's" still yields Rhyno's
+    subj_core = re.sub(r"^(?:(?:RE|FW|FWD|AW)\s*:\s*)+", "", subj, flags=re.I).strip()
     for pat in (SUBJECT_RENEWAL_COI_RE, SUBJECT_CERT_DASH_RE, SUBJECT_COI_FOR_RE):
-        m = pat.search(subj)
+        m = pat.search(subj_core) or pat.search(subj)
         if m:
             cand = clean_subject_sp(m.group(1).strip())
             if cand:
                 return cand
-    m = re.match(r"^(.+?)\s+COI\s+for\s+Vixxo", subj, re.I)
+    m = re.search(r"(?:^|:\s*)COI\s*[-–]\s*(.+)$", subj_core, re.I)
+    if m:
+        cand = clean_subject_sp(m.group(1).strip())
+        if cand:
+            return cand
+    m = re.match(r"^(.+?)\s+COI\s+for\s+Vixxo", subj_core, re.I)
     if m:
         return clean_subject_sp(m.group(1).strip())
     return None
@@ -691,12 +880,50 @@ def process_case(case: dict, account_cache: dict[str, list[dict]]) -> dict:
             result["extraction_error"] = "insured_not_found_in_pdf"
         return result
 
+    consensus = score_identity_consensus(
+        case.get("subject"), result.get("legal_insured"), hint_sources
+    )
+    result["identity_confidence"] = consensus["confidence"]
+    result["identity_signals"] = consensus["agreeing_signals"]
+    if consensus.get("sp_name") and is_valid_insured(consensus["sp_name"]):
+        result["legal_insured"] = consensus["sp_name"]
+        if consensus["sp_name"] not in search_names:
+            search_names.insert(0, consensus["sp_name"])
+
     acct = lookup_account(search_names, account_cache)
+    gateway = None
+    if not acct:
+        # Prefer consensus SP name for Gateway; fall back through search list
+        for candidate in [consensus.get("sp_name"), *search_names]:
+            if not candidate:
+                continue
+            gateway = gateway_lookup_company(candidate)
+            if gateway and gateway.get("sp_number"):
+                break
+            gateway = None
+        if gateway and gateway.get("sp_number"):
+            by_sp = lookup_account_by_sp_number(str(gateway["sp_number"]), account_cache)
+            if by_sp:
+                acct = {
+                    "id": by_sp["id"],
+                    "name": by_sp["name"],
+                    "score": by_sp.get("score") or 90,
+                    "matched_on": gateway.get("name") or gateway.get("sp_number"),
+                }
+            result["gateway_sp"] = gateway.get("sp_number")
+            result["gateway_name"] = gateway.get("name")
+            result["gateway_source"] = gateway.get("source")
+
     if acct:
         result["recommended_account"] = {"id": acct["id"], "name": acct["name"]}
         result["account_match_score"] = acct["score"]
         result["matched_on"] = acct.get("matched_on")
         result["post_pdf_vet_status"] = "account_resolved_pdf"
+    elif gateway and gateway.get("sp_number"):
+        result["post_pdf_vet_status"] = "gateway_match_pdf"
+    elif consensus["confidence"] == "high":
+        # Subject + PDF (etc.) agree — SP is clear even without SF Account
+        result["post_pdf_vet_status"] = "sp_identified"
     else:
         result["post_pdf_vet_status"] = "needs_manual_pdf_insured_only"
 
@@ -707,7 +934,19 @@ def write_report(results: list[dict], path: Path) -> None:
     by_status = Counter(r.get("post_pdf_vet_status") for r in results)
     by_err = Counter(r.get("extraction_error") for r in results if r.get("extraction_error"))
     resolved = [r for r in results if r.get("recommended_account")]
-    insured_only = [r for r in results if r.get("legal_insured") and not r.get("recommended_account")]
+    identified = [
+        r
+        for r in results
+        if r.get("post_pdf_vet_status") in ("sp_identified", "gateway_match_pdf")
+        and not r.get("recommended_account")
+    ]
+    insured_only = [
+        r
+        for r in results
+        if r.get("legal_insured")
+        and not r.get("recommended_account")
+        and r.get("post_pdf_vet_status") == "needs_manual_pdf_insured_only"
+    ]
 
     lines = [
         "# Shell COI PDF Insured Extraction",
@@ -733,17 +972,119 @@ def write_report(results: list[dict], path: Path) -> None:
     for r in resolved[:40]:
         acct = r["recommended_account"]["name"]
         lines.append(
-            f"| {r['case_number']} | {r['legal_insured'][:45]} | {acct[:45]} | {r.get('account_match_score')} |"
+            f"| {r['case_number']} | {(r.get('legal_insured') or '')[:45]} | {acct[:45]} | {r.get('account_match_score')} |"
         )
 
-    lines.extend(["", "## Insured found, no SF Account match (sample)", ""])
+    lines.extend(
+        [
+            "",
+            "## SP identified (subject+PDF agree) — no SF Account yet",
+            "",
+            "These are **not** identity mysteries. Apply/create Account using the SP name.",
+            "",
+            "| Case | SP name | Confidence | Signals | Gateway SP |",
+            "|------|---------|------------|---------|------------|",
+        ]
+    )
+    for r in identified[:50]:
+        signals = ", ".join(r.get("identity_signals") or []) or "—"
+        lines.append(
+            f"| {r.get('case_number')} | {(r.get('legal_insured') or '')[:45]} | "
+            f"{r.get('identity_confidence') or '—'} | {signals} | "
+            f"{r.get('gateway_sp') or '—'} |"
+        )
+
+    lines.extend(["", "## Weak / unclear insured (still manual)", ""])
     lines.append("| Case | Insured (PDF) | DBA |")
     lines.append("|------|---------------|-----|")
     for r in insured_only[:30]:
         dba = ", ".join(r.get("dba_names") or []) or "—"
-        lines.append(f"| {r['case_number']} | {r['legal_insured'][:50]} | {dba[:40]} |")
+        lines.append(
+            f"| {r['case_number']} | {(r.get('legal_insured') or '')[:50]} | {dba[:40]} |"
+        )
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def refine_existing_results(vet: dict) -> tuple[dict, list]:
+    """Re-score sidecar rows without re-downloading PDFs (consensus + Gateway + Account)."""
+    prior = _load_prior_results()
+    if not prior:
+        print("No prior COI PDF results to refine.", flush=True)
+        return vet, []
+    account_cache: dict[str, list[dict]] = {}
+    out: list[dict] = []
+    for i, r in enumerate(prior, 1):
+        legal = r.get("legal_insured")
+        hint_sources = dict(r.get("hint_sources") or {})
+        # Recover SP from subject when prior legal was junk (e.g. "FW:")
+        if not legal or not is_valid_insured(legal):
+            subj_hits = subject_sp_hints(r.get("subject"))
+            if subj_hits:
+                legal = subj_hits[0]
+                r["legal_insured"] = legal
+                hint_sources["subject"] = legal
+            else:
+                r["post_pdf_vet_status"] = r.get("post_pdf_vet_status") or "needs_manual"
+                r.pop("recommended_account", None)
+                out.append(r)
+                continue
+        print(f"[refine {i}/{len(prior)}] {r.get('case_number')} {legal[:40]}...", flush=True)
+        consensus = score_identity_consensus(r.get("subject"), legal, hint_sources)
+        r["identity_confidence"] = consensus["confidence"]
+        r["identity_signals"] = consensus["agreeing_signals"]
+        r["hint_sources"] = hint_sources
+        if consensus.get("sp_name") and is_valid_insured(consensus["sp_name"]):
+            r["legal_insured"] = consensus["sp_name"]
+            legal = consensus["sp_name"]
+        names = list(
+            dict.fromkeys(
+                [
+                    legal,
+                    *(consensus.get("subject_hints") or []),
+                ]
+            )
+        )
+        # Clear prior false Account hits before re-score
+        r.pop("recommended_account", None)
+        r.pop("account_match_score", None)
+        r.pop("matched_on", None)
+        acct = lookup_account(names, account_cache)
+        gateway = gateway_lookup_company(legal) if not acct else None
+        if gateway and gateway.get("sp_number") and not acct:
+            by_sp = lookup_account_by_sp_number(str(gateway["sp_number"]), account_cache)
+            if by_sp:
+                acct = {
+                    "id": by_sp["id"],
+                    "name": by_sp["name"],
+                    "score": by_sp.get("score") or 90,
+                    "matched_on": gateway.get("name") or gateway.get("sp_number"),
+                }
+            r["gateway_sp"] = gateway.get("sp_number")
+            r["gateway_name"] = gateway.get("name")
+            r["gateway_source"] = gateway.get("source")
+        if acct:
+            r["recommended_account"] = {"id": acct["id"], "name": acct["name"]}
+            r["account_match_score"] = acct["score"]
+            r["matched_on"] = acct.get("matched_on")
+            r["post_pdf_vet_status"] = "account_resolved_pdf"
+        elif gateway and gateway.get("sp_number"):
+            r["post_pdf_vet_status"] = "gateway_match_pdf"
+        elif consensus["confidence"] == "high":
+            r["post_pdf_vet_status"] = "sp_identified"
+        else:
+            r["post_pdf_vet_status"] = "needs_manual_pdf_insured_only"
+        out.append(r)
+        time.sleep(0.05)
+
+    merge_vet(vet, out)
+    vet["coi_pdf_extraction"] = str(OUT_JSON)
+    vet["by_vet_status"] = dict(
+        Counter(c.get("vet_status") for c in vet.get("cases") or []).most_common()
+    )
+    VET_JSON.write_text(json.dumps(vet, indent=2), encoding="utf-8")
+    _write_sidecar(out, batch_meta={"refine": True, "done": True, "remaining": 0})
+    return vet, out
 
 
 def merge_vet(vet: dict, results: list[dict]) -> None:
@@ -762,6 +1103,10 @@ def merge_vet(vet: dict, results: list[dict]) -> None:
             "post_pdf_vet_status": r.get("post_pdf_vet_status"),
             "hint_sources": r.get("hint_sources"),
             "match_source": r.get("match_source"),
+            "identity_confidence": r.get("identity_confidence"),
+            "identity_signals": r.get("identity_signals"),
+            "gateway_sp": r.get("gateway_sp"),
+            "gateway_name": r.get("gateway_name"),
         }
         hints = c.get("hints") or {}
         prior_company = hints.get("company") or (c.get("vetting") or {}).get("company")
@@ -779,9 +1124,31 @@ def merge_vet(vet: dict, results: list[dict]) -> None:
                 hints["company"] = subj_hints[0]
                 c["hints"] = hints
         weak_prior = _company_is_emailish(prior_company) or c.get("vet_source") != "coi_pdf_extraction"
+        if r.get("gateway_sp"):
+            c["gateway_sp"] = r.get("gateway_sp")
+            c["gateway_name"] = r.get("gateway_name")
+            c["gateway_source"] = r.get("gateway_source")
+        if r.get("identity_confidence"):
+            c["identity_confidence"] = r.get("identity_confidence")
+            c["identity_signals"] = r.get("identity_signals")
+        post = r.get("post_pdf_vet_status")
         if r.get("recommended_account"):
             c["recommended_account"] = r["recommended_account"]
             c["vet_status"] = "account_resolved"
+            c["vet_source"] = "coi_pdf_extraction"
+        elif post == "gateway_match_pdf":
+            c["vet_status"] = "gateway_match"
+            c["vet_source"] = "coi_pdf_extraction"
+        elif post == "sp_identified" or (
+            legal
+            and is_valid_insured(legal)
+            and (r.get("identity_confidence") == "high")
+        ):
+            # Clear SP from subject+PDF — not "manual mystery"
+            if weak_prior and c.get("vet_status") == "account_resolved":
+                c["recommended_account"] = None
+                c["account_search_candidates"] = []
+            c["vet_status"] = "sp_identified"
             c["vet_source"] = "coi_pdf_extraction"
         elif legal and is_valid_insured(legal):
             # Prefer PDF insured over email-as-company false Account hits
@@ -920,7 +1287,7 @@ def run_coi_enrichment(
             },
         )
         print(
-            f"Checkpoint: {len(results)} results → {OUT_JSON.name} "
+            f"Checkpoint: {len(results)} results -> {OUT_JSON.name} "
             f"(remaining this run: {remaining})",
             flush=True,
         )
@@ -959,16 +1326,24 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Do not rewrite VET_JSON (sidecar only) — unused; batches always checkpoint vet",
     )
+    parser.add_argument(
+        "--refine-only",
+        action="store_true",
+        help="Re-score existing OUT_JSON (consensus + Gateway + Account) without re-downloading PDFs",
+    )
     args = parser.parse_args(argv)
 
     vet = json.loads(VET_JSON.read_text(encoding="utf-8"))
-    vet, results = run_coi_enrichment(
-        vet,
-        batch_size=args.batch_size,
-        offset=args.offset,
-        limit=args.limit,
-        resume=args.resume,
-    )
+    if args.refine_only:
+        vet, results = refine_existing_results(vet)
+    else:
+        vet, results = run_coi_enrichment(
+            vet,
+            batch_size=args.batch_size,
+            offset=args.offset,
+            limit=args.limit,
+            resume=args.resume,
+        )
     vet["by_vet_status"] = dict(
         Counter(c.get("vet_status") for c in vet["cases"]).most_common()
     )

@@ -83,7 +83,7 @@ def export_sf_cache() -> None:
 
 
 def main() -> int:
-    print(f"=== SF duplicate review & vetting (all org) — {DATE} ===", flush=True)
+    print(f"=== SF duplicate review & vetting (all org) - {DATE} ===", flush=True)
     export_sf_cache()
     env = os.environ.copy()
     env.update(

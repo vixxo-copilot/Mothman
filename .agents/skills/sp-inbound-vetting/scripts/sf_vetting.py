@@ -329,6 +329,9 @@ def extract_sf_case_entities(
     company = pick_best_company(company_candidates, requester_email if requester_email != "Not stated" else "")
     if company and is_vixxo_internal_company(company):
         company = None
+    # Never treat an email address as the SP company name
+    if company and "@" in company:
+        company = None
     if not company and is_voicemail_noise_subject(subject):
         company = None
     company = company or "Not stated"

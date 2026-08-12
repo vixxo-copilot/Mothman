@@ -22,7 +22,12 @@ sys.path.insert(0, str(VETTING_SCRIPTS))
 
 import scan_duplicates as sd  # noqa: E402
 import scan_sf_duplicates as ssd  # noqa: E402
-from entity_extraction import company_search_variants, email_domain_search_tokens  # noqa: E402
+from entity_extraction import (  # noqa: E402
+    company_search_variants,
+    email_domain_search_tokens,
+    extract_subject_company,
+    is_internal_email,
+)
 from gateway_vetting import gateway_find_sp, _enrich_sp_hit  # noqa: E402
 from shell_sf_intake import (  # noqa: E402
     clear_intake_cache,
@@ -167,14 +172,23 @@ def intake_case(case: dict) -> tuple[dict, str]:
         return fallback_entities_from_case(case, error=str(exc))
 
 
+def _is_emailish_company(value: str | None) -> bool:
+    s = (value or "").strip()
+    return bool(s) and ("@" in s or s.lower().startswith("mail-server"))
+
+
 def account_search_terms_from_entities(entities: dict, subject: str) -> list[str]:
-    """Search terms per sp-inbound-vetting company-vetting order."""
+    """Search terms per sp-inbound-vetting company-vetting order.
+
+    Never use the raw requester email as an Account Name search term — that
+    confuses Case Contact / forwarder identity with the SP company.
+    """
     terms: list[str] = []
     seen: set[str] = set()
 
     def add(term: str) -> None:
         t = re.sub(r"\s+", " ", (term or "").strip())
-        if len(t) < 3:
+        if len(t) < 3 or _is_emailish_company(t):
             return
         key = t.lower()
         if key not in seen and key != "not stated":
@@ -190,8 +204,13 @@ def account_search_terms_from_entities(entities: dict, subject: str) -> list[str
         if norm and len(norm) >= 4:
             add(norm)
 
+    subj_company = extract_subject_company(subject)
+    if subj_company and not _is_emailish_company(subj_company):
+        for v in company_search_variants(subj_company):
+            add(v)
+
     company = entities.get("company")
-    if company and company != "Not stated":
+    if company and company != "Not stated" and not _is_emailish_company(company):
         for v in company_search_variants(company):
             add(v)
 
@@ -205,6 +224,7 @@ def account_search_terms_from_entities(entities: dict, subject: str) -> list[str
         for v in company_search_variants(vl["name"]):
             add(v)
 
+    # Business-domain stem only (gmail/yahoo filtered by norm_email_domain)
     email = entities.get("requester_email")
     if email and email != "Not stated":
         dom = norm_email_domain(email)
@@ -212,11 +232,13 @@ def account_search_terms_from_entities(entities: dict, subject: str) -> list[str
             stem = dom.split(".")[0]
             if len(stem) >= 4:
                 add(stem)
+        for hint in email_local_company_hints(email):
+            add(hint)
     for token in entities.get("email_domain_tokens") or []:
         if len(token) >= 4:
             add(token)
 
-    return terms[:8]
+    return terms[:12]
 
 
 def build_cluster_index(scan: dict) -> dict[str, dict]:
@@ -265,27 +287,125 @@ def account_search_terms(hints: dict) -> list[str]:
     return account_search_terms_from_entities(entities, hints.get("subject") or "")
 
 
+# Substrings used to un-glue freemail local-parts (opendoorlockout)
+_PERSON_TRADE_SPLIT = (
+    "lockout", "locksmith", "foodservice", "electrical", "plumbing",
+    "mechanical", "janitorial", "security", "services", "service",
+    "repair", "repairs", "commercial", "solutions", "contractors",
+    "door", "lock", "open", "signs", "glass", "hvac",
+)
+
+
+def email_local_company_hints(email: str | None) -> list[str]:
+    """Turn freemail local-parts into Account Name search hints.
+
+    Example: opendoorlockout@gmail.com → "open door lockout", "open door"
+    """
+    if not email or "@" not in email:
+        return []
+    local, _, domain = email.strip().lower().partition("@")
+    registrable = (domain.split(".") or [""])[0]
+    from entity_extraction import GENERIC_FREEMAIL_DOMAINS  # noqa: WPS433
+
+    if registrable not in GENERIC_FREEMAIL_DOMAINS and domain not in GENERIC_FREEMAIL_DOMAINS:
+        return []
+    raw = re.sub(r"[^a-z0-9]+", "", local)
+    if len(raw) < 6:
+        return []
+    # Split glued trade tokens: opendoorlockout → open / door / lockout
+    split_re = re.compile(
+        "(" + "|".join(re.escape(t) for t in sorted(_PERSON_TRADE_SPLIT, key=len, reverse=True)) + ")"
+    )
+    parts = [p for p in split_re.split(raw) if p]
+    # Drop tiny leftovers between tokens
+    parts = [p for p in parts if len(p) >= 3 or p in _PERSON_TRADE_SPLIT]
+    if len(parts) < 2:
+        return []
+    spaced = " ".join(parts)
+    hints = [spaced, " ".join(parts[:2])]
+    if len(parts) >= 3:
+        hints.append(" ".join(parts[:3]))
+    return list(dict.fromkeys(h for h in hints if len(h) >= 5))
+
+
+def sf_find_account_by_requester_email(email: str | None) -> dict | None:
+    """Find a non-shell SP Account already linked to this Contact email.
+
+    Skips the Shell Account Contact (common Email-to-Case parking). Prefer
+    Contacts/Cases where Account.Type = Service Provider with a real name.
+    """
+    if not email or "@" not in email or is_internal_email(email):
+        return None
+    esc_email = escape_soql(email.strip())
+    shell_esc = escape_soql(SHELL)
+    try:
+        contacts = sf_query(
+            "SELECT Id, AccountId, Account.Name, Account.Type, "
+            "Account.Service_Provider_Number__c "
+            f"FROM Contact WHERE Email = '{esc_email}' "
+            f"AND Account.Name != '{shell_esc}' "
+            "AND Account.Type = 'Service Provider' "
+            "ORDER BY LastModifiedDate DESC LIMIT 5"
+        )
+    except RuntimeError:
+        contacts = []
+    for row in contacts:
+        acct = row.get("Account") or {}
+        name = acct.get("Name")
+        if name and not _is_blocked_account(name):
+            return {"Id": acct.get("Id") or row.get("AccountId"), "Name": name}
+
+    try:
+        cases = sf_query(
+            "SELECT Id, CaseNumber, AccountId, Account.Name, Account.Type "
+            f"FROM Case WHERE ContactEmail = '{esc_email}' "
+            f"AND Account.Name != '{shell_esc}' "
+            "AND Account.Type = 'Service Provider' "
+            "ORDER BY CreatedDate DESC LIMIT 5"
+        )
+    except RuntimeError:
+        cases = []
+    for row in cases:
+        acct = row.get("Account") or {}
+        name = acct.get("Name")
+        if name and not _is_blocked_account(name):
+            return {"Id": acct.get("Id") or row.get("AccountId"), "Name": name}
+    return None
+
+
 def resolve_sf_account(
     entities: dict,
     subject: str,
     account_cache: dict[str, list[dict]],
 ) -> tuple[dict | None, list[dict]]:
-    """Gateway KS # then company/name search — single resolution path."""
+    """SP# (Gateway/VixxoLink email) → SF Contact email → company name search."""
     from extract_shell_coi_insured import lookup_account_by_sp_number  # noqa: E402
 
     account_rows: list[dict] = []
     coi_fields = sd.extract_federated_coi_fields(subject)
+    company = entities.get("company") if entities.get("company") != "Not stated" else None
+    if _is_emailish_company(company):
+        company = None
     hints = {
         "provider": coi_fields["provider"] if coi_fields else None,
-        "company": entities.get("company") if entities.get("company") != "Not stated" else None,
+        "company": company,
     }
 
+    # 1) SP / KS number from Gateway/VixxoLink email user or body
     sp_num = (entities.get("gateway_precheck") or {}).get("sp_number") or entities.get("ks_number")
     if sp_num:
         acct = lookup_account_by_sp_number(str(sp_num), account_cache)
         if acct:
             return {"Id": acct["id"], "Name": acct["name"]}, account_rows
 
+    # 2) Prior SF Contact/Case with same requester email on a real SP Account
+    email = entities.get("requester_email")
+    if email and email != "Not stated":
+        by_email = sf_find_account_by_requester_email(email)
+        if by_email:
+            return by_email, account_rows
+
+    # 3) Company / subject name search
     for term in account_search_terms_from_entities(entities, subject):
         account_rows = lookup_sf_account(term, account_cache)
         account = pick_best_account(account_rows, hints)

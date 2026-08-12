@@ -397,6 +397,19 @@ def contact_search_name(
     return signature_contact_name or (requester_name.strip() if requester_name else None)
 
 
+# Words that appear in SP trade names — not first/last person names.
+_PERSON_NAME_TRADE_BLOCKLIST = frozenset(
+    {
+        "open", "door", "lock", "lockout", "locks", "key", "keys",
+        "repair", "repairs", "service", "services", "commercial",
+        "food", "foodservice", "electric", "electrical", "plumbing",
+        "hvac", "mechanical", "security", "signs", "sign", "glass",
+        "janitorial", "cleaning", "ventures", "solutions", "group",
+        "company", "industries", "systems", "contractors", "contractor",
+    }
+)
+
+
 def is_probable_person_name(name: str) -> bool:
     """Two-token capitalized name without company suffix → not a company."""
     cleaned = re.sub(r"\s+", " ", (name or "").strip())
@@ -407,7 +420,12 @@ def is_probable_person_name(name: str) -> bool:
     if re.search(r"\b(DBA|d/b/a)\b", cleaned, re.I):
         return False
     parts = cleaned.split()
-    return len(parts) == 2 and all(p[0].isupper() for p in parts if p)
+    if len(parts) != 2 or not all(p[0].isupper() for p in parts if p):
+        return False
+    # "Open Door" / "Atlantic Foodservice" are companies, not people
+    if any(p.lower().rstrip(".,") in _PERSON_NAME_TRADE_BLOCKLIST for p in parts):
+        return False
+    return True
 
 
 def is_generic_mailbox_name(name: str) -> bool:
@@ -447,6 +465,20 @@ def extract_signature_company(body: str, email: str = "") -> str | None:
                     candidates.append(line.strip())
 
     lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
+    # Name / Company / phone closings (e.g. Justin Shaw\nOpen Door\n9709036185)
+    for idx in range(len(lines) - 2):
+        line = re.sub(r"^>+\s*", "", lines[idx]).strip()
+        nxt = re.sub(r"^>+\s*", "", lines[idx + 1]).strip()
+        phone_ln = re.sub(r"^>+\s*", "", lines[idx + 2]).strip()
+        if (
+            is_probable_person_name(line)
+            and nxt
+            and 2 <= len(nxt) <= 60
+            and not re.search(r"[@]|https?://", nxt)
+            and not is_probable_person_name(nxt)
+            and re.search(r"\d{3}[-.\s]?\d{3}[-.\s]?\d{4}", phone_ln)
+        ):
+            candidates.append(nxt)
     for idx in range(len(lines) - 1):
         line = re.sub(r"^>+\s*", "", lines[idx]).strip()
         nxt = re.sub(r"^>+\s*", "", lines[idx + 1]).strip()
@@ -501,8 +533,9 @@ SUBJECT_SPM_OPERATIONAL_TAIL_RE = re.compile(
     r"SP Touchpoint|Global Customer Run SP|Customer Run SC#?|"
     r"Purchase Order|Portal Inquiry|VixxoLink(?:\s+Support)?|"
     r"Onboarding(?:\s+Setup)?|Rate Change|COI(?:\s+Request)?|"
-    r"Update|Renewal|Invoice Support"
+    r"Update|Renewal|Invoice Support|Vixxo(?:\s+profile)?"
     r")"
+    r"|\s+Vixxo(?:\s+profile)?\s*$"
     r"|(?:\s+VixxoLink)?\s+Training Reminder(?:\s*[-–—]\s*Final Notice)?"
     r")\s*$",
     re.I,
