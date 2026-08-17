@@ -1,6 +1,9 @@
-﻿#!/usr/bin/env bash
-# Cursor Cloud install: Salesforce JWT auth + repo deps.
+#!/usr/bin/env bash
+# Cursor Cloud install: Freshdesk shell auth + Salesforce JWT auth + repo deps.
 # Secrets (set in Cloud Agents -> Environments -> Secrets):
+#   FRESHDESK_API_KEY        Freshdesk API key for shell REST scripts and MCP
+#   FRESHDESK_TOKEN          Alternate name accepted for Freshdesk API key
+#   FRESHDESK_API_KEY_B64    Optional base64-encoded Freshdesk API key
 #   SF_CLIENT_ID              Connected App consumer key
 #   SF_USERNAME               e.g. crystal.gagner@vixxo.com
 #   SF_INSTANCE_URL           e.g. https://vixxo.my.salesforce.com
@@ -11,6 +14,39 @@
 # Idempotent: safe to re-run on cached cloud snapshots.
 
 set -euo pipefail
+
+configure_freshdesk() {
+  local home_vixxo="${HOME}/.vixxo"
+  local key_file="${home_vixxo}/freshdesk_api_key"
+  local freshdesk_key=""
+
+  mkdir -p "${home_vixxo}"
+  chmod 700 "${home_vixxo}"
+
+  if [[ -n "${FRESHDESK_API_KEY:-}" ]]; then
+    freshdesk_key="${FRESHDESK_API_KEY}"
+  elif [[ -n "${FRESHDESK_TOKEN:-}" ]]; then
+    freshdesk_key="${FRESHDESK_TOKEN}"
+  elif [[ -n "${FRESHDESK_API_TOKEN:-}" ]]; then
+    freshdesk_key="${FRESHDESK_API_TOKEN}"
+  elif [[ -n "${FRESHDESK_API_KEY_B64:-}" ]]; then
+    freshdesk_key="$(printf '%s' "${FRESHDESK_API_KEY_B64}" | base64 --decode)"
+  elif [[ -n "${FRESHDESK_TOKEN_B64:-}" ]]; then
+    freshdesk_key="$(printf '%s' "${FRESHDESK_TOKEN_B64}" | base64 --decode)"
+  fi
+
+  if [[ -n "${freshdesk_key}" ]]; then
+    printf '%s' "${freshdesk_key}" > "${key_file}"
+    chmod 600 "${key_file}"
+    echo "[cloud-install-sf] Freshdesk API key staged at ~/.vixxo/freshdesk_api_key."
+  elif [[ -s "${key_file}" || -s "${home_vixxo}/freshdesk_token" ]]; then
+    echo "[cloud-install-sf] Existing Freshdesk credential file found."
+  else
+    echo "[cloud-install-sf] WARN: no FRESHDESK_API_KEY / FRESHDESK_TOKEN — Freshdesk shell scripts and MCP calls will fail until configured."
+  fi
+}
+
+configure_freshdesk
 
 ORG_ALIAS="${SF_ORG_ALIAS:-vixxo}"
 KEY_FILE="${HOME}/.sf/server.key"

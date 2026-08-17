@@ -55,14 +55,24 @@ This:
 
 ## What must be enabled
 
-### 1. Repo secrets (`.env` in workspace root)
+### 1. Freshdesk credentials
+
+Cursor Cloud runs `.cursor/cloud-install-sf.sh` during environment setup. That
+script stages any configured Freshdesk secret into
+`~/.vixxo/freshdesk_api_key`, which is the shared fallback used by the shell
+batch scripts and Freshdesk MCP launcher.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `FRESHDESK_API_KEY` | **Yes** | Search tickets, download audio attachments, write on success |
+| `FRESHDESK_TOKEN` | No | Alternate accepted name for `FRESHDESK_API_KEY` |
+| `FRESHDESK_API_KEY_B64` | No | Optional base64-encoded API key for secrets systems that need it |
 | `FRESHDESK_DOMAIN` | No | Default `vixxo-helpdesk.freshdesk.com` |
 
 Freshdesk fallback: `~/.vixxo/freshdesk_token` or `~/.vixxo/freshdesk_api_key`.
+
+If `FRESHDESK_API_KEY` is missing, the batch exits before ticket access with
+`ERROR: FRESHDESK_API_KEY not configured`; no Freshdesk writes occur.
 
 Optional Whisper tuning:
 
