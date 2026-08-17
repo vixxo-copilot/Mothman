@@ -4,8 +4,11 @@ description: >-
   Builds Crystal Gagner's "Good Morning, Crystal" day briefing with Mothman
   cryptid-themed HTML: weather, calendar, Salesforce workload, daily SF queue
   Excel workbook (by case type × status, oldest first), SF case mail sync,
-  account corrections, inbox triage, and first moves. Use for good morning,
-  Good Morning Crystal, mothman good morning, or HTML morning report.
+  account corrections, inbox triage, and first moves. Then runs a Phase 2
+  skill cascade: Crystal-queue SF duplicate review (report-only), SF Task
+  overview, and voicemail triage when inventory is waiting. Use for good
+  morning, Good Morning Crystal, mothman good morning, full morning, or HTML
+  morning report. Say "brief only" to skip the cascade.
 ---
 
 # Mothman Good Morning
@@ -19,13 +22,20 @@ render) with Crystal’s morning-brief sections and a cryptid visual theme.
 ## When to use
 
 - "Good morning" / "Good Morning, Crystal" / "mothman good morning"
-- "HTML morning report" / "render my day"
+- "HTML morning report" / "render my day" / "full morning"
 - Start-of-day snapshot before the first meeting
+
+**Opt out of cascade:** "brief only" / "good morning brief only" / "skip cascade"
+→ Phase 1 HTML only.
 
 For a chat-only brief without HTML, `morning-brief` is also fine; this skill
 **always** writes JSON and renders HTML unless the operator says chat-only.
 
-## Primary deliverable: HTML report
+Afternoon / mid-day mirror: [`mothman-good-afternoon`](../mothman-good-afternoon/SKILL.md)
+(same renderer; `report_kind: afternoon`). Cascade is **morning-default**;
+afternoon runs Phase 2 only when Crystal asks.
+
+## Primary deliverable: HTML report (Phase 1)
 
 1. Collect all sections (workflow below).
 2. Write JSON to `.tmp/mothman-good-morning/data-YYYY-MM-DD.json`
@@ -39,6 +49,7 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 
 4. Post a short chat summary (glance + first moves) and the HTML path.
    Do not dump the full HTML into chat.
+5. **Unless brief-only**, continue to [Phase 2 — Skill cascade](#phase-2--skill-cascade).
 
 ## Output sections (order)
 
@@ -55,6 +66,7 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 11. **Follow-ups**
 12. **First moves** — 2–3 concrete actions
 13. **Day-over-day** — vs prior JSON snapshot when available
+14. **Skill cascade (planned)** — counts / paths when Phase 2 will run (fill results after cascade)
 
 ## Workflow
 
@@ -65,6 +77,9 @@ Run in parallel where possible. Constants: [reference.md](reference.md).
 - **Date / TZ:** today in `America/Chicago` (Central)
 - **Operator:** Crystal Gagner — `Crystal.Gagner@vixxo.com`
 - Do not send outbound mail or Teams. Do not mutate SF Accounts during brief.
+- Phase 2 duplicate review is **report-only** (no merges/closes).
+- Voicemail triage in Phase 2 follows `sp-voicemail-triage` write rules
+  (pre-authorized for that skill) — only when inventory is waiting.
 
 ### 1. Weather — Wichita, KS
 
@@ -118,6 +133,18 @@ python .agents/skills/mothman-good-morning/scripts/export_sf_queue_workbook.py -
 - Put paths + totals into `salesforce.queue_workbook` in the JSON payload.
 - Mention the workbook path in the chat summary (do not paste hundreds of rows).
 
+### 3c. Voicemail inventory (lightweight — for cascade gate)
+
+During Phase 1, count pending sources (no transcription yet):
+
+- SF open Cases: Subject LIKE `%New voicemail%` owned by Crystal **or**
+  Vendor Relations / 4046 queue markers (see `sp-voicemail-triage`)
+- Outlook folder **VM**: unread / recent `New voicemail` subjects
+- Optional: open QSIAP FD tickets with subject `New voicemail`
+
+Store counts in `skill_cascade.voicemail.inventory` (see reference-json).
+Do **not** run full triage until Phase 2.
+
 ### 4. SF case mail to sync (dry-run)
 
 ```bash
@@ -157,19 +184,98 @@ Always write today’s `metrics_snapshot`.
 
 ### 8. Synthesize + render
 
-1. Assemble JSON per [reference-json.md](reference-json.md).
+1. Assemble JSON per [reference-json.md](reference-json.md), including a
+   `skill_cascade` stub (`enabled: true` unless brief-only).
 2. Save snapshot.
 3. Run `render_good_morning_html.py` with `--open`.
 4. Chat: 4–8 line Mothman lead + path to HTML + first moves.
+5. Proceed to Phase 2 when cascade is enabled.
+
+---
+
+## Phase 2 — Skill cascade
+
+Run **after** the HTML brief opens, in this order. Load each sibling
+`SKILL.md` and follow it with the Crystal-scoped constraints below.
+Record outcomes into `skill_cascade` (re-render HTML optional; chat
+summary of cascade results is enough if re-render is slow).
+
+| # | Skill / script | Morning mode | Writes? |
+| --- | --- | --- | --- |
+| 1 | SF Task overview | Read-only export | No |
+| 2 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
+| 3 | `sp-voicemail-triage` | Full batch **only if** inventory &gt; 0 | Yes (per that skill) |
+
+Skip individual legs if Crystal says e.g. "skip voicemail" / "dupes only".
+
+### 2.1 SF Task overview
+
+There is no separate skill — this is owned by Good Morning:
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py --json
+```
+
+- Artifacts: `.tmp/mothman-good-morning/Crystal-SF-Tasks-YYYY-MM-DD.{json,md}`
+- Chat: open total, overdue, due today, top buckets
+- Fold summary into `skill_cascade.task_overview`
+
+### 2.2 SF duplicate review — **Crystal queue only**
+
+Load [`sp-fd-sf-duplicate-bridge`](../sp-fd-sf-duplicate-bridge/SKILL.md).
+Morning default is **SF-only, Crystal-owned seed, report-only**.
+
+1. Ensure a Case window cache exists (Rate Negotiation + Service Provider
+   Support open Cases since ~60 days **or** Owner = Crystal). Prefer reusing
+   today’s
+   `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json`
+   when fresh; otherwise export via SOQL/`sf` and save that path.
+2. Run:
+
+```bash
+python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_duplicates.py \
+  --sf-cache .agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json \
+  --date YYYYMMDD \
+  --open
+```
+
+3. Present: groups count, Cases with dupes, other-owner sibling count, HTML path.
+4. **Do not** run `merge_sf_duplicates.py --execute` from Good Morning.
+   Offer merge plan only if Crystal asks.
+
+### 2.3 Voicemail triage
+
+Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
+
+- If Phase 1 inventory is **0** across SF / Outlook VM / QSIAP → skip; note
+  "no voicemails waiting" in `skill_cascade.voicemail`.
+- If inventory **&gt; 0** → run the skill’s default batch (transcribe + route).
+  That skill’s outbound/SF writes are pre-authorized **for voicemail triage**;
+  still do **not** send Teams or non-voicemail mail from this cascade.
+- If Crystal said "inventory only" / "dry-run voicemail" → triage preview only
+  (`dry-run` mode in that skill); no writes.
+
+### 2.4 Cascade chat wrap
+
+After Phase 2, add 3–6 lines:
+
+- Tasks: open / overdue / due today
+- Dupes: N groups (M with other-owner siblings) + report path
+- Voicemail: skipped / dry-run / batch summary line
+
+---
 
 ## Guardrails
 
 - Evidence from system data only; label assumptions.
 - Do not invent meetings, Case numbers, or weather.
 - Dry-run only for mail sync and account audit.
-- If an MCP/script fails, note it in `skipped` and continue.
+- Duplicate cascade = report only; never auto-merge.
+- If an MCP/script fails, note it in `skipped` / `skill_cascade.*.error` and continue.
 
 ## Trigger phrases
 
 good morning, Good Morning Crystal, mothman good morning, HTML morning report,
-render my day, cryptid brief
+render my day, cryptid brief, full morning
+
+**Cascade off:** brief only, skip cascade

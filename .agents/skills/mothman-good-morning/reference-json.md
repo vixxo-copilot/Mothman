@@ -17,6 +17,10 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 | --- | --- | --- |
 | `date_label` | string | no |
 | `generated_at` | string | no |
+| `report_kind` | string | no — `morning` (default) or `afternoon` |
+| `greeting` | string | no — overrides hero (“Good Morning” / “Good Afternoon”) |
+| `glance_heading` | string | no |
+| `meetings_heading` | string | no |
 | `lead` | string | no — short Mothman one-liner |
 | `glance` | object | no — meeting load / hard stops / coverage |
 | `weather` | object | yes |
@@ -30,6 +34,7 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 | `first_moves` | string[] | yes |
 | `metrics_snapshot` | object | yes |
 | `day_over_day` | object | no |
+| `skill_cascade` | object | no — Phase 2 plan + results |
 | `skipped` | string[] | no |
 
 ## `glance`
@@ -219,3 +224,45 @@ From `audit_case_accounts.py` audit-only.
 ## `day_over_day`
 
 Same shape as Celestia / vanessa-good-morning (`available`, `prior_date`, `rows`, `summary`).
+
+## `skill_cascade`
+
+Present on every Good Morning unless brief-only (`enabled: false`).
+
+```json
+{
+  "enabled": true,
+  "status": "planned",
+  "task_overview": {
+    "status": "pending",
+    "total_open": null,
+    "overdue_count": null,
+    "due_today_count": null,
+    "bucket_counts": {},
+    "path": null
+  },
+  "duplicates": {
+    "status": "pending",
+    "mode": "crystal_owned_seed_report_only",
+    "duplicate_rows": null,
+    "crystal_cases_with_duplicates": null,
+    "with_external_owner": null,
+    "html": null,
+    "md": null
+  },
+  "voicemail": {
+    "status": "pending",
+    "inventory": {
+      "sf_new_voicemail": 0,
+      "outlook_vm": 0,
+      "qsiap": 0
+    },
+    "ran_batch": false,
+    "summary": null
+  }
+}
+```
+
+After Phase 2, set each leg `status` to `done` / `skipped` / `error` and
+fill counts + artifact paths. `status` at the top becomes `complete` when
+all legs finish.

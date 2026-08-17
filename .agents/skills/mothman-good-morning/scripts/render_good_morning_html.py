@@ -402,6 +402,72 @@ def _render_follow_ups(rows: list[dict[str, Any]]) -> str:
     return "".join(parts)
 
 
+def _render_skill_cascade(cascade: dict[str, Any]) -> str:
+    if cascade.get("enabled") is False:
+        return (
+            "<h2>Skill cascade</h2>"
+            "<p class='muted'>Skipped (brief only).</p>"
+        )
+    status = _esc(cascade.get("status") or "planned")
+    parts = [
+        "<h2>Skill cascade</h2>",
+        f"<div class='card'><p><strong>Status:</strong> {status}</p>",
+    ]
+    tasks = cascade.get("task_overview") or {}
+    if tasks:
+        parts.append("<h3 class='subheading'>SF Task overview</h3>")
+        parts.append(
+            "<p>"
+            f"Open {_esc(tasks.get('total_open', '—'))} · "
+            f"Overdue {_esc(tasks.get('overdue_count', '—'))} · "
+            f"Due today {_esc(tasks.get('due_today_count', '—'))}"
+            f" <span class='muted'>({_esc(tasks.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        buckets = tasks.get("bucket_counts") or {}
+        if buckets:
+            parts.append("<ul>")
+            for label, count in list(buckets.items())[:8]:
+                parts.append(f"<li>{_esc(label)}: {_esc(count)}</li>")
+            parts.append("</ul>")
+        if tasks.get("path"):
+            parts.append(
+                f"<p class='muted'>Report: {_esc(tasks['path'])}</p>"
+            )
+    dupes = cascade.get("duplicates") or {}
+    if dupes:
+        parts.append("<h3 class='subheading'>SF duplicates (your queue)</h3>")
+        parts.append(
+            "<p>"
+            f"Groups {_esc(dupes.get('duplicate_rows', '—'))} · "
+            f"Your Cases in groups {_esc(dupes.get('crystal_cases_with_duplicates', '—'))} · "
+            f"Other-owner sibling {_esc(dupes.get('with_external_owner', '—'))}"
+            f" <span class='muted'>({_esc(dupes.get('status') or 'pending')} · "
+            f"{_esc(dupes.get('mode') or 'crystal_owned_seed_report_only')})</span>"
+            "</p>"
+        )
+        if dupes.get("html"):
+            parts.append(
+                f"<p class='muted'>HTML: {_esc(dupes['html'])}</p>"
+            )
+    vm = cascade.get("voicemail") or {}
+    if vm:
+        inv = vm.get("inventory") or {}
+        parts.append("<h3 class='subheading'>Voicemail triage</h3>")
+        parts.append(
+            "<p>"
+            f"Inventory SF {_esc(inv.get('sf_new_voicemail', 0))} · "
+            f"Outlook VM {_esc(inv.get('outlook_vm', 0))} · "
+            f"QSIAP {_esc(inv.get('qsiap', 0))}"
+            f" <span class='muted'>({_esc(vm.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        if vm.get("summary"):
+            parts.append(f"<p>{_esc(vm['summary'])}</p>")
+    parts.append("</div>")
+    return "".join(parts)
+
+
 def render_html(data: dict[str, Any]) -> str:
     if data.get("date_label"):
         date_label = _esc(data["date_label"])
@@ -429,6 +495,28 @@ def render_html(data: dict[str, Any]) -> str:
     blockers = data.get("blockers") or []
     follow_ups = data.get("follow_ups") or []
     lead = data.get("lead") or ""
+    report_kind = str(data.get("report_kind") or "morning").strip().lower()
+    greeting = str(data.get("greeting") or "").strip()
+    if not greeting:
+        greeting = (
+            "Good Afternoon" if report_kind == "afternoon" else "Good Morning"
+        )
+    glance_heading = str(
+        data.get("glance_heading")
+        or (
+            "Rest of day at a glance"
+            if report_kind == "afternoon"
+            else "Today at a glance"
+        )
+    )
+    meetings_heading = str(
+        data.get("meetings_heading")
+        or (
+            "Remaining meetings"
+            if report_kind == "afternoon"
+            else "Today's meetings"
+        )
+    )
 
     w_code = weather.get("weather_code")
     brand_src = _esc(data.get("brand_image") or BRAND_IMG_REL)
@@ -448,10 +536,11 @@ def render_html(data: dict[str, Any]) -> str:
         wind = weather.get("wind_kmh")
         unit_t, unit_w = "°C", "km/h"
 
+    greeting_esc = _esc(greeting)
     parts: list[str] = [
         "<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>",
         "<meta name='viewport' content='width=device-width, initial-scale=1'>",
-        f"<title>Good Morning, Crystal — {date_label}</title>",
+        f"<title>{greeting_esc}, Crystal — {date_label}</title>",
         FONT_LINKS,
         f"<style>{THEME_CSS}</style></head><body>",
         "<span class='ember' aria-hidden='true'></span>",
@@ -461,7 +550,7 @@ def render_html(data: dict[str, Any]) -> str:
         "<div class='hero'>",
         f"<img src='{brand_src}' alt='Mothman' width='72' height='72'>",
         "<div class='titles'>",
-        "<h1>Good Morning, <span class='ember-text'>Crystal</span></h1>",
+        f"<h1>{greeting_esc}, <span class='ember-text'>Crystal</span></h1>",
         f"<p class='meta'>{date_label} · Generated {generated} · CST</p>",
         "</div></div>",
     ]
@@ -476,7 +565,7 @@ def render_html(data: dict[str, Any]) -> str:
 
     # Glance
     if glance:
-        parts.append("<h2>Today at a glance</h2><div class='card'>")
+        parts.append(f"<h2>{_esc(glance_heading)}</h2><div class='card'>")
         if glance.get("meeting_count") is not None:
             parts.append(
                 f"<p><strong>Meetings:</strong> {_esc(glance['meeting_count'])}</p>"
@@ -512,7 +601,7 @@ def render_html(data: dict[str, Any]) -> str:
 
     # Meetings
     meetings = data.get("meetings") or []
-    parts.append(f"<h2>Today's meetings ({len(meetings)})</h2>")
+    parts.append(f"<h2>{_esc(meetings_heading)} ({len(meetings)})</h2>")
     parts.append(_render_meetings(meetings))
 
     # Salesforce
@@ -575,6 +664,7 @@ def render_html(data: dict[str, Any]) -> str:
     dna = acct.get("do_not_apply") or []
     rec = acct.get("recommended") or []
     rev = acct.get("review") or []
+    unr = acct.get("unresolved") or []
     if dna:
         parts.append("<h3 class='subheading'>Do not apply (confirmed / false positives)</h3>")
         parts.append(_render_account_rows(dna, kind="do_not_apply"))
@@ -584,7 +674,10 @@ def render_html(data: dict[str, Any]) -> str:
     if rev:
         parts.append("<h3 class='subheading'>Needs review</h3>")
         parts.append(_render_account_rows(rev, kind="review"))
-    if not dna and not rec and not rev:
+    if unr:
+        parts.append("<h3 class='subheading'>Unresolved (no Account match)</h3>")
+        parts.append(_render_account_rows(unr, kind="do_not_apply"))
+    if not dna and not rec and not rev and not unr:
         parts.append("<p class='ok-banner'>No account corrections flagged.</p>")
     parts.append("</div>")
 
@@ -661,8 +754,14 @@ def render_html(data: dict[str, Any]) -> str:
         parts.append("<li class='muted'>—</li>")
     parts.append("</ol>")
 
+    # Phase 2 skill cascade
+    cascade = data.get("skill_cascade") or {}
+    if cascade:
+        parts.append(_render_skill_cascade(cascade))
+
     parts.append(
-        "<p class='footer'>Mothman · work briefing · dry-run sync &amp; audit only</p>"
+        "<p class='footer'>Mothman · work briefing · dry-run sync &amp; audit only · "
+        "cascade report-only for dupes</p>"
     )
     parts.append("</main></body></html>")
     return "".join(parts)
@@ -687,7 +786,14 @@ def main() -> None:
 
     data = json.loads(args.data_json.read_text(encoding="utf-8"))
     briefing_date = _briefing_date_iso(data, args.data_json)
-    out = args.output or OUTPUT_ROOT / f"good-morning-{briefing_date}.html"
+    stem = args.data_json.stem.lower()
+    kind = str(data.get("report_kind") or "").strip().lower()
+    if args.output:
+        out = args.output
+    elif "afternoon" in stem or kind == "afternoon":
+        out = OUTPUT_ROOT / f"good-afternoon-{briefing_date}.html"
+    else:
+        out = OUTPUT_ROOT / f"good-morning-{briefing_date}.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(data), encoding="utf-8")
     print(out.resolve())

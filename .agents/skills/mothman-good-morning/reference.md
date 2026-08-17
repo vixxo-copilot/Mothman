@@ -47,8 +47,13 @@ WMO weather_code → short text (common codes):
 | SF queue Excel (stable) | `.tmp/mothman-good-morning/Crystal-SF-Queue.xlsx` |
 | SF queue Excel (dated) | `.tmp/mothman-good-morning/Crystal-SF-Queue-YYYY-MM-DD.xlsx` |
 | Queue export script | `.agents/skills/mothman-good-morning/scripts/export_sf_queue_workbook.py` |
+| Task overview script | `.agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py` |
+| Task overview JSON/MD | `.tmp/mothman-good-morning/Crystal-SF-Tasks-YYYY-MM-DD.{json,md}` |
 | Mail sync dry-run | `.tmp/sf-email-sync-morning.json` |
 | Account audit | `.tmp/sf-account-audit-morning.json` |
+| Crystal dupe scan script | `.agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_duplicates.py` |
+| Crystal dupe window cache | `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json` |
+| Crystal dupe report | `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-intra-duplicate-*-crystal-owned-YYYYMMDD.*` |
 
 ## Salesforce SOQL (open workload)
 
@@ -165,8 +170,42 @@ Workbook layout:
 Fonts: **Cinzel** (display) + **Nunito** (body) — same pairing as Celestia,
 dark cryptid palette instead of lavender cream.
 
+## Phase 2 cascade — Task overview SOQL
+
+```sql
+SELECT Id, Subject, Status, Priority, ActivityDate, CreatedDate,
+       LastModifiedDate, WhatId, What.Type, What.Name, Description
+FROM Task
+WHERE OwnerId = '{UID}' AND IsClosed = false
+ORDER BY ActivityDate ASC NULLS LAST, CreatedDate ASC
+```
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py --json
+```
+
+## Phase 2 cascade — Crystal-owned duplicate review
+
+Window cache should include sibling candidates (not Crystal-only). Typical
+filter: open Cases where `CreatedDate` ≥ ~60 days ago AND
+(`OwnerId = '{UID}'` OR `RecordType.Name` IN Rate Negotiation /
+Service Provider Support). Save as
+`sf-cases-window-crystal-queue-YYYYMMDD.json` under the duplicate-bridge
+`.tmp` folder.
+
+```bash
+python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_duplicates.py \
+  --sf-cache .agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json \
+  --date YYYYMMDD \
+  --open
+```
+
+**Report-only** from Good Morning — no merge execute.
+
 ## Related skills
 
 - `morning-brief` — chat-oriented daily rundown (same data sources)
 - `sf-case-email-sync` — mail scan + account audit scripts
+- `sp-fd-sf-duplicate-bridge` — Phase 2 Crystal-owned duplicate scan
+- `sp-voicemail-triage` — Phase 2 when voicemail inventory &gt; 0
 - `daily-briefing` — lighter work-only brief when MCP is thin

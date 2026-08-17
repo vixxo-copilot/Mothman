@@ -106,6 +106,16 @@ python scripts/scan_sf_duplicates.py \
 3. Present **one row per SP**: recommended primary Case, Cases to merge/close.
 4. Operator approves before any Case status change or merge.
 
+**Crystal queue only (morning cascade / “my queue”):** seed from Crystal-owned
+open Cases; siblings may be other owners. Report-only from Good Morning:
+
+```bash
+python scripts/scan_crystal_owned_duplicates.py \
+  --sf-cache .tmp/sf-cases-window-crystal-queue-YYYYMMDD.json \
+  --date YYYYMMDD \
+  --open
+```
+
 **Do not** run `scan_duplicates.py` (FD↔SF) or `--include-fd-xref` unless the
 operator explicitly asks. All-org shell pipeline
 (`run_allorg_duplicate_vet_pipeline.py`) is SF-only.
@@ -238,6 +248,7 @@ COI Req-id duplicates**.
 | Script | Purpose |
 | --- | --- |
 | `scripts/scan_sf_duplicates.py` | **SF-only** duplicate Case review |
+| `scripts/scan_crystal_owned_duplicates.py` | Crystal-owned seed scan (queue-only report) |
 | `scripts/extract_shell_coi_insured.py` | **Required** COI PDF insured/SP extraction (Case + EmailMessage) |
 | `scripts/render_shell_needs_manual_html.py` | Full needs-manual list (Case # + subject) → Chrome |
 | `scripts/merge_sf_duplicates.py` | **Bucket merge/close** plan + execute |
