@@ -202,6 +202,24 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 
 **Report-only** from Good Morning — no merge execute.
 
+## Email briefing — folder ignore list
+
+Case-insensitive `displayName` match (substring allowed where noted):
+
+| Ignore | Notes |
+| --- | --- |
+| Templates | exact |
+| Me | exact |
+| Vixxo IT | exact |
+| SP Docs | also `SP Docs/ Help Desk items` |
+| VixxoLink | any folder name containing VixxoLink |
+| Meeting Notes | exact |
+| Claude & Mothman | exact |
+
+Also skip Junk, Deleted Items, Conversation History, Sync Issues, Outbox,
+Drafts, RSS* unless Crystal asks. **Always scan Inbox.** Keep **VM** available
+for voicemail inventory (not on the ignore list).
+
 ## Related skills
 
 - `morning-brief` — chat-oriented daily rundown (same data sources)

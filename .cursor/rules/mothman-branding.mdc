@@ -37,6 +37,8 @@ afternoon check-in, or "what should I focus on today", follow this workflow:
    - **SF queue Excel** — regenerate via `export_sf_queue_workbook.py` (type × status, oldest first)
    - **SF case mail to sync** — dry-run scan of open Cases (`morning_case_mail_scan.py`)
    - **Account corrections** — audit-only Case Account check (`audit_case_accounts.py`)
+   - **Email briefing** — unread by urgency + date; ignore Templates, Me,
+     Vixxo IT, SP Docs, VixxoLink, Meeting Notes, Claude & Mothman
    - **Blockers and risks**
    - **Follow-ups** — owner + timing
    - **First moves** — 2–3 concrete next actions

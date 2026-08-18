@@ -28,7 +28,8 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 | `salesforce` | object | yes |
 | `case_mail_sync` | object | yes |
 | `account_corrections` | object | yes |
-| `inbox` | object | yes |
+| `inbox` | object | yes — totals + short needs_action (compat) |
+| `email_briefing` | object | yes — urgency + date email briefing |
 | `blockers` | string[] | no |
 | `follow_ups` | array | no |
 | `first_moves` | string[] | yes |
@@ -187,6 +188,10 @@ From `audit_case_accounts.py` audit-only.
 
 ## `inbox`
 
+Backward-compatible summary. Prefer populating **`email_briefing`** as the
+primary email section; keep `inbox` totals + a short `needs_action` mirror of
+urgent/today items.
+
 ```json
 {
   "total": 40,
@@ -199,6 +204,59 @@ From `audit_case_accounts.py` audit-only.
   "no_action_summary": "Noreply digests, Teams nudges, marketing."
 }
 ```
+
+## `email_briefing`
+
+Unread scan across Inbox + non-ignored folders. See ignore list in
+[reference.md](reference.md).
+
+```json
+{
+  "scanned_unread": 28,
+  "folders_scanned": ["Inbox", "AP", "To Be Processed", "VM"],
+  "folders_ignored": [
+    "Templates",
+    "Me",
+    "Vixxo IT",
+    "SP Docs/ Help Desk items",
+    "VixxoLink",
+    "Meeting Notes",
+    "Claude & Mothman"
+  ],
+  "counts_by_urgency": {
+    "urgent": 2,
+    "today": 4,
+    "this_week": 5,
+    "fyi": 17
+  },
+  "by_urgency": {
+    "urgent": [
+      {
+        "from": "Jerry Medina",
+        "subject": "Men's Wearhouse — signed agreement + W9",
+        "tag": "Ask",
+        "urgency": "urgent",
+        "received": "2026-08-13",
+        "folder": "Inbox",
+        "note": "Case 8172 packet"
+      }
+    ],
+    "today": [],
+    "this_week": [],
+    "fyi": []
+  },
+  "by_date": {
+    "today": [],
+    "yesterday": [],
+    "last_7_days": [],
+    "older": []
+  },
+  "noise_summary": "Teams nudges, noreply digests, marketing."
+}
+```
+
+Each item may appear under both `by_urgency` and `by_date`. Cap HTML rows
+(~8 per urgency bucket, ~10 per date bucket); put overflow in counts only.
 
 ## `follow_ups[]`
 

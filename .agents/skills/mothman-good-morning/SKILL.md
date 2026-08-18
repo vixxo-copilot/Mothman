@@ -4,11 +4,12 @@ description: >-
   Builds Crystal Gagner's "Good Morning, Crystal" day briefing with Mothman
   cryptid-themed HTML: weather, calendar, Salesforce workload, daily SF queue
   Excel workbook (by case type × status, oldest first), SF case mail sync,
-  account corrections, inbox triage, and first moves. Then runs a Phase 2
-  skill cascade: Crystal-queue SF duplicate review (report-only), SF Task
-  overview, and voicemail triage when inventory is waiting. Use for good
-  morning, Good Morning Crystal, mothman good morning, full morning, or HTML
-  morning report. Say "brief only" to skip the cascade.
+  account corrections, email briefing (urgency + date, folder ignore list),
+  and first moves. Then runs a Phase 2 skill cascade: Crystal-queue SF
+  duplicate review (report-only), SF Task overview, and voicemail triage when
+  inventory is waiting. Use for good morning, Good Morning Crystal, mothman
+  good morning, full morning, or HTML morning report. Say "brief only" to
+  skip the cascade.
 ---
 
 # Mothman Good Morning
@@ -61,7 +62,7 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 6. **SF queue Excel** — full open Case breakdown by type × status (oldest first); overwrites daily workbook
 7. **SF case mail to sync** — dry-run only
 8. **Account corrections** — audit-only (never write AccountId here)
-9. **Inbox highlights** — actionable unread only
+9. **Email briefing** — unread by urgency + date (folder ignore list; see below)
 10. **Blockers and risks**
 11. **Follow-ups**
 12. **First moves** — 2–3 concrete actions
@@ -172,10 +173,57 @@ Known keep-as-is (operator confirmed):
 - Case **7263** → SP **101023** Pinnacle Roofing Partners
 - Case **6657** → SP **66466** Armstrong Electric
 
-### 6. Inbox triage
+### 6. Email briefing (urgency + date)
 
-Unread Inbox (`isRead eq false`, `top: 20+`). Classify Ask / Decision / FYI.
-Deprioritize noreply “2nd floor”, marketing, Teams nudges.
+Replace shallow “inbox highlights” with a structured **email briefing**.
+
+**Scan:** unread messages in **Inbox** plus other mail folders under the root /
+Inbox tree, **except** the ignore list. Prefer modest `$top` per folder
+(15–25 unread); do not dump full bodies into HTML.
+
+**Always ignore** (match folder `displayName` case-insensitive; substring OK
+for the SP Docs / VixxoLink variants):
+
+| Ignore folder |
+| --- |
+| Templates |
+| Me |
+| Vixxo IT |
+| SP Docs (incl. `SP Docs/ Help Desk items`) |
+| VixxoLink |
+| Meeting Notes |
+| Claude & Mothman |
+
+Do **not** ignore **VM** here — voicemail inventory still uses that folder in
+Phase 1c / cascade. Skip system folders that are never work mail (Junk,
+Deleted, Conversation History, Sync Issues, RSS*) unless Crystal asks.
+
+**Classify each actionable thread:**
+
+| Field | Values |
+| --- | --- |
+| `urgency` | `urgent` · `today` · `this_week` · `fyi` |
+| `tag` | `Ask` · `Decision` · `FYI` |
+| `received` | ISO date (Chicago day) |
+| `folder` | mailbox folder display name |
+
+**Urgency heuristics (Crystal / SPS):**
+
+- **urgent** — external SP/compliance reply blocking work today; manager/SLT
+  ask; same-day deadline language; COI/W9/agreement packet waiting on her
+- **today** — clear Ask/Decision from work contacts; open Case-linked packet
+- **this_week** — aging actionable thread (>1 day) without same-day heat
+- **fyi** — status notes, CC chains, resolved-elsewhere; deprioritize noreply
+  “2nd floor”, marketing, Teams nudges
+
+**Present in HTML + chat (two cuts, same items):**
+
+1. **By urgency** — urgent → today → this_week → fyi (counts + top rows)
+2. **By date** — today → yesterday → last 7 days → older
+
+Keep `inbox` in JSON for backward compatibility (totals + short
+`needs_action` mirror of urgent/today). Full structure lives in
+`email_briefing` ([reference-json.md](reference-json.md)).
 
 ### 7. Day-over-day
 
@@ -185,10 +233,12 @@ Always write today’s `metrics_snapshot`.
 ### 8. Synthesize + render
 
 1. Assemble JSON per [reference-json.md](reference-json.md), including a
-   `skill_cascade` stub (`enabled: true` unless brief-only).
+   `skill_cascade` stub (`enabled: true` unless brief-only) and
+   `email_briefing`.
 2. Save snapshot.
 3. Run `render_good_morning_html.py` with `--open`.
-4. Chat: 4–8 line Mothman lead + path to HTML + first moves.
+4. Chat: 4–8 line Mothman lead + path to HTML + first moves + email urgency
+   counts.
 5. Proceed to Phase 2 when cascade is enabled.
 
 ---

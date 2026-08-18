@@ -16,7 +16,8 @@ Persona: Mothman — confident, smart, no-nonsense.
 **Mirrors** [`mothman-good-morning`](../mothman-good-morning/SKILL.md): same
 data sources, JSON schema, HTML renderer, and SF queue workbook. Differences
 are framing (remaining day), paths, and day-over-day vs this morning’s
-snapshot when available.
+snapshot when available. Include the same **email briefing** (urgency + date,
+folder ignore list) when refreshing inbox mid/late day.
 
 The morning **Phase 2 skill cascade** (task overview, Crystal-queue
 duplicates, voicemail) is **not** default here — run it only when Crystal

@@ -402,6 +402,102 @@ def _render_follow_ups(rows: list[dict[str, Any]]) -> str:
     return "".join(parts)
 
 
+def _render_email_briefing(brief: dict[str, Any], inbox: dict[str, Any]) -> str:
+    """Urgency + date email briefing; fall back to legacy inbox highlights."""
+    if not brief:
+        parts = [
+            "<h2>Inbox highlights</h2><div class='card'>",
+            f"<p><strong>Unread:</strong> {_esc(inbox.get('unread', 0))} · "
+            f"<strong>Needs action:</strong> {_esc(inbox.get('needs_action_count', 0))}</p>",
+            _render_mail_rows(inbox.get("needs_action") or []),
+        ]
+        if inbox.get("no_action_summary"):
+            parts.append(
+                f"<p><strong>Noise / FYI:</strong> {_esc(inbox['no_action_summary'])}</p>"
+            )
+        parts.append("</div>")
+        return "".join(parts)
+
+    counts = brief.get("counts_by_urgency") or {}
+    parts = [
+        "<h2>Email briefing</h2><div class='card'>",
+        "<p><strong>Unread scanned:</strong> "
+        f"{_esc(brief.get('scanned_unread', inbox.get('unread', 0)))} · "
+        f"<strong>Urgent:</strong> {_esc(counts.get('urgent', 0))} · "
+        f"<strong>Today:</strong> {_esc(counts.get('today', 0))} · "
+        f"<strong>This week:</strong> {_esc(counts.get('this_week', 0))} · "
+        f"<strong>FYI:</strong> {_esc(counts.get('fyi', 0))}</p>",
+    ]
+    ignored = brief.get("folders_ignored") or []
+    if ignored:
+        parts.append(
+            "<p class='muted'><strong>Ignored folders:</strong> "
+            f"{_esc(', '.join(str(x) for x in ignored))}</p>"
+        )
+
+    urgency_order = [
+        ("urgent", "Urgent"),
+        ("today", "Today"),
+        ("this_week", "This week"),
+        ("fyi", "FYI"),
+    ]
+    by_u = brief.get("by_urgency") or {}
+    parts.append("<h3 class='subheading'>By urgency</h3>")
+    for key, label in urgency_order:
+        rows = by_u.get(key) or []
+        n = counts.get(key, len(rows))
+        parts.append(f"<p><strong>{_esc(label)}</strong> ({_esc(n)})</p>")
+        if rows:
+            parts.append(_render_email_brief_rows(rows))
+        elif not n:
+            parts.append("<p class='muted'>None.</p>")
+
+    date_order = [
+        ("today", "Received today"),
+        ("yesterday", "Yesterday"),
+        ("last_7_days", "Last 7 days"),
+        ("older", "Older"),
+    ]
+    by_d = brief.get("by_date") or {}
+    if any(by_d.get(k) for k, _ in date_order):
+        parts.append("<h3 class='subheading'>By date</h3>")
+        for key, label in date_order:
+            rows = by_d.get(key) or []
+            if not rows:
+                continue
+            parts.append(f"<p><strong>{_esc(label)}</strong> ({_esc(len(rows))})</p>")
+            parts.append(_render_email_brief_rows(rows))
+
+    if brief.get("noise_summary"):
+        parts.append(
+            f"<p><strong>Noise:</strong> {_esc(brief['noise_summary'])}</p>"
+        )
+    parts.append("</div>")
+    return "".join(parts)
+
+
+def _render_email_brief_rows(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return "<p class='muted'>None</p>"
+    parts = [
+        "<table><thead><tr>"
+        "<th>From</th><th>Subject</th><th>Tag</th><th>Date</th><th>Folder</th>"
+        "</tr></thead><tbody>"
+    ]
+    for row in rows[:10]:
+        parts.append(
+            "<tr>"
+            f"<td>{_esc(row.get('from') or '')}</td>"
+            f"<td>{_esc(row.get('subject') or '')}</td>"
+            f"<td>{_esc(row.get('tag') or row.get('urgency') or '')}</td>"
+            f"<td>{_esc(row.get('received') or '')}</td>"
+            f"<td>{_esc(row.get('folder') or '')}</td>"
+            "</tr>"
+        )
+    parts.append("</tbody></table>")
+    return "".join(parts)
+
+
 def _render_skill_cascade(cascade: dict[str, Any]) -> str:
     if cascade.get("enabled") is False:
         return (
@@ -681,18 +777,9 @@ def render_html(data: dict[str, Any]) -> str:
         parts.append("<p class='ok-banner'>No account corrections flagged.</p>")
     parts.append("</div>")
 
-    # Inbox
-    parts.append("<h2>Inbox highlights</h2><div class='card'>")
-    parts.append(
-        f"<p><strong>Unread:</strong> {_esc(inbox.get('unread', 0))} · "
-        f"<strong>Needs action:</strong> {_esc(inbox.get('needs_action_count', 0))}</p>"
-    )
-    parts.append(_render_mail_rows(inbox.get("needs_action") or []))
-    if inbox.get("no_action_summary"):
-        parts.append(
-            f"<p><strong>Noise / FYI:</strong> {_esc(inbox['no_action_summary'])}</p>"
-        )
-    parts.append("</div>")
+    # Email briefing (urgency + date) — falls back to legacy inbox highlights
+    brief = data.get("email_briefing") or {}
+    parts.append(_render_email_briefing(brief, inbox))
 
     # Blockers
     parts.append("<h2>Blockers and risks</h2>")
