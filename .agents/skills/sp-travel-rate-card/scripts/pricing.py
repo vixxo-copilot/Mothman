@@ -58,3 +58,16 @@ def suggested_travel(
         raise ValueError("anchor_miles is 0 — cannot scale extended travel")
     raw = anchor_travel * (miles / anchor_miles)
     return round_to_increment(raw, round_to)
+
+
+def travel_from_drive_time(
+    one_way_minutes: float,
+    labor_rate: float,
+    *,
+    round_trip: bool = True,
+) -> int | None:
+    """Bill drive time at the hourly labor rate. Default is round-trip."""
+    if labor_rate is None:
+        return None
+    hours = (float(one_way_minutes) * (2 if round_trip else 1)) / 60.0
+    return int(round(hours * float(labor_rate)))

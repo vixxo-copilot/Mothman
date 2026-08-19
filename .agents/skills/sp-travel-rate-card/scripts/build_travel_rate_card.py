@@ -28,6 +28,7 @@ from pricing import (
     resolve_anchor_travel,
     suggested_travel,
     territory,
+    travel_from_drive_time,
 )
 
 HERE = Path(__file__).resolve().parent
@@ -327,13 +328,16 @@ def enrich_row(
         round_to=int(cfg["extended"].get("round_to", 5)),
         hold_anchor=hold_anchor,
     )
+    time_travel = travel_from_drive_time(minutes, labor) if labor else None
     return {
         "miles": miles,
         "round_trip": round(miles * 2, 1),
         "minutes": minutes,
+        "rt_minutes": int(minutes) * 2,
         "band": range_band(miles, local.get("band_low_miles", 30), local["max_miles"]),
         "territory": terr,
         "travel": travel,
+        "time_travel": time_travel,
         "trip_min": travel + labor,
         "vs_anchor": travel - anchor_travel,
         "scaled_raw": round(anchor_travel * (miles / anchor_miles), 1) if anchor_miles else None,
@@ -366,7 +370,8 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
     note = (
         f"Local <= {local['max_miles']} miles = ${local['travel']}  |  "
         f"Extended scales from {anchor_city} at ${anchor_travel} for {anchor_miles} miles  |  "
-        f"One-way OSRM driving miles. Suggested only — not an approved rate card."
+        f"One-way OSRM driving miles. Time-based travel = round-trip drive hours × ${labor}/hr. "
+        f"Suggested only — not an approved rate card."
     )
     title_block(ws, title, subtitle, note)
     ws["A5"] = "Item"
@@ -383,7 +388,8 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
         ["Anchor city", anchor_city],
         ["Anchor travel", f"${anchor_travel} ({anchor_how})"],
         ["Anchor miles (one-way)", anchor_miles],
-        ["Labor rate (trip min add-on)", f"${labor}" if labor is not None else ""],
+        ["Labor rate", f"${labor}/hr (also used for round-trip drive-time travel)"],
+        ["Time-based travel", "round-trip drive hours × labor rate, rounded to nearest dollar"],
         ["Round extended to", ext.get("round_to", 5)],
         ["Hold anchor exact", bool(ext.get("hold_anchor_exact", True))],
         ["Prepared", date.today().isoformat()],
@@ -410,6 +416,7 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
         "Range band",
         "Territory",
         "Suggested flat travel",
+        "Travel at labor rate (round-trip drive time)",
         "Suggested trip min (travel + 1 hr labor)",
         f"Vs {anchor_city.split(',')[0]} travel",
         "Scaled raw (before round)",
@@ -430,6 +437,7 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
                 e["band"],
                 e["territory"],
                 e["travel"],
+                e["time_travel"],
                 e["trip_min"],
                 e["vs_anchor"],
                 e["scaled_raw"],
@@ -442,15 +450,16 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
     title_block(ws_c, title, "City / CBSA centroids from the coverage breakdown.", note)
     write_table(
         ws_c, 5, headers, city_rows,
-        money_cols={9, 10, 11, 12}, miles_cols={4, 5}, int_cols={6},
-        rate_cols={13}, center_cols={3, 7, 8},
+        money_cols={9, 10, 11, 12, 13}, miles_cols={4, 5}, int_cols={6},
+        rate_cols={14}, center_cols={3, 7, 8},
     )
     autosize(ws_c)
 
     site_headers = [
         "Customer #", "Site #", "Site name", "City", "Site address", "SRs in export",
         "One-way miles", "Round-trip miles", "Drive minutes", "Range band", "Territory",
-        "Suggested flat travel", "Suggested trip min", f"Vs {anchor_city.split(',')[0]} travel",
+        "Suggested flat travel", "Travel at labor rate (round-trip drive time)",
+        "Suggested trip min", f"Vs {anchor_city.split(',')[0]} travel",
         "Geocode match", "Note",
     ]
     site_rows = []
@@ -461,7 +470,7 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
                 s.get("customer"), s.get("site_no"), s.get("site_name"), s.get("city"),
                 s.get("address"), s.get("srs"),
                 e["miles"], e["round_trip"], e["minutes"], e["band"], e["territory"],
-                e["travel"], e["trip_min"], e["vs_anchor"],
+                e["travel"], e["time_travel"], e["trip_min"], e["vs_anchor"],
                 s.get("display") or "", s.get("note") or "",
             ]
         )
@@ -470,14 +479,15 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
     title_block(ws_s, title, "Unique sites from the SR export (if supplied).", note)
     write_table(
         ws_s, 5, site_headers, site_rows,
-        money_cols={12, 13, 14}, miles_cols={7, 8}, int_cols={6, 9},
+        money_cols={12, 13, 14, 15}, miles_cols={7, 8}, int_cols={6, 9},
         center_cols={10, 11},
     )
     autosize(ws_s)
 
     ext_headers = [
         "Location", "Type", "One-way miles", "Drive minutes", "Suggested flat travel",
-        "Suggested trip min", "% of anchor miles", "Vs anchor travel", "Why this rate",
+        "Travel at labor rate (round-trip drive time)", "Suggested trip min",
+        "% of anchor miles", "Vs anchor travel", "Why this rate",
     ]
     ext_rows = []
     for c in city_rows_data:
@@ -492,7 +502,7 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
         if is_anchor_name(c["name"], anchor_city):
             why = f"Anchor. Travel held at ${anchor_travel} ({anchor_how})."
         ext_rows.append(
-            [c["name"], "City", e["miles"], e["minutes"], e["travel"], e["trip_min"], pct, e["vs_anchor"], why]
+            [c["name"], "City", e["miles"], e["minutes"], e["travel"], e["time_travel"], e["trip_min"], pct, e["vs_anchor"], why]
         )
     for s in site_rows_data:
         e = s["enrich"]
@@ -504,16 +514,16 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
         if is_anchor_name(str(s.get("city") or ""), anchor_city) and ext.get("hold_anchor_exact", True):
             why = f"Anchor-city site. Travel held at ${anchor_travel}."
         ext_rows.append(
-            [loc, "Site", e["miles"], e["minutes"], e["travel"], e["trip_min"], pct, e["vs_anchor"], why]
+            [loc, "Site", e["miles"], e["minutes"], e["travel"], e["time_travel"], e["trip_min"], pct, e["vs_anchor"], why]
         )
     ext_rows.sort(key=lambda r: r[2])
     ws_e = wb.create_sheet("Extended analysis")
     title_block(ws_e, title, "Extended markets only (over local max miles).", note)
     write_table(
         ws_e, 5, ext_headers, ext_rows,
-        money_cols={5, 6, 8}, miles_cols={3}, int_cols={4}, center_cols={2},
+        money_cols={5, 6, 7, 9}, miles_cols={3}, int_cols={4}, center_cols={2},
     )
-    for row in ws_e.iter_rows(min_row=6, max_row=5 + len(ext_rows), min_col=7, max_col=7):
+    for row in ws_e.iter_rows(min_row=6, max_row=5 + len(ext_rows), min_col=8, max_col=8):
         for cell in row:
             if isinstance(cell.value, float):
                 cell.number_format = "0%"
@@ -527,10 +537,12 @@ def build_workbook(cfg: dict, origin: dict, city_rows_data: list[dict], site_row
             note_t = f"Scaled from {anchor_city} ${anchor_travel}"
         if is_anchor_name(c["name"], anchor_city):
             note_t = f"Anchor — {anchor_how}"
-        rec.append([c["name"], e["territory"], e["travel"], note_t])
+        rec.append([c["name"], e["territory"], e["travel"], e["time_travel"], note_t])
     write_table(
-        ws_e, rec_row + 1, ["City", "Territory", "Suggested flat travel", "Notes"], rec,
-        money_cols={3}, center_cols={2},
+        ws_e, rec_row + 1,
+        ["City", "Territory", "Suggested flat travel", "Travel at labor rate (round-trip drive time)", "Notes"],
+        rec,
+        money_cols={3, 4}, center_cols={2},
     )
     autosize(ws_e)
     wb.save(out)
@@ -557,6 +569,8 @@ def run_self_test() -> int:
         anchor_miles=180.3, anchor_travel=275, round_to=5, hold_anchor=True,
     )
     assert sav == 275, sav
+    timed = travel_from_drive_time(203, 75)
+    assert timed == 508, timed
     print("self-test OK")
     return 0
 

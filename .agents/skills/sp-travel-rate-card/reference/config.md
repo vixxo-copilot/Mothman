@@ -69,7 +69,10 @@ suggested = round(anchor_travel × (one_way_miles / anchor_city_miles), round_to
 
 If `hold_anchor_exact` is true (default), the anchor city and sites in that city keep `anchor_travel` even when site miles differ slightly.
 
-`labor_rate` is also added as **suggested trip min = travel + labor_rate** so the card can be compared to the quoted minimum.
+`labor_rate` is also used for:
+
+- **Suggested trip min** = flat travel + one hour of labor
+- **Travel at labor rate** = round-trip drive hours × labor rate (column next to flat travel)
 
 ## Cities
 

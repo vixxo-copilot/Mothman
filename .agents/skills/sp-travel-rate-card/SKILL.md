@@ -48,6 +48,7 @@ Collect, then write JSON (see [reference/config.md](reference/config.md)):
   - `anchor_travel = trip_minimum - (labor_rate × labor_hours_in_minimum)`, or
   - explicit `extended.travel`
 - Extended city/site: `round(anchor_travel × miles / anchor_city_miles, round_to)`
+- Time-based travel (column next to flat): `round-trip drive hours × labor_rate`
 - Anchor city (and sites in that city when `hold_anchor_exact`) keep `anchor_travel`
 - Distances are **one-way driving miles** (Census/Nominatim geocode + OSRM)
 - Output is a **suggested** card, not an approved rate file
