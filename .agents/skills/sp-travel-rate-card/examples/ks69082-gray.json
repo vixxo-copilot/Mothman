@@ -1,0 +1,40 @@
+{
+  "sp_number": "KS69082",
+  "sp_name": "Stephen's Handi Man Service",
+  "origin": {
+    "address": "443 GA Highway 22 E, Gray, GA 31032"
+  },
+  "local": {
+    "max_miles": 50,
+    "band_low_miles": 30,
+    "travel": 75
+  },
+  "extended": {
+    "anchor_city": "Savannah, GA",
+    "trip_minimum": 350,
+    "labor_rate": 75,
+    "labor_hours_in_minimum": 1,
+    "round_to": 5,
+    "hold_anchor_exact": true
+  },
+  "aliases": {
+    "Warner Robbins": "Warner Robins, GA",
+    "PERRY": "Perry, GA"
+  },
+  "cities": [
+    { "name": "Warner Robins, GA", "parent_cbsa": "Warner Robins GA" },
+    { "name": "Byron, GA", "parent_cbsa": "Warner Robins GA" },
+    { "name": "Centerville, GA", "parent_cbsa": "Warner Robins GA" },
+    { "name": "Fort Valley, GA", "parent_cbsa": "Warner Robins GA" },
+    { "name": "Perry, GA", "parent_cbsa": "Warner Robins GA" },
+    { "name": "Macon, GA", "parent_cbsa": "Macon GA" },
+    { "name": "Albany, GA", "parent_cbsa": "Albany GA" },
+    { "name": "Leesburg, GA", "parent_cbsa": "Albany GA" },
+    { "name": "Savannah, GA", "parent_cbsa": "Savannah GA" },
+    { "name": "Pooler, GA", "parent_cbsa": "Savannah GA" },
+    { "name": "Milledgeville, GA", "parent_cbsa": "Milledgeville GA" },
+    { "name": "Hinesville, GA", "parent_cbsa": "Hinesville GA" },
+    { "name": "Brunswick, GA", "parent_cbsa": "Brunswick GA" }
+  ],
+  "sr_export": "C:/Users/CGagner/Downloads/Stephen's Handi Man Service - KS69082 - SR Export.xlsx"
+}
