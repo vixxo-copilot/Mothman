@@ -40,11 +40,10 @@
       }
     },
     "gateway": {
-      "args": [
-        ".cursor/bin/run-vixxo-http-mcp.py",
-        "gateway"
-      ],
-      "command": "python3"
+      "url": "https://vixxonow.com/mcp/gateway",
+      "auth": {
+        "CLIENT_ID": "cursor-ADq35_ToyL0HHo6Jk8-LrDcOxT4HK-PD"
+      }
     },
     "github": {
       "args": [
