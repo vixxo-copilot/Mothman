@@ -12,8 +12,8 @@ decision, and [company vetting](company-vetting.md).
 | VixxoLink Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Include SP # if vetted |
 | Technical / Trade Support | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | Same SPM path |
 | General Inquiry | `service.providermanagement@vixxo.com` | Internal note + forward; resolve when routed | When no sharper bucket fits |
-| Billing / Invoice Support | `aphelp@vixxo.com` | Internal note + forward; resolve when routed | |
-| Payment Information | `aphelp@vixxo.com` | Internal note + forward; resolve when routed | |
+| Billing / Invoice Support | `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP**; SF 4046 → close Case | See **QSIAP branch** / [salesforce-4046-voicemail.md](salesforce-4046-voicemail.md) | |
+| Payment Information | `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP**; SF 4046 → close Case | Same as Billing — AP owns; no SPM Task | |
 | COI / Compliance (Insurance) | `COI@vixxo.com` | Internal note + forward; resolve when routed | |
 | Coverage / Onboarding | See **Onboarding branch** below | Varies | |
 | Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
@@ -82,6 +82,29 @@ When matched:
 speak with a sourcing contact. Incorrectly sent to AP Help; correct path is
 SPM and/or {{employee_name}} review. See [examples.md](examples.md) Example 7.
 
+## QSIAP branch (`qsiap@vixxo.com`)
+
+Applies when the Freshdesk ticket is gated to **`qsiap@vixxo.com`** (subject
+`New voicemail`). Full intake:
+[qsiap-voicemail.md](qsiap-voicemail.md).
+
+1. Transcribe audio **first**. Never treat 8x8 caller ID as company.
+2. Classify from transcript.
+3. **Billing / Invoice Support**:
+   - Internal note + tags `qsiap-source` + `voicemail-triaged` + `cf_sp`
+   - **Do not forward** to `aphelp@vixxo.com` (already on QSIAP)
+   - Leave **Open** when callback Yes/Recommended
+   - Resolve only for foul language / &lt;10s / blank-minimal branches
+   - **No Salesforce Case or Task** — Freshdesk only
+4. **Payment Information** (includes past-due / payment-update inquiries):
+   - Same QSIAP stay disposition as billing (note / tags / leave Open)
+   - **Do not forward to SPM** — AP owns payment updates even when the
+     transcript mentions "account" or past-due invoices
+   - **No Salesforce Case or Task** — Freshdesk only (same as Billing)
+5. **Any other category** (COI, onboarding, SPM, SR, etc.):
+   - Treat as misroute off QSIAP — forward to the normal recipient in the
+     routing table, then resolve
+
 ## Onboarding branch (want to join as SP)
 
 Applies when the caller wants to **onboard as a service provider** (Coverage /
@@ -96,7 +119,7 @@ Onboarding category, or clear recruitment intent).
      [salesforce-notes.md](salesforce-notes.md)). Post automatically.
    - When an open **Case** also matches, post a **Case Task** as well (both ids
      in the internal note).
-   - **Resolve** the Freshdesk ticket (`status: 5`). Set `type: KSOnboarding`
+   - **Resolve** the Freshdesk ticket (`status: 5`) when on QSIAP. Set a valid `type`
      when updating if not already set.
 3. **No Lead found**:
    - **Forward** ticket to `spm-recruitment@vixxo.com` via `forward_ticket`
@@ -194,7 +217,7 @@ Use `update_ticket`:
   "ticket_id": "<id>",
   "ticket": {
     "status": 5,
-    "type": "<KSOnboarding | VixxoLink Support | Invoice Support | COIs | as appropriate>",
+    "type": "<VixxoLink Support | Invoice Support | COIs | as appropriate>",
     "custom_fields": {
       "cf_sp": "<SP number or Unknown>"
     }
@@ -209,12 +232,16 @@ Only resolve tickets that pass the voicemail filter in
 [freshdesk-voicemail-filter.md](freshdesk-voicemail-filter.md) (subject includes
 `New voicemail`).
 
-Freshdesk requires a valid `type` when changing status. Allowed values include:
-`Account Update`, `Invoice Support`, `VixxoLink Support`, `Credit/Debit
-Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`, `No Action Required`,
-`KSOnboarding`.
+Freshdesk requires a valid `type` when changing status (QSIAP path only).
+Allowed values include: `Account Update`, `Invoice Support`, `VixxoLink
+Support`, `Credit/Debit Submission`, `NTE`, `Capital Project`, `SWS`, `COIs`,
+`No Action Required`. Prefer `Invoice Support` for QSIAP AP stays.
 
 ## Salesforce branch (all categories)
+
+**Exception — Billing / Invoice Support and Payment Information:** skip this
+entire branch for SF **writes**. Keep the ticket on Freshdesk only.
+Account/Contact read for the packet is optional.
 
 After forward (or on no-forward paths when an open Case already exists):
 
@@ -228,8 +255,9 @@ After forward (or on no-forward paths when an open Case already exists):
    include `Freshdesk #{id}` when present) then post **Task**.
 5. Record write status in the FD internal note.
 
-Skip SF writes on `--skip-vetting`, dry-run, and no-forward branches unless an
-open Case already exists (Task-only update).
+Skip SF writes on **Billing / Invoice Support**, **Payment Information**,
+`--skip-vetting`, dry-run, and no-forward branches unless an open Case already
+exists (Task-only update — still **not** for Billing/Payment).
 
 ## Internal note template
 
@@ -245,9 +273,9 @@ approval step. Opt out only when the user explicitly requests **dry-run**.
 | Post Freshdesk internal note | Every routed item |
 | Forward email / Freshdesk forward | Per routing table or branch rules |
 | SF dedupe search | Every FD voicemail before Case create |
-| Salesforce Lead Task | Lead match or onboarding branch |
-| Salesforce Case Task | Open Case match or after Case create |
-| Salesforce Case create | No dedupe match + category maps to SF queue |
+| Salesforce Lead Task | Lead match or onboarding branch (**not** Billing/Payment) |
+| Salesforce Case Task | Open Case match or after Case create (**not** Billing/Payment) |
+| Salesforce Case create | No dedupe match + category maps to SF queue (**not** Billing/Payment) |
 | Resolve Freshdesk ticket | After note + forward + SF writes (or note-only paths) |
 
 **Write order:** internal note → forward → Salesforce (Lead Task, Case Task,

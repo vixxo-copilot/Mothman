@@ -148,6 +148,8 @@ For each ticket on the page (oldest-first by default):
 
       Keep the existing `COI` and `risk-compliance-routed` tags in place; do not strip them. Do **not** add `awaiting-sp-resubmission` on the deficient outcome — the ticket is resolved and will reopen on SP reply, so a "waiting" tag would mislead the queue.
 
+      **Never forward deficient COI to AP Help.** Deficient outcomes resolve the FD ticket and wait for the SP/broker to resubmit on the same thread. `aphelp@vixxo.com` is for payment/AP intake only — not COI compliance review or deficiency follow-up.
+
       **Required field on resolution (operator-discovered 2026-05-04):** any `tickets_manage update` (or REST `PUT /api/v2/tickets/{id}`) that sets `status: 4` (Resolved) **must** include `custom_fields.cf_sp: "<SP company name>"` — Freshdesk rejects the call with `{"field":"custom_fields.cf_sp","message":"It should be a/an String","code":"missing_field"}` otherwise. This applies to both `type: "COIs"` and `type: "Account Update"`. Set `cf_sp` to the SP's legal/contracting name as it appears on the COI (free-text string; no Vixxo SP-number prefix required for COI tickets). Pending (`status: 3`) does NOT trigger this requirement, so clarification-only tickets do not need `cf_sp`.
 
       **Stale Account Update custom field:** when a ticket is updated back to `type: "COIs"` after previously carrying Account Update metadata, clear any stale `custom_fields.cf_vixxo_link_type_of_request` value (set it to `null` in the REST body if the API accepts it). Otherwise a deficient `COIs` ticket can misleadingly retain `Profile Update` from a prior compliant/account-update state.

@@ -3,9 +3,27 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime
 from pathlib import Path
+from typing import Any
+
+GATEWAY_AUTH_ID = "6486a04241e2b8e809e7c6f312812185"
+VIXXOLINK_AUTH_ID = "86f3d1e19c821fab2297f5f94aac2d68"
+# md5("https://vixxonow.com/mcp/vixxonow") — own OAuth registration, not VixxoLink.
+VIXXONOW_AUTH_ID = "bd3af626f5128d032de269bd1f9de2be"
+VIXXOLINK_AUTH_IDS = (VIXXOLINK_AUTH_ID,)
+BO_UNIVERSE_URL = "https://vixxonow.com/mcp/bo-universe"
+GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
+VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
+VIXXONOW_URL = "https://vixxonow.com/mcp/vixxonow"
+VIXXOLINK_TOKEN_URL = "https://vixxonow.com/mcp/vixxolink/oauth/token"
+VIXXONOW_TOKEN_URL = "https://vixxonow.com/mcp/vixxonow/oauth/token"
 
 
 def load_env_file(path: Path) -> None:
@@ -93,3 +111,210 @@ def first_env(*names: str) -> str | None:
         if val:
             return val
     return None
+
+
+def load_token_file(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    val = path.read_text(encoding="utf-8").strip()
+    return val or None
+
+
+def oauth_token_paths(auth_id: str) -> list[Path]:
+    base = Path.home() / ".mcp-auth"
+    if not base.is_dir():
+        return []
+    return sorted(base.glob(f"mcp-remote-*/{auth_id}_tokens.json"), reverse=True)
+
+
+def load_oauth_payload(auth_id: str) -> tuple[Path, dict[str, Any]] | None:
+    for token_path in oauth_token_paths(auth_id):
+        try:
+            payload = json.loads(token_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(payload, dict):
+            return token_path, payload
+    return None
+
+
+def load_oauth_client_info(auth_id: str, token_path: Path | None = None) -> dict[str, Any] | None:
+    candidates: list[Path] = []
+    if token_path is not None:
+        candidates.append(token_path.with_name(f"{auth_id}_client_info.json"))
+    base = Path.home() / ".mcp-auth"
+    if base.is_dir():
+        candidates.extend(sorted(base.glob(f"mcp-remote-*/{auth_id}_client_info.json"), reverse=True))
+    seen: set[Path] = set()
+    for path in candidates:
+        if path in seen or not path.is_file():
+            continue
+        seen.add(path)
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(payload, dict):
+            return payload
+    return None
+
+
+def load_oauth_access_token(auth_id: str) -> str | None:
+    loaded = load_oauth_payload(auth_id)
+    if not loaded:
+        return None
+    _, payload = loaded
+    access = payload.get("access_token")
+    if isinstance(access, str) and access.strip():
+        return access.strip()
+    return None
+
+
+def refresh_oauth_tokens(auth_id: str, token_url: str) -> str | None:
+    """Refresh an mcp-remote OAuth access token via refresh_token grant.
+
+    Updates ~/.mcp-auth tokens.json in place and returns the new access token.
+    """
+    loaded = load_oauth_payload(auth_id)
+    if not loaded:
+        return None
+    token_path, payload = loaded
+    refresh = payload.get("refresh_token")
+    if not isinstance(refresh, str) or not refresh.strip():
+        return None
+
+    client = load_oauth_client_info(auth_id, token_path) or {}
+    client_id = client.get("client_id")
+    form: dict[str, str] = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh.strip(),
+    }
+    if isinstance(client_id, str) and client_id.strip():
+        form["client_id"] = client_id.strip()
+
+    data = urllib.parse.urlencode(form).encode("utf-8")
+    req = urllib.request.Request(
+        token_url,
+        data=data,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            # Cloudflare 403s bare urllib; mcp-remote's UA is accepted.
+            "User-Agent": "mcp-remote/0.1.38",
+            "Origin": urllib.parse.urlparse(token_url)._replace(path="", params="", query="", fragment="").geturl(),
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError):
+        return None
+
+    access = body.get("access_token")
+    if not isinstance(access, str) or not access.strip():
+        return None
+
+    updated = dict(payload)
+    updated["access_token"] = access.strip()
+    if isinstance(body.get("refresh_token"), str) and body["refresh_token"].strip():
+        updated["refresh_token"] = body["refresh_token"].strip()
+    if "expires_in" in body:
+        updated["expires_in"] = body["expires_in"]
+    if isinstance(body.get("token_type"), str) and body["token_type"].strip():
+        updated["token_type"] = body["token_type"].strip()
+
+    token_path.write_text(json.dumps(updated), encoding="utf-8")
+    return access.strip()
+
+
+def refresh_vixxolink_oauth_tokens(auth_id: str = VIXXOLINK_AUTH_ID) -> str | None:
+    """Refresh VixxoLink access token via OAuth refresh_token grant."""
+    return refresh_oauth_tokens(auth_id, VIXXOLINK_TOKEN_URL)
+
+
+def refresh_vixxonow_oauth_tokens(auth_id: str = VIXXONOW_AUTH_ID) -> str | None:
+    """Refresh VixxoNow access token via OAuth refresh_token grant."""
+    return refresh_oauth_tokens(auth_id, VIXXONOW_TOKEN_URL)
+
+
+
+def gateway_token_expiry(token: str) -> datetime | None:
+    """Parse CGAGNER:YYYYMMDDHHMMSS:... stamp when present."""
+    parts = token.strip().split(":")
+    if len(parts) < 2:
+        return None
+    stamp = parts[1]
+    if len(stamp) < 14 or not stamp[:14].isdigit():
+        return None
+    try:
+        return datetime.strptime(stamp[:14], "%Y%m%d%H%M%S")
+    except ValueError:
+        return None
+
+
+def is_gateway_token_usable(token: str | None) -> bool:
+    if not token or not token.strip():
+        return False
+    expiry = gateway_token_expiry(token)
+    if expiry is None:
+        # Non-CGAGNER shapes (JWT/etc): keep and let the server reject if needed.
+        return True
+    return expiry > datetime.now()
+
+
+def resolve_vixxo_bearer_token() -> str | None:
+    load_workspace_env()
+    token = first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN")
+    if is_gateway_token_usable(token):
+        return token
+
+    vixxo = Path.home() / ".vixxo"
+    for name in ("gateway_api_token", "vixxonow_api_token"):
+        token = load_token_file(vixxo / name)
+        if is_gateway_token_usable(token):
+            return token
+
+    token = load_oauth_access_token(GATEWAY_AUTH_ID)
+    if is_gateway_token_usable(token):
+        return token
+    return None
+
+
+def resolve_vixxolink_bearer_token() -> str | None:
+    load_workspace_env()
+    token = first_env("VIXXOLINK_API_TOKEN")
+    if token:
+        return token
+
+    token = load_token_file(Path.home() / ".vixxo" / "vixxolink_api_token")
+    if token:
+        return token
+
+    for auth_id in VIXXOLINK_AUTH_IDS:
+        token = load_oauth_access_token(auth_id)
+        if token:
+            return token
+
+    return None
+
+
+def ensure_vixxolink_access_token() -> str | None:
+    """Prefer a freshly refreshed OAuth access token, else fall back to cache/file."""
+    refreshed = refresh_vixxolink_oauth_tokens()
+    if refreshed:
+        return refreshed
+    return resolve_vixxolink_bearer_token()
+
+
+def resolve_bearer_token_for_url(url: str) -> str | None:
+    if "/vixxolink" in url:
+        return resolve_vixxolink_bearer_token()
+    return resolve_vixxo_bearer_token()
+
+
+def auth_header_value(token: str) -> str:
+    token = token.strip()
+    if token.lower().startswith("bearer "):
+        return token
+    return f"Bearer {token}"

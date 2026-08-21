@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Batch sp-voicemail-triage for Freshdesk KSOnboarding queue (REST)."""
+"""LEGACY — Freshdesk KSOnboarding batch (REST).
+
+KSOnboarding mailbox is retired. Default SPM voicemail intake is Salesforce
+Cases for 8x8 extension 4046 (see reference/salesforce-4046-voicemail.md).
+Do not use this script for default `sp-voicemail-triage` runs.
+QSIAP AP voicemails: use batch_process_qsiap.py instead.
+"""
 
 from __future__ import annotations
 
@@ -92,8 +98,50 @@ CATEGORY_RULES: list[tuple[str, list[str], str]] = [
         ],
         "service.providermanagement@vixxo.com",
     ),
-    ("Payment Information", ["payment", "paid", "check", "remittance", "ach", "wire", "when paid", "haven't received payment"], "aphelp@vixxo.com"),
-    ("Billing / Invoice Support", ["invoice", "billing", "rejected", "submit invoice", "resubmit"], "aphelp@vixxo.com"),
+    (
+        "Payment Information",
+        [
+            "payment",
+            "paid",
+            "check",
+            "remittance",
+            "ach",
+            "wire",
+            "when paid",
+            "haven't received payment",
+            "past due",
+            "past-due",
+            "passthrough invoice",
+            "pass through invoice",
+            "pay date",
+            "service interruption",
+            "service interruptions",
+            "update your account",
+            "update my account",
+        ],
+        "aphelp@vixxo.com",
+    ),
+    (
+        "Billing / Invoice Support",
+        [
+            "invoice",
+            "billing",
+            "rejected",
+            "submit invoice",
+            "resubmit",
+            "past due invoice",
+            "past-due invoice",
+            "pay date",
+            "ticket number would be",
+            "ticket number",
+            "refund",
+            "refunded",
+            "send over",
+            "how to use the new system",
+            "new system",
+        ],
+        "aphelp@vixxo.com",
+    ),
     ("VixxoLink Support", ["vixxolink", "portal", "login", "password", "app", "dispatch board", "accept work"], "service.providermanagement@vixxo.com"),
     ("Service Request / Dispatch", ["service request", "work order", "dispatch", "eta", "assigned", "technician", " sr "], "SR_BRANCH"),
     ("Coverage / Onboarding", ["onboard", "onboarding", "coverage", "enrollment", "new provider", "rate card", "activation"], "ONBOARDING_BRANCH"),

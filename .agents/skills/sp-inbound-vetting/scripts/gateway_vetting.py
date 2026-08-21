@@ -145,29 +145,75 @@ def vixxolink_get_sr_sp(sr: str) -> dict | None:
     return None
 
 
-def pick_invoice_match(rows: list[dict], *, email: str | None = None, name: str | None = None) -> dict | None:
+def _invoice_username_fields(row: dict) -> list[str]:
+    """Usernames on an invoice row — not only the original creator."""
+    out: list[str] = []
+    for key in (
+        "createdByUsername",
+        "lastUpdatedByUsername",
+        "createInvoiceBy",
+        "submittedByUsername",
+        "serviceProviderUsername",
+    ):
+        val = str(row.get(key) or "").strip().lower()
+        if val and val not in out:
+            out.append(val)
+    return out
+
+
+def pick_invoice_match(
+    rows: list[dict],
+    *,
+    email: str | None = None,
+    name: str | None = None,
+    allow_first_hit: bool = True,
+) -> dict | None:
+    """Pick an invoice SP hit.
+
+    Email-scoped searches match **any** username field (creator/updater/etc.),
+    then SP name vs email local-part tokens. They do **not** fall through to an
+    arbitrary first row — that mis-attributes agent/Vixxo-created invoices.
+    """
     if not rows:
         return None
     email_norm = (email or "").strip().lower()
     name_norm = re.sub(r"[^\w\s]", "", (name or "").lower())
+    local = email_norm.split("@", 1)[0] if email_norm and "@" in email_norm else ""
+    local_tokens = [t for t in re.split(r"[^a-z0-9]+", local) if len(t) >= 4]
 
     if email_norm:
         for row in rows:
-            creator = str(row.get("createdByUsername") or "").lower()
-            if creator == email_norm:
-                hit = sp_from_invoice_row(row, f"gateway_search_invoices(email={email_norm})")
+            if email_norm in _invoice_username_fields(row):
+                hit = sp_from_invoice_row(
+                    row, f"gateway_search_invoices(username={email_norm})"
+                )
                 if hit:
                     return hit
+        # Local-part tokens in SP name (opendoorlockout → Open Door Lockout)
+        if local_tokens:
+            for row in rows:
+                sp_name = re.sub(r"[^\w\s]", "", str(row.get("serviceProviderName") or "").lower())
+                if sp_name and all(tok in sp_name.replace(" ", "") or tok in sp_name for tok in local_tokens[:2]):
+                    hit = sp_from_invoice_row(
+                        row, f"gateway_search_invoices(email-local→sp-name={local})"
+                    )
+                    if hit:
+                        return hit
+        # Email was requested but no confident row — do not guess first invoice
+        return None
 
     if name_norm and len(name_norm) >= 3:
         for row in rows:
-            creator = re.sub(r"[^\w\s]", "", str(row.get("createdByUsername") or "").lower())
-            if name_norm in creator or creator in name_norm:
-                hit = sp_from_invoice_row(row, f"gateway_search_invoices(name={name})")
-                if hit:
-                    return hit
+            for uname in _invoice_username_fields(row):
+                uname_clean = re.sub(r"[^\w\s]", "", uname)
+                if name_norm in uname_clean or uname_clean in name_norm:
+                    hit = sp_from_invoice_row(row, f"gateway_search_invoices(name={name})")
+                    if hit:
+                        return hit
 
-    return sp_from_invoice_row(rows[0], "gateway_search_invoices(first-hit)")
+    if allow_first_hit:
+        return sp_from_invoice_row(rows[0], "gateway_search_invoices(first-hit)")
+    return None
 
 
 def _normalize_company_key(name: str) -> str:
@@ -345,31 +391,99 @@ def gateway_health_check() -> dict:
         return {"ok": True, "probe": "gateway_search_invoices(searchString=KS69315)", "rows": len(rows)}
     return {
         "ok": False,
-        "error": "Gateway probe empty — use Cursor Gateway MCP (project-0-assistant-CGagner-gateway) or run enriched live_run --data",
+        "error": (
+            "Gateway probe empty. Ensure ~/.vixxo/gateway_api_token exists or run "
+            ".cursor/bin/sync_gateway_token.py, then restart gateway MCP."
+        ),
+    }
+
+
+def vixxolink_find_sp_by_email(email: str) -> dict | None:
+    """Primary email→SP path: VixxoLink user record (who the login belongs to).
+
+    Prefer this over invoice createdByUsername — invoices are often created by
+    aiinvoicing / Vixxo staff, while the Case Contact email is the SP user.
+    """
+    if not email or email == "Not stated" or is_internal_email(email):
+        return None
+    resp = mcp_call(
+        VIXXOLINK_URL,
+        "vixxolink_get_user_site_access",
+        {"email": email.strip()},
+    )
+    data = parse_json_blob(mcp_result_text(resp))
+    if not isinstance(data, dict):
+        return None
+    payload = data.get("data") if isinstance(data.get("data"), dict) else data
+    if payload.get("ok") is False:
+        return None
+    inner = payload.get("data") if isinstance(payload.get("data"), dict) else payload
+    if not inner.get("found"):
+        return None
+    sp_nums = inner.get("service_provider_numbers") or []
+    if not isinstance(sp_nums, list) or not sp_nums:
+        return None
+    sp_num = str(sp_nums[0]).strip()
+    if not sp_num:
+        return None
+    first = (inner.get("first_name") or "").strip()
+    last = (inner.get("last_name") or "").strip()
+    contact = f"{first} {last}".strip() or None
+    return {
+        "sp_number": sp_num,
+        "name": None,
+        "source": f"vixxolink_get_user_site_access(email={email.strip().lower()})",
+        "contact_name": contact,
+        "vixxolink_user_id": inner.get("user_id"),
+        "access_type": inner.get("access_type"),
     }
 
 
 def _gateway_find_sp_by_email(email: str) -> dict | None:
+    """Resolve SP from requester email — VixxoLink user first, invoices second."""
     if not email or email == "Not stated" or is_internal_email(email):
         return None
 
+    # 1) VixxoLink user ↔ SP# (correct identity for Case Contact / VL login)
+    hit = vixxolink_find_sp_by_email(email)
+    if hit:
+        return hit
+
+    # 2) Invoice search — match username fields / SP name, never random first row
     rows = gateway_search_invoices(searchString=email)
-    hit = pick_invoice_match(rows, email=email)
+    hit = pick_invoice_match(rows, email=email, allow_first_hit=False)
     if hit:
         return hit
 
     local = email.split("@", 1)[0]
     if local and len(local) >= 4:
         rows = gateway_search_invoices(searchString=local)
-        hit = pick_invoice_match(rows, email=email)
+        hit = pick_invoice_match(rows, email=email, allow_first_hit=False)
         if hit:
             hit["source"] = f"gateway_search_invoices(local-part={local})"
             return hit
+        # Split local-part: opendoorlockout → try meaningful chunks via SP name
+        chunks = [t for t in re.split(r"[^a-z0-9]+", local.lower()) if len(t) >= 5]
+        if len(local) >= 8 and not chunks:
+            # camel/run-on: opendoorlockout → opendoor, lockout (heuristic halves)
+            mid = len(local) // 2
+            chunks = [local[:mid], local[mid:]] if mid >= 4 else [local]
+        for chunk in chunks[:3]:
+            if _skip_gateway_search(chunk):
+                continue
+            rows = gateway_search_invoices(searchString=chunk)
+            hit = pick_invoice_match(rows, email=email, allow_first_hit=False)
+            if hit:
+                hit["source"] = f"gateway_search_invoices(local-chunk={chunk})"
+                return hit
 
+    # 3) Business-domain only (never gmail/yahoo/etc. — email_domain_search_tokens filters)
     for token in email_domain_search_tokens(email):
         rows = gateway_search_invoices(searchString=token)
-        hit = sp_from_invoice_row(rows[0], f"gateway_search_invoices(domain={token})") if rows else None
+        # Domain search may return many SPs — require company-like alignment via local tokens
+        hit = pick_invoice_match(rows, email=email, allow_first_hit=False)
         if hit:
+            hit["source"] = f"gateway_search_invoices(domain={token})"
             return hit
 
     return None

@@ -2,10 +2,10 @@
   "mcpServers": {
     "business-objects": {
       "args": [
-        ".cursor/bin/run-vixxo-http-mcp.py",
-        "business-objects"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-business-objects-mcp.cmd"
       ],
-      "command": "python3"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "chatfpt": {
       "args": [
@@ -23,7 +23,7 @@
     },
     "freshdesk": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshdesk-mcp.cmd",
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-freshdesk-mcp.cmd",
       "env": {
         "FRESHDESK_DOMAIN": "vixxo-helpdesk.freshdesk.com",
         "NODE_ENV": "production"
@@ -32,7 +32,7 @@
     "freshservice": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-freshservice-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-freshservice-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe",
       "env": {
@@ -42,13 +42,13 @@
     "gateway": {
       "url": "https://vixxonow.com/mcp/gateway",
       "auth": {
-        "CLIENT_ID": "cursor-ADq35_ToyL0HHo6Jk8-LrDcOxT4HK-PD"
+        "CLIENT_ID": "cursor-J9RgSM_v7_HGcIgOJ93bLLCG5nMYcUgZ"
       }
     },
     "github": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-github-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-github-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
@@ -82,7 +82,7 @@
     "ms365": {
       "args": [
         "/c",
-        "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-ms365-mcp.cmd"
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-ms365-mcp.cmd"
       ],
       "command": "C:\\Windows\\System32\\cmd.exe"
     },
@@ -95,25 +95,25 @@
     },
     "salesforce": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-salesforce-mcp.cmd"
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-salesforce-mcp.cmd"
     },
     "smartsheet": {
       "args": [],
-      "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-smartsheet-mcp.cmd"
+      "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-smartsheet-mcp.cmd"
     },
     "vixxolink": {
       "args": [
-        ".cursor/bin/run-vixxo-http-mcp.py",
-        "vixxolink"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-vixxolink-mcp.cmd"
       ],
-      "command": "python3"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "vixxonow": {
       "args": [
-        ".cursor/bin/run-vixxo-http-mcp.py",
-        "vixxonow"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-vixxonow-mcp.cmd"
       ],
-      "command": "python3"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "zoominfo": {
       "url": "https://mcp.zoominfo.com/mcp"

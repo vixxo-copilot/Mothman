@@ -77,6 +77,8 @@ Note on Vixxo tenant conditional-access: if the Vixxo tenant blocks device-code 
 
 Prerequisite: `@salesforce/cli` installed globally (`npm install -g @salesforce/cli`) or via the macOS installer. Epic 5 Story 5.3 may install the CLI automatically in a later iteration; for now, install manually.
 
+**Cursor Cloud / Automations:** local web login does not transfer to Cloud VMs. Use JWT secrets + `.cursor/cloud-install-sf.sh` (see `AGENTS.md` § Cursor Cloud and `.cursor/cloud-mcp-salesforce.json` for the Cloud MCP stdio config).
+
 ## Gong
 
 **Purpose:** Call recordings, transcripts, deal intelligence.
@@ -118,30 +120,68 @@ macOS caveat: when Cursor is launched from Finder (double-click), it inherits th
 These integrations use agent skills and `.env` credentials. They do **not** appear
 in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 
-### Vixxo HTTP MCPs (Gateway, VixxoLink, VixxoNow, …)
+### Vixxo HTTP MCPs (Gateway, VixxoLink, Business Objects, …)
 
 **Purpose:** Internal Vixxo read/write tools via `https://vixxonow.com/mcp/*`.
 
-**Transport:** local stdio via `.cursor/bin/run-vixxo-http-mcp.py`, which wraps
-`npx mcp-remote` and injects a Bearer token header.
-
-**Auth:** Static OAuth client via DCR (one-time). Mint **one** `cursor-…` client id,
-then set `auth.CLIENT_ID` in `.cursor/mcp.json`. Cursor uses that id instead of
-dynamic registration — do **not** re-run DCR curl; each run registers another
-client on Gateway.
-
-**Do not** use `mcp-remote` or `run-vixxo-http-mcp.py` for gateway.
+**Gateway transport:** native Cursor HTTP — `url` + static `auth.CLIENT_ID`
+(one-time DCR `cursor-…` public client). Do **not** use `mcp-remote` or
+`run-gateway-mcp.cmd` for gateway. Do **not** re-run DCR curl; each run
+registers another client.
 
 **skills MCP:** `@vixxo-copilot/skills-mcp` syncs a url-only gateway manifest and
 was stripping `auth.CLIENT_ID`, which forced repeated dynamic OAuth/DCR. Keep
 `skills` disabled in Customize → MCP while gateway auth is settling, or ensure
 `.cursor/mcp-sync-state.json` marks `gateway` resolution as `user`.
 
-After auth changes, open **Cursor Settings → MCP** and restart **gateway** only.
+After Gateway auth changes, open **Cursor Settings → MCP** and restart
+**gateway** only.
+
+**Other Vixxo HTTP MCPs** (VixxoLink, VixxoNow, Business Objects) use local
+stdio bearer wrappers:
+
+- `.cursor/bin/run-vixxolink-mcp.cmd`
+- `.cursor/bin/run-vixxonow-mcp.cmd`
+- `.cursor/bin/run-business-objects-mcp.cmd`
+
+Each wrapper runs `npx mcp-remote <url> --header Authorization:Bearer <token>` so
+shell and Cursor share one token path — no localhost OAuth callback ports.
+
+**Auth (non-gateway):**
+
+| Server | Token file | OAuth cache auth id | Sync script |
+| --- | --- | --- | --- |
+| business-objects / vixxonow | `~/.vixxo/gateway_api_token` | `6486a042…` | `sync_gateway_token.py` |
+| vixxolink | `~/.vixxo/vixxolink_api_token` | `86f3d1e19…` | `sync_vixxolink_token.py` |
+
+`mcp_env.resolve_bearer_token_for_url()` picks the correct token per endpoint.
+
+After those auth changes:
+
+```bash
+python .cursor/bin/sync_gateway_token.py
+python .cursor/bin/sync_vixxolink_token.py
+```
+
+Then restart **vixxolink**, **vixxonow**, and **business-objects** in Cursor
+Settings → MCP.
+
+**OAuth troubleshooting (VixxoLink / VixxoNow — `Authorization state is invalid
+or expired` / `Connection closed` / localhost callback / port 37882):**
+
+1. Run `.cursor/bin/repair-vixxolink-oauth.cmd` or
+   `.cursor/bin/repair-vixxonow-oauth.cmd`.
+2. **Cursor Settings → MCP → Reconnect** and complete browser sign-in once.
+3. `python .cursor/bin/sync_vixxolink_token.py` (and gateway sync if BO/VixxoNow
+   share that bearer).
+4. Restart those MCP servers. `vixxonow` and `business-objects` reuse the
+   Gateway bearer file — no separate browser login.
 
 **Verify:**
 
 ```bash
+python .tmp/diagnose_gateway_mcp.py
+python .tmp/diagnose_bo_mcp.py
 python bin/diagnose-mcp.py
 ```
 

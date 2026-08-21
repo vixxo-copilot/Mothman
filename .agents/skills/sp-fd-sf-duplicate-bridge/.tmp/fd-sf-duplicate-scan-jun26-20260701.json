@@ -1,0 +1,951 @@
+{
+  "window_start": "2026-06-26T00:00:00+00:00",
+  "window_end": "2026-07-01T17:06:46.462537+00:00",
+  "include_coi": true,
+  "fd_count": 794,
+  "sf_count": 253,
+  "pair_count": 31,
+  "true_same_thread": 4,
+  "likely_same_thread": 1,
+  "contact_collision": 26,
+  "coi_req_id_matched": 0,
+  "coi_provider_matched": 0,
+  "intra_system_req_duplicates": {
+    "fd_intra_duplicates": [],
+    "sf_intra_duplicates": [
+      {
+        "policy_id": "150-339-0",
+        "req_id": "201",
+        "cases": [
+          {
+            "case_number": "00006053",
+            "id": "500TS00000npsILYAY",
+            "subject": "Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 201~2026-06-29 23:19:10.0~00001",
+            "created_at": "2026-06-30T04:37:41.000+0000",
+            "status": "Working",
+            "provider": "CECCO, Inc."
+          },
+          {
+            "case_number": "00006107",
+            "id": "500TS00000nu4smYAA",
+            "subject": "RE: Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 201~2026-06-29 23:19:10.0~00001 - Federated Insurance Auto Reply: Your request has been received",
+            "created_at": "2026-06-30T20:40:37.000+0000",
+            "status": "Closed",
+            "provider": "CECCO, Inc."
+          }
+        ]
+      },
+      {
+        "policy_id": "365-728-5",
+        "req_id": "365",
+        "cases": [
+          {
+            "case_number": "00005986",
+            "id": "500TS00000nmAlgYAE",
+            "subject": "Fwd: FW: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 Req 365~2026-02-04 12:37:58.0~00003 - Federated Insurance Auto Reply: Your request has been received",
+            "created_at": "2026-06-29T14:38:30.000+0000",
+            "status": "New",
+            "provider": "Smelscer Plumbing, Inc."
+          },
+          {
+            "case_number": "00006007",
+            "id": "500TS00000nnUiLYAU",
+            "subject": "Fw: Certificate Of Insurance - Smelscer Plumbing, Inc. 365-728-5 Req 365~2026-02-04 12:37:58.0~00003",
+            "created_at": "2026-06-29T17:14:43.000+0000",
+            "status": "New",
+            "provider": "Smelscer Plumbing, Inc."
+          }
+        ]
+      }
+    ]
+  },
+  "pairs": [
+    {
+      "match_reasons": [
+        "fd_id_in_sf_description",
+        "subject_overlap:1.00"
+      ],
+      "dup_type": "true_same_thread",
+      "origin": "fd_first",
+      "subject_similarity": 1.0,
+      "freshdesk": {
+        "id": 59559,
+        "subject": "New voicemail from Andrea Spicer via VENDOR RELATIONS",
+        "created_at": "2026-06-26T14:40:03Z",
+        "status": 5,
+        "queue": "ksonboarding",
+        "requester": null
+      },
+      "salesforce": {
+        "id": "500TS00000nczeCYAQ",
+        "case_number": "00005919",
+        "subject": "Fwd: New voicemail from Andrea Spicer via VENDOR RELATIONS",
+        "created_at": "2026-06-26T15:02:46.000+0000",
+        "status": "New",
+        "contact_email": "ksonboarding@vixxo.com",
+        "supplied_email": "ksonboarding@vixxo.com",
+        "description_snippet": "SP Voicemail triage \u2014 Freshdesk #59559\n\n\n\nCategory: Sourcing / Account Team\n\nCaller: Andrea Spicer\n\nCallback: New voicemail from Andrea Spicer via VENDOR RELATIONS\n\n\n\n\n\n\n\n\n\n\n\n \n\n \n\n \n\n Voicemail notification \n\n \n\n\n\n \n\n \n\n\n\n \n\n \n\n\n\n \n\n \n\n \n\n\n\n\n\n\n\n\n\n\n\n \n\n Your extension\n\n4046 has a new voicemail\n\n \n\n ..."
+      }
+    },
+    {
+      "match_reasons": [
+        "fd_id_in_sf_description",
+        "subject_overlap:1.00"
+      ],
+      "dup_type": "true_same_thread",
+      "origin": "fd_first",
+      "subject_similarity": 1.0,
+      "freshdesk": {
+        "id": 59653,
+        "subject": "New voicemail from Roberts Plumb via VENDOR RELATIONS",
+        "created_at": "2026-06-26T17:43:09Z",
+        "status": 5,
+        "queue": "ksonboarding",
+        "requester": null
+      },
+      "salesforce": {
+        "id": "500TS00000ndh8xYAA",
+        "case_number": "00005932",
+        "subject": "Fwd: New voicemail from Roberts Plumb via VENDOR RELATIONS",
+        "created_at": "2026-06-26T18:02:41.000+0000",
+        "status": "New",
+        "contact_email": "ksonboarding@vixxo.com",
+        "supplied_email": "ksonboarding@vixxo.com",
+        "description_snippet": "SP Voicemail triage \u2014 Freshdesk #59653\n\n\n\nCategory: VixxoLink Support\n\nCaller: Roberts Plumb\n\nCallback: 6084165646\n\nCallback required: Recommended\n\n\n\nTranscript source: faster-whisper\n\nSubject: New voicemail from Roberts Plumb via VENDOR RELATIONS\n\nAttachment: voicemail_16084165646_06-26-2026_12-40-..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 59679,
+        "subject": "Information regarding contract",
+        "created_at": "2026-06-26T19:05:08Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "knsconst.inc@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000npO7LYAU",
+        "case_number": "00006049",
+        "subject": "Re: COI KNS Construction, inc",
+        "created_at": "2026-06-29T22:31:51.000+0000",
+        "status": "New",
+        "contact_email": "knsconst.inc@gmail.com",
+        "supplied_email": "knsconst.inc@gmail.com",
+        "description_snippet": "Good afternoon. Here is the auto COI, and for the GL and WC 30-day notice, they sent me this email:\n\nHello,\n\nPlease see the attached certificate.\nUnfortunately, the GL Carrier does not offer 30 day Notice of Cancellation wording or endorsements. Perhaps the 3rd party will waive this requirement? Or ..."
+      }
+    },
+    {
+      "match_reasons": [
+        "fd_id_in_sf_description",
+        "subject_overlap:1.00"
+      ],
+      "dup_type": "true_same_thread",
+      "origin": "fd_first",
+      "subject_similarity": 1.0,
+      "freshdesk": {
+        "id": 59717,
+        "subject": "New voicemail from WIRELESS CALLER via VENDOR RELATIONS",
+        "created_at": "2026-06-26T20:56:43Z",
+        "status": 5,
+        "queue": "ksonboarding",
+        "requester": null
+      },
+      "salesforce": {
+        "id": "500TS00000neN6eYAE",
+        "case_number": "00005946",
+        "subject": "Fwd: New voicemail from WIRELESS CALLER via VENDOR RELATIONS",
+        "created_at": "2026-06-26T21:02:28.000+0000",
+        "status": "New",
+        "contact_email": "ksonboarding@vixxo.com",
+        "supplied_email": "ksonboarding@vixxo.com",
+        "description_snippet": "SP Voicemail triage \u2014 Freshdesk #59717\n\n\n\nCategory: VixxoLink Support\n\nCaller: WIRELESS CALLER\n\nCallback: 5416214748\n\nCallback required: Recommended\n\n\n\nTranscript source: faster-whisper\n\nSubject: New voicemail from WIRELESS CALLER via VENDOR RELATIONS\n\nAttachment: voicemail_15416214748_06-26-2026_15..."
+      }
+    },
+    {
+      "match_reasons": [
+        "fd_id_in_sf_description",
+        "subject_overlap:1.00"
+      ],
+      "dup_type": "true_same_thread",
+      "origin": "fd_first",
+      "subject_similarity": 1.0,
+      "freshdesk": {
+        "id": 59724,
+        "subject": "New voicemail from ELECTRONIC RECY via VENDOR RELATIONS",
+        "created_at": "2026-06-26T21:19:43Z",
+        "status": 5,
+        "queue": "ksonboarding",
+        "requester": null
+      },
+      "salesforce": {
+        "id": "500TS00000neXE1YAM",
+        "case_number": "00005953",
+        "subject": "Fwd: New voicemail from ELECTRONIC RECY via VENDOR RELATIONS",
+        "created_at": "2026-06-26T22:03:26.000+0000",
+        "status": "New",
+        "contact_email": "ksonboarding@vixxo.com",
+        "supplied_email": "ksonboarding@vixxo.com",
+        "description_snippet": "SP Voicemail triage \u2014 Freshdesk #59724\n\n\n\nCategory: Sourcing / Account Team\n\nCaller: ELECTRONIC RECY\n\nCallback: 7578060804\n\nCallback required: Recommended\n\n\n\nTranscript source: faster-whisper\n\nSubject: New voicemail from ELECTRONIC RECY via VENDOR RELATIONS\n\nAttachment: voicemail_17578060804_06-26-2..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.125,
+      "freshdesk": {
+        "id": 59827,
+        "subject": "ENTERPRISE\u2026.....................WO#800623932.....................INVOICE#58037",
+        "created_at": "2026-06-28T19:35:20Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "thepelczarcorpactg@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000no9YeYAI",
+        "case_number": "00006032",
+        "subject": "DOGGIE DISTRICT.................WO#6589468372................INVOICE#58057",
+        "created_at": "2026-06-29T20:09:11.000+0000",
+        "status": "New",
+        "contact_email": "thepelczarcorpactg@gmail.com",
+        "supplied_email": "thepelczarcorpactg@gmail.com",
+        "description_snippet": "Hello, I was told that this invoice got flagged for something, What needs\nto be fixed on the invoice?\n\n-- \nThe Pelczar Corporation\n\nthepelczarcorpactg@gmail.com\n\n\n\n\nThis communication is intended for the use of the person or organization to\nwhich it is directed and may contain information that is pr..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.125,
+      "freshdesk": {
+        "id": 59827,
+        "subject": "ENTERPRISE\u2026.....................WO#800623932.....................INVOICE#58037",
+        "created_at": "2026-06-28T19:35:20Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "thepelczarcorpactg@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000noch1YAA",
+        "case_number": "00006033",
+        "subject": "DOGGIE DISTRIST...............WO#6582064512..............INVOICE#58052",
+        "created_at": "2026-06-29T20:21:50.000+0000",
+        "status": "New",
+        "contact_email": "thepelczarcorpactg@gmail.com",
+        "supplied_email": "thepelczarcorpactg@gmail.com",
+        "description_snippet": "Hello, I was told that my invoice got flagged and I'm not sure why< It was\naccepted through the portal, I went back in the portal to revise and there\nis another invoice that was created by someone through vixxo, When I go to\nsubmit the new invoice that was created on your end it says that my invoice..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 59942,
+        "subject": "Re: SR#: 1-6542892062 | WO# 347127033 | Ulta Beauty - Boynton Beach/FL - 1424 | Glass | Priority: P1 (Onsite within 4 hours, completion within 5 days.)",
+        "created_at": "2026-06-29T16:08:26Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "facilities.coordinator@profifm.com"
+      },
+      "salesforce": {
+        "id": "500TS00000ncin8YAA",
+        "case_number": "00005922",
+        "subject": "Re: Re: Profi Facilities Maintenance LLC - Ks - Insurance",
+        "created_at": "2026-06-26T15:59:33.000+0000",
+        "status": "New",
+        "contact_email": "facilities.coordinator@profifm.com",
+        "supplied_email": "facilities.coordinator@profifm.com",
+        "description_snippet": "Good morning,\n\nPlease review the second page of the COI. The endorsements are included\nthere.\n\nHave a great day!\n\nOn Thu, Jun 25, 2026 at 3:28\u202fPM COI Request <coi@vixxo.com> wrote:\n\n> Hello,\n>\n> Thank you for providing the Certificate of Insurances for Profi Facilities\n> Maintenance LLC. After revie..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.111,
+      "freshdesk": {
+        "id": 59986,
+        "subject": "ENCORE GLOBAL......................WO#7733850004..................INVOICE#58048",
+        "created_at": "2026-06-29T17:36:51Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "thepelczarcorpactg@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000no9YeYAI",
+        "case_number": "00006032",
+        "subject": "DOGGIE DISTRICT.................WO#6589468372................INVOICE#58057",
+        "created_at": "2026-06-29T20:09:11.000+0000",
+        "status": "New",
+        "contact_email": "thepelczarcorpactg@gmail.com",
+        "supplied_email": "thepelczarcorpactg@gmail.com",
+        "description_snippet": "Hello, I was told that this invoice got flagged for something, What needs\nto be fixed on the invoice?\n\n-- \nThe Pelczar Corporation\n\nthepelczarcorpactg@gmail.com\n\n\n\n\nThis communication is intended for the use of the person or organization to\nwhich it is directed and may contain information that is pr..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.111,
+      "freshdesk": {
+        "id": 59986,
+        "subject": "ENCORE GLOBAL......................WO#7733850004..................INVOICE#58048",
+        "created_at": "2026-06-29T17:36:51Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "thepelczarcorpactg@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000noch1YAA",
+        "case_number": "00006033",
+        "subject": "DOGGIE DISTRIST...............WO#6582064512..............INVOICE#58052",
+        "created_at": "2026-06-29T20:21:50.000+0000",
+        "status": "New",
+        "contact_email": "thepelczarcorpactg@gmail.com",
+        "supplied_email": "thepelczarcorpactg@gmail.com",
+        "description_snippet": "Hello, I was told that my invoice got flagged and I'm not sure why< It was\naccepted through the portal, I went back in the portal to revise and there\nis another invoice that was created by someone through vixxo, When I go to\nsubmit the new invoice that was created on your end it says that my invoice..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60082,
+        "subject": "NCRI Invoice 26-0436-TMP WO#1-6567163325 Krispy Kreme",
+        "created_at": "2026-06-29T20:16:26Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "j.whiting@ncricat.com"
+      },
+      "salesforce": {
+        "id": "500TS00000ns3rEYAQ",
+        "case_number": "00006068",
+        "subject": "Vixxo.Com",
+        "created_at": "2026-06-30T15:09:35.000+0000",
+        "status": "New",
+        "contact_email": "j.whiting@ncricat.com",
+        "supplied_email": "j.whiting@ncricat.com",
+        "description_snippet": "Good morning,\nI do not have access to the Vixxo.Com website in order to upload the invoices into the portal for payment.\n\n\n\n\nJill Whiting\nNational Billing Administrative Assistant\nNational Catastrophe Restoration, Inc.\nWater - Fire - Smoke - Wind - Storm - Mold\nInfectious Control - Document Dry\nEmer..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60088,
+        "subject": "NEC Building Services, Inc: Past Due Invoice Payment Request",
+        "created_at": "2026-06-29T20:34:56Z",
+        "status": 5,
+        "queue": "invoice-concerns",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60142,
+        "subject": "Re: Re: .Client PO # 12941672 - Invoice # 214000 - Coach # 1270",
+        "created_at": "2026-06-29T23:33:39Z",
+        "status": 5,
+        "queue": "aphelp",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "subject_overlap:0.38",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.375,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nd11dYAA",
+        "case_number": "00005915",
+        "subject": "Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 200~2026-06-26 09:40:28.0~00002",
+        "created_at": "2026-06-26T14:43:58.000+0000",
+        "status": "New",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.3,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000no7yCYAQ",
+        "case_number": "00006015",
+        "subject": "Certificate Of Insurance - Superior Mechanical Services, Inc. 392-690-4 Req 222~2026-06-29 13:37:02.0~00002",
+        "created_at": "2026-06-29T18:40:32.000+0000",
+        "status": "New",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.333,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nnp8UYAQ",
+        "case_number": "00006016",
+        "subject": "Certificate Of Insurance - Angeles Plumbing, LLC 450-802-4 Req 23~2026-06-29 13:38:31.0~00002",
+        "created_at": "2026-06-29T18:42:29.000+0000",
+        "status": "Closed",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "subject_overlap:0.57",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.571,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000npEzCYAU",
+        "case_number": "00006048",
+        "subject": "Certificate Of Insurance - KAA Investments LLC 329-159-8 Req 187~2026-06-29 17:15:11.0~00001",
+        "created_at": "2026-06-29T22:19:41.000+0000",
+        "status": "Closed",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "subject_overlap:0.57",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.571,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000npsILYAY",
+        "case_number": "00006053",
+        "subject": "Certificate Of Insurance - CECCO, Inc. 150-339-0 Req 201~2026-06-29 23:19:10.0~00001",
+        "created_at": "2026-06-30T04:37:41.000+0000",
+        "status": "Working",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "subject_overlap:0.50",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.5,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nsZ39YAE",
+        "case_number": "00006077",
+        "subject": "Certificate Of Insurance - Storefronts and Entrances, Inc. 177-561-8 Req 341~2026-06-30 11:17:09.0~00001",
+        "created_at": "2026-06-30T16:23:37.000+0000",
+        "status": "Closed",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.3,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nxR4tYAE",
+        "case_number": "00006127",
+        "subject": "Certificate Of Insurance - Bergstrom Electric Inc 215-989-5 Req 2620~2026-07-01 08:28:37.0~00002",
+        "created_at": "2026-07-01T13:33:24.000+0000",
+        "status": "New",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.333,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nxS7QYAU",
+        "case_number": "00006131",
+        "subject": "Certificate Of Insurance - Pannell Builders, LLC 440-947-0 Req 61~2026-07-01 09:04:41.0~00002",
+        "created_at": "2026-07-01T14:10:25.000+0000",
+        "status": "New",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "fedcerts_sender_collision"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.3,
+      "freshdesk": {
+        "id": 60160,
+        "subject": "Certificate Of Insurance - Tri Star Transport LLC 662-298-0 Req 139~2026-06-30 00:22:47.0~00001",
+        "created_at": "2026-06-30T05:41:35Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "fedcerts-donotreply@fedins.com",
+        "coi_provider": "Tri Star Transport LLC",
+        "coi_policy_id": "662-298-0",
+        "coi_req_id": "139",
+        "coi_req_timestamp": "2026-06-30 00:22:47.0"
+      },
+      "salesforce": {
+        "id": "500TS00000nxg5TYAQ",
+        "case_number": "00006136",
+        "subject": "Certificate Of Insurance - Water Treatment Technologies, Inc. 397-439-3 Req 12~2026-07-01 10:27:25.0~00002",
+        "created_at": "2026-07-01T15:31:32.000+0000",
+        "status": "New",
+        "contact_email": "fedcerts-donotreply@fedins.com",
+        "supplied_email": "fedcerts-donotreply@fedins.com",
+        "description_snippet": "Please do not reply to this email. If you have further questions, please contact the Client Contact Center.\n\nClient Contact Center\nFederated Insurance Companies\nPhone: 1-888-333-4949 | Fax: 507-446-4664 | Email: clientcontactcenter@fedins.com\n\n\n\n\n\nThis e-mail message and any attachments are confiden..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.19,
+      "freshdesk": {
+        "id": 60227,
+        "subject": "Ticket Received - [EXTERNAL] Immediate Attention Required: Submit Your Past Due Invoices for Completed Work CASE-674637",
+        "created_at": "2026-06-30T14:19:26Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "wildco-dispatch@owlservices.com"
+      },
+      "salesforce": {
+        "id": "500TS00000nxkttYAA",
+        "case_number": "00006124",
+        "subject": "Ticket Received - [EXTERNAL]  Vixxo Monthly Business Summary \u0096(-) - June 2026 CASE-675839",
+        "created_at": "2026-07-01T13:06:08.000+0000",
+        "status": "New",
+        "contact_email": "wildco-dispatch@owlservices.com",
+        "supplied_email": "wildco-dispatch@owlservices.com",
+        "description_snippet": "Thank you for your service request, an OWL Services dispatcher will be in touch with you shortly to confirm scheduling.  For urgent questions or concerns please contact our Dispatch Team directly at 1-866-244-4724.  (Monday-Friday, 8am-5pm)&nbsp;After Hours(Monday- Friday, 5pm-8am) & Weekends please..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.19,
+      "freshdesk": {
+        "id": 60227,
+        "subject": "Ticket Received - [EXTERNAL] Immediate Attention Required: Submit Your Past Due Invoices for Completed Work CASE-674637",
+        "created_at": "2026-06-30T14:19:26Z",
+        "status": 4,
+        "queue": "aphelp",
+        "requester": "wildco-dispatch@owlservices.com"
+      },
+      "salesforce": {
+        "id": "500TS00000nxOBqYAM",
+        "case_number": "00006125",
+        "subject": "Ticket Received - [EXTERNAL]  Vixxo Monthly Business Summary \u0096(-) - June 2026 CASE-675840",
+        "created_at": "2026-07-01T13:06:13.000+0000",
+        "status": "New",
+        "contact_email": "wildco-dispatch@owlservices.com",
+        "supplied_email": "wildco-dispatch@owlservices.com",
+        "description_snippet": "Thank you for your service request, an OWL Services dispatcher will be in touch with you shortly to confirm scheduling.  For urgent questions or concerns please contact our Dispatch Team directly at 1-866-244-4724.  (Monday-Friday, 8am-5pm)&nbsp;After Hours(Monday- Friday, 5pm-8am) & Weekends please..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "fd_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60278,
+        "subject": "FW: Immediate Attention Required: Submit Your Past Due Invoices for Completed Work",
+        "created_at": "2026-06-30T15:06:58Z",
+        "status": 2,
+        "queue": "aphelp",
+        "requester": "j.whiting@ncricat.com"
+      },
+      "salesforce": {
+        "id": "500TS00000ns3rEYAQ",
+        "case_number": "00006068",
+        "subject": "Vixxo.Com",
+        "created_at": "2026-06-30T15:09:35.000+0000",
+        "status": "New",
+        "contact_email": "j.whiting@ncricat.com",
+        "supplied_email": "j.whiting@ncricat.com",
+        "description_snippet": "Good morning,\nI do not have access to the Vixxo.Com website in order to upload the invoices into the portal for payment.\n\n\n\n\nJill Whiting\nNational Billing Administrative Assistant\nNational Catastrophe Restoration, Inc.\nWater - Fire - Smoke - Wind - Storm - Mold\nInfectious Control - Document Dry\nEmer..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60315,
+        "subject": "Re: Immediate Attention Required: Submit Your Past Due Invoices for Completed Work",
+        "created_at": "2026-06-30T15:29:30Z",
+        "status": 2,
+        "queue": "invoice-concerns",
+        "requester": "loudonlocksmith@gmail.com"
+      },
+      "salesforce": {
+        "id": "500TS00000na5Y9YAI",
+        "case_number": "00005892",
+        "subject": "SR: 1-6562722072",
+        "created_at": "2026-06-26T01:23:47.000+0000",
+        "status": "Closed",
+        "contact_email": "loudonlocksmith@gmail.com",
+        "supplied_email": "loudonlocksmith@gmail.com",
+        "description_snippet": "Good evening,\nWe are not sure what is going on with this job on your side. We just received a cancellation notice for this job. We are a bit confused at this cancellation, as this job was completed on May 12, 2026 and submitted on May 14, 2026. You cannot cancel a job that was done more than a month..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.071,
+      "freshdesk": {
+        "id": 60465,
+        "subject": "Re: Immediate Attention Required: Submit Your Past Due Invoices for Completed Work",
+        "created_at": "2026-06-30T17:39:00Z",
+        "status": 5,
+        "queue": "aphelp",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.071,
+      "freshdesk": {
+        "id": 60466,
+        "subject": "Re: Immediate Attention Required: Submit Your Past Due Invoices for Completed Work",
+        "created_at": "2026-06-30T17:39:01Z",
+        "status": 2,
+        "queue": "invoice-concerns",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60497,
+        "subject": ".Client PO # 1-6593365752 - Invoice # 215280 - Coach # 1205",
+        "created_at": "2026-06-30T18:03:35Z",
+        "status": 5,
+        "queue": "aphelp",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email"
+      ],
+      "dup_type": "contact_collision",
+      "origin": "sf_first",
+      "subject_similarity": 0.0,
+      "freshdesk": {
+        "id": 60671,
+        "subject": "Re: .Client PO # 1-6547911012 - Invoice # 214865 - Ulta Beauty # 1232",
+        "created_at": "2026-06-30T23:34:54Z",
+        "status": 2,
+        "queue": "invoice-concerns",
+        "requester": "rcarrillo@necbs.net"
+      },
+      "salesforce": {
+        "id": "500TS00000nmxXxYAI",
+        "case_number": "00005997",
+        "subject": "Re: Action Required: Vixxo Corporation SP Insurance Update",
+        "created_at": "2026-06-29T16:26:29.000+0000",
+        "status": "New",
+        "contact_email": "rcarrillo@necbs.net",
+        "supplied_email": "rcarrillo@necbs.net",
+        "description_snippet": "Hello,\n\nAttached is our updated Workers Comp COI.  Please update your records for compliance.\n\nThank you!\n\n\n\nKind Regards,\n\n\nRocio Carrillo | Office Administrator | Billing\nNorth East Corner Building Services, Inc\n\nAddress: 36595 Kevin Road #136, Wildomar, CA 92595\nOffice: (909) 236-7791 Ext 106 | F..."
+      }
+    },
+    {
+      "match_reasons": [
+        "contact_email",
+        "supplied_email",
+        "subject_overlap:0.43"
+      ],
+      "dup_type": "likely_same_thread",
+      "origin": "sf_first",
+      "subject_similarity": 0.429,
+      "freshdesk": {
+        "id": 60900,
+        "subject": "Overhead Door of Boise Invoice # AR012062",
+        "created_at": "2026-07-01T16:26:12Z",
+        "status": 2,
+        "queue": "spm-other",
+        "requester": "cs@overheaddoorinc.com"
+      },
+      "salesforce": {
+        "id": "500TS00000ntwDeYAI",
+        "case_number": "00006092",
+        "subject": "Statement from: Overhead Door of Boise",
+        "created_at": "2026-06-30T18:27:21.000+0000",
+        "status": "New",
+        "contact_email": "cs@overheaddoorinc.com",
+        "supplied_email": "cs@overheaddoorinc.com",
+        "description_snippet": "Dear Customer,\n\nThis is an automatic email to notify you that you have a new Statement available on your account. You will find a copy of Statement attached to this email.\n\nIf you have any questions, please don\u2019t hesitate to contact us at email.\n\nThank you for choosing Overhead Door of Boise."
+      }
+    }
+  ]
+}

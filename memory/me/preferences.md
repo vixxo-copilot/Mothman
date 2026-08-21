@@ -56,4 +56,14 @@ See `agents/personas/work.md` for the assistant persona and
 not restate persona or signing conventions; the rule files are the
 single source of truth.
 
+### Email signature (Outlook → Graph)
+
+When this assistant sends Microsoft 365 email via Graph, append the
+**compact Reply** signature (same colors/content as Outlook Reply, tighter
+spacing) — for both new messages and replies. No AI sign-off.
+
+- File: `assets/email-signature/reply.compact.html`
+- Loader: `.cursor/bin/outlook_signature.py`
+- See `.cursor/rules/outbound-messaging-guardrail.mdc`
+
 <!-- Why: preferences skeleton; work-only, defers to upstream rule files for tone and assistant persona. -->

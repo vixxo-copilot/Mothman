@@ -103,7 +103,8 @@ warrants SF queue ownership. Map category → queue:
 | Coverage / Onboarding | KS Onboarding | `ksonboarding` |
 | COI / Compliance | COI | `coi` |
 | Sourcing / Account Team, VixxoLink, Technical, General | Service Provider Management | `spm` |
-| Billing / Payment (AP forward path) | Usually **no new Case** — document on FD only; optional Task on open onboarding Case if Lead/Case exists | — |
+| **Billing / Invoice Support** | **No SF writes** — Freshdesk only (stay on QSIAP or AP forward). Account/Contact SOQL for the packet is OK; **never** create Case or Task | — |
+| **Payment Information** | **No SF writes** on AP/QSIAP stay path — Freshdesk only. Same ban as Billing. Do **not** create SPM Cases for past-due / payment-update callbacks | — |
 
 Resolve queue OwnerId via Group SOQL (see
 [sp-inbound-vetting/reference/queues.md](../../sp-inbound-vetting/reference/queues.md)
@@ -153,6 +154,8 @@ Include in every packet (agent runs):
 
 | Condition | SF action |
 | --- | --- |
+| **Billing / Invoice Support** | **Never** create Case or Task — Freshdesk only. Record `SF writes: N/A — billing FD-only` in the packet / internal note |
+| **Payment Information** (AP / QSIAP) | **Never** create Case or Task — Freshdesk only. Record `SF writes: N/A — payment FD-only` |
 | `--skip-vetting` / fast skill | No SF reads or writes |
 | No-forward branch (foul language, &lt;10s, minimal speech) | Optional Task on open Case only if one already exists; do **not** create Case |
 | Dry-run | SOQL allowed; no CLI writes |
@@ -160,13 +163,18 @@ Include in every packet (agent runs):
 
 ## Dual-intake awareness
 
-Voicemail often exists in **both** Freshdesk (8x8 notification + `.wav`) and
-Salesforce (Case from triage forward or Email-to-Case). Always:
+**SPM Vendor Relations (extension 4046):** Email-to-Case already creates the
+Salesforce Case. Prefer that Case over Outlook VM duplicates — see
+[salesforce-4046-voicemail.md](salesforce-4046-voicemail.md). Do **not** create
+Freshdesk KSOnboarding tickets (mailbox retired).
 
-1. Search SF before creating Case
-2. Link FD `#` in Case Description / Task body
-3. Note the paired id in the internal note (**SF Case:** 0000xxxx ↔ **FD:** #nnnnn)
+**QSIAP:** Voicemail may exist in Freshdesk only, or also as a mistaken SF Case.
+Always:
+
+1. Search SF before creating Case (Outlook-only / misroute paths)
+2. Link FD `#` in Case Description / Task body when a Freshdesk ticket exists
+3. Note paired ids (**SF Case:** 0000xxxx ↔ **FD:** #nnnnn / **Outlook:** id)
 
 See **`sp-fd-sf-duplicate-bridge`** ([SKILL.md](../../sp-fd-sf-duplicate-bridge/SKILL.md),
-[examples.md](../../sp-fd-sf-duplicate-bridge/reference/examples.md)) for voicemail
-dual-intake detection, batch scan, and FD → SF attachment sync.
+[examples.md](../../sp-fd-sf-duplicate-bridge/reference/examples.md)) for dual-intake
+detection and attachment sync when both FD and SF still apply.

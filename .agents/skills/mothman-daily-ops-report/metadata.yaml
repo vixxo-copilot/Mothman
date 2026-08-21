@@ -1,0 +1,10 @@
+name: mothman-daily-ops-report
+version: 1.0.0
+description: >-
+  Personal daily ops recap (SF queue, Outlook, Teams) with day-over-day
+  deltas and a rolling 5-day window.
+owner: Crystal Gagner
+triggers:
+  - daily ops report
+  - mothman-daily-ops-report
+  - queue email teams day-over-day

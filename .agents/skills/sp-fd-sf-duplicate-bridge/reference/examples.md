@@ -56,6 +56,50 @@ If FD holds the only `.wav`, upload to Case with `--policy full` or manual singl
 
 ---
 
+## Example 5 — Federated COI Req-id duplicates (Angeles Plumbing)
+
+**Problem:** Forwards and auto-replies on the same Federated request created
+multiple FD tickets and SF Cases. Provider is always **Angeles Plumbing, LLC**
+(`450-802-4`); **Req id** distinguishes requests.
+
+| Req id | Freshdesk | Salesforce | Notes |
+| ---: | --- | --- | --- |
+| **17** | #48695, #49190, #58276 | #00005985 | Same `Req 17~2026-02-02 11:39:27.0` — **merge/route** |
+| **19** | #49414 | #00005886 | Separate request from Req 17 |
+| **22** | — | #00005831 | Closed SF Case |
+| **23** | — | #00006016 | **New** request (Jun 29) — not a duplicate of Req 17 |
+
+**Detection:** Parse subject → `(policy_id, req_id) = ("450-802-4", "17")`. Match
+ignores `Fwd:` / `FW:` prefixes and `Federated Insurance Auto Reply` suffix.
+
+**Correct action for new Req 17 auto-reply:**
+
+```sql
+SELECT Id, CaseNumber, Subject, Status
+FROM Case
+WHERE Subject LIKE '%450-802-4 Req 17~%'
+ORDER BY CreatedDate ASC
+```
+
+Route to **oldest open** Case; close duplicate #00005985 (Shell Account misroute).
+Do **not** open Case #00006016 (that is Req **23**).
+
+**Batch scan:**
+
+```bash
+python scripts/scan_duplicates.py \
+  --window-start 2026-05-01T00:00:00Z \
+  --sf-cache .tmp/sf-cases-window-coi.json \
+  --include-coi \
+  --output .tmp/fd-sf-duplicate-scan-coi.json
+```
+
+Look for `coi_req_id_match` in output and **intra-system duplicate** groups.
+
+Full workflow: [federated-coi.md](federated-coi.md).
+
+---
+
 ## Example 4 — Batch window scan
 
 **Operator ask:** "Scan FD/SF duplicates since yesterday."

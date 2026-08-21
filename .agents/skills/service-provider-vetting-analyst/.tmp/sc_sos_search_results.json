@@ -1,0 +1,365 @@
+﻿{
+  "agent_searches": [
+    {
+      "query": "Edward Randall Ramsey",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "AgentName": "Edward Randall Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "agentName": "Edward Randall Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch",
+          "payload": {
+            "AgentName": "Edward Randall Ramsey",
+            "Search": "Search"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Edward Randall Ramsey",
+            "SearchType": "AgentName"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "page_status": 200,
+      "page_has_captcha": false
+    },
+    {
+      "query": "Edward R Ramsey",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "AgentName": "Edward R Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "agentName": "Edward R Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch",
+          "payload": {
+            "AgentName": "Edward R Ramsey",
+            "Search": "Search"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Edward R Ramsey",
+            "SearchType": "AgentName"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "page_status": 200,
+      "page_has_captcha": false
+    },
+    {
+      "query": "Ramsey, Edward",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "AgentName": "Ramsey, Edward"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "agentName": "Ramsey, Edward"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch",
+          "payload": {
+            "AgentName": "Ramsey, Edward",
+            "Search": "Search"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Ramsey, Edward",
+            "SearchType": "AgentName"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "page_status": 200,
+      "page_has_captcha": false
+    },
+    {
+      "query": "Edward Ramsey",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "AgentName": "Edward Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch/Search",
+          "payload": {
+            "agentName": "Edward Ramsey"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/AgentSearch",
+          "payload": {
+            "AgentName": "Edward Ramsey",
+            "Search": "Search"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Registered Agent Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Registered Agent Search Enter the full or partial name you wish to search for. The first 50 results will be displayed below. If your query has more than 50 results please contact the Secretary of State\u2019s office. Search by Agent Name Search For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Edward Ramsey",
+            "SearchType": "AgentName"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "page_status": 200,
+      "page_has_captcha": false
+    }
+  ],
+  "entity_searches": [
+    {
+      "query": "Corley Lock and Safe",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "SearchText": "Corley Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "BusinessName": "Corley Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Corley Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "query": "Corley Lock & Safe",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "SearchText": "Corley Lock & Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "BusinessName": "Corley Lock & Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Corley Lock & Safe",
+            "SearchType": "Contains"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "query": "Security Lock and Safe",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "SearchText": "Security Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "BusinessName": "Security Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Security Lock and Safe",
+            "SearchType": "Contains"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "query": "Elite Security & Maintenance",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "SearchText": "Elite Security & Maintenance",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "BusinessName": "Elite Security & Maintenance",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Elite Security & Maintenance",
+            "SearchType": "Contains"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "query": "Corley Security Systems",
+      "attempts": [
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "SearchText": "Corley Security Systems",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+          "payload": {
+            "BusinessName": "Corley Security Systems",
+            "SearchType": "Contains"
+          },
+          "status": 200,
+          "has_captcha": false,
+          "text_sample": "Business Name Search - Business Entities Online - S.C. Secretary of State Skip Navigation processing..please wait.. South Carolina Secretary of State Mark Hammond Business Entities Online File, Search, and Retrieve Documents Electronically In partnership with SC.gov Home Log In Business Name Search To Search Enter the business name of the company you wish to view and click \"Search.\" Find the business in the results below and click to view the official business profile and relevant information. To File for an Existing Business Enter the business name of the company for which you wish to file documents and click search. Find the business in the results below and click to view the official business profile. From your business\u2019s profile click the \"Add Filing\" button. Results displayed will show entities that contain your search criteria. Search by Business Name Search Required Add New Entity processing..please wait.. For filing questions please contact us at 803-734-2158 Download Adobe Reader Copyright \u00a9 2026 State of South Carolina South Carolina Secretary of State",
+          "rows": []
+        },
+        {
+          "url": "https://businessfilings.sc.gov/BusinessFiling/Entity/SearchEntity",
+          "payload": {
+            "SearchText": "Corley Security Systems",
+            "SearchType": "Contains"
+          },
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    }
+  ]
+}

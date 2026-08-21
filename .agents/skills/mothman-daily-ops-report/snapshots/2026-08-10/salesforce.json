@@ -1,0 +1,34 @@
+{
+  "day": "2026-08-10",
+  "captured_at": "2026-08-10T13:05:02-05:00",
+  "source": "salesforce",
+  "closed": {
+    "total": 0,
+    "by_type": {}
+  },
+  "new": {
+    "total": 5,
+    "by_type": {
+      "Service Provider Support": 5
+    }
+  },
+  "open": {
+    "total": 322,
+    "by_type": {
+      "Service Provider Support": 295,
+      "Rate Negotiation": 20,
+      "Provider Onboarding": 5,
+      "Coverage Change": 2
+    },
+    "by_status": {
+      "New": 236,
+      "Working": 74,
+      "In Negotiation": 5,
+      "Agreement Sent": 2,
+      "Enablement": 2,
+      "Setup/Training": 2,
+      "Compliance In Progress": 1
+    },
+    "point_in_time": true
+  }
+}

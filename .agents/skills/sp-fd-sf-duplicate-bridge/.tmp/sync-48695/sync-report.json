@@ -1,0 +1,20 @@
+{
+  "fd_ticket_id": 48695,
+  "sf_case_id": "500TS00000nmtkLYAQ",
+  "sf_case_number": null,
+  "policy": "full",
+  "include_original_packet": true,
+  "dry_run": false,
+  "results": [
+    {
+      "title": "E218920.pdf",
+      "action": "uploaded",
+      "content_document_id": "069TS00000fTScdYAG"
+    },
+    {
+      "title": "E218920.pdf",
+      "action": "uploaded",
+      "content_document_id": "069TS00000fTViSYAW"
+    }
+  ]
+}

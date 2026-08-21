@@ -1,50 +1,66 @@
 ---
 name: sp-voicemail-triage
 description: >-
-  Auto-transcribes and triages service-provider voicemails from the Freshdesk
-  KSOnboarding queue and the user's Outlook inbox. Vets company names against
-  Siebel, Gateway, JDE, and Salesforce (Lead, Case, Account, Contact); classifies
-  the call reason; determines callback need; posts Freshdesk internal notes;
-  resolves tickets; adds Salesforce Lead/Case Tasks (and Cases when needed); and
-  automatically forwards to
+  Auto-transcribes and triages service-provider voicemails from Salesforce
+  Cases for 8x8 extension 4046 (Vendor Relations Email-to-Case), Freshdesk
+  QSIAP AP mailbox (qsiap@vixxo.com), and the user's Outlook VM folder.
+  Vets company names against Siebel, Gateway, JDE, and Salesforce (Lead,
+  Case, Account, Contact); classifies the call reason; determines callback
+  need; posts SF Case Tasks (4046 path — no Freshdesk); for QSIAP posts
+  Freshdesk notes/resolves; Billing / Invoice Support and Payment Information
+  stay Freshdesk-only when on QSIAP (no SF Case/Task writes); forwards to
   service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
-  spm-recruitment@vixxo.com, or Gateway SR PM/support staff. Combines multiple
-  voicemails from the same contact into one forward with a unified summary. Use when
-  the user asks to process SP voicemails, triage the voicemail queue, transcribe
-  voicemails,   or route onboarding, billing, COI, or SR callback mail. For triage
-  without outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
-  webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`. For
-  scheduled automation with Whisper transcription and no external vetting, use
-  sibling skill `sp-voicemail-triage-fast` (agent tier loads `sp-inbound-vetting` via Skills MCP for lite reroute).
+  spm-recruitment@vixxo.com, or Gateway SR PM/support staff. KSOnboarding
+  Freshdesk mailbox is retired — do not scan FD type KSOnboarding. Use when
+  the user asks to process SP voicemails, triage extension 4046 / Vendor
+  Relations voicemails, triage QSIAP/AP voicemails, transcribe voicemails, or
+  route onboarding, billing, COI, or SR callback mail. For triage without
+  outbound email, use sibling skill `sp-voicemail-triage-no-email`. For HTTP
+  webhook + WAV intake, use sibling skill `sp-voicemail-triage-webhook`.
 ---
 
 # SP Voicemail Triage
 
 Work-only workflow for **service provider (SP) voicemails**. Default run:
-**auto-transcribe and triage all voicemails** in the Freshdesk **KSOnboarding**
-queue and {{employee_name}}'s **Outlook inbox**, vet the company across Vixxo
-systems, classify the reason, decide callback need, then **automatically**
-post internal notes, forward mail/tickets, add Salesforce Lead/Case Tasks (and
-Cases when no dedupe match), resolve Freshdesk. No separate approval step —
-{{employee_name}} has pre-authorized these actions for this skill.
+**auto-transcribe and triage all voicemails** from **Salesforce Cases** for
+**8x8 extension 4046** (Vendor Relations), Freshdesk **QSIAP**
+(`qsiap@vixxo.com`) AP voicemails, and {{employee_name}}'s **Outlook VM
+folder**, vet the company across Vixxo systems, classify the reason, decide
+callback need, then **automatically** route (SF Tasks on 4046 Cases; Freshdesk
+notes/forwards/resolve for QSIAP; Outlook forwards when no SF Case). No
+separate approval step — {{employee_name}} has pre-authorized these actions
+for this skill.
 
-**Write order (every item):** internal note → forward → Salesforce (Lead Task,
-Case Task, and/or Case create) → resolve Freshdesk.
+**Retired:** Freshdesk **KSOnboarding** (`ksonboarding@vixxo.com`) is no longer
+an active mailbox. Do **not** search or write that queue.
+
+**Write order:**
+
+- **SF 4046:** Case Task (or close AP/short) → optional email forward — **no
+  Freshdesk**
+- **QSIAP:** internal note → forward when misrouted → resolve when required
+  (Billing/Payment stay Open on QSIAP; **no SF writes**) — see
+  [qsiap-voicemail.md](reference/qsiap-voicemail.md)
+- **Outlook-only:** forward → SF Case + Task when warranted (not Billing/Payment)
 
 ## When to use
 
 - "Process SP voicemails" / "run voicemail triage" / "triage the queue"
-- "Transcribe voicemails in KSOnboarding and my inbox"
-- Single voicemail: attach audio, paste transcript, or point at a ticket/message
+- "Triage extension 4046" / "Vendor Relations voicemails" / "SF voicemails"
+- "Transcribe voicemails in SF and my Outlook VM folder"
+- "Triage QSIAP voicemails" / "process AP voicemails on qsiap"
+- Single voicemail: attach audio, paste transcript, or point at a Case/message
 - **Webhook + WAV:** use **`sp-voicemail-triage-webhook`** (not this skill)
 - **No outbound email:** use **`sp-voicemail-triage-no-email`**
-- **Scheduled automation / fast batch:** use **`sp-voicemail-triage-fast`**
+- **Legacy FD KSOnboarding fast cron:** sibling **`sp-voicemail-triage-fast`**
+  is retired for default SPM intake (mailbox inactive); use this skill's SF
+  4046 path instead. QSIAP still uses `scripts/batch_process_qsiap.py`.
 
 ## Operating modes
 
 | Mode | Trigger | Behavior |
 | --- | --- | --- |
-| **Batch (default)** | "Process voicemails" without a single item | Scan both sources; full pipeline on every candidate |
+| **Batch (default)** | "Process voicemails" without a single item | Scan all three sources; full pipeline on every candidate |
 | **Single** | One ticket, message, or attachment | Full pipeline on one item |
 | **Dry-run (opt-in)** | User says "dry-run" / "preview only" | Triage + vet only; no writes |
 
@@ -58,35 +74,28 @@ these actions for this skill.
 
 ## Default batch sources
 
-### 1. Freshdesk — KSOnboarding queue (voicemail only)
+### 1. Salesforce — 8x8 extension 4046 (Vendor Relations)
 
+**Primary SPM path.** Full rules:
+[reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md).
+
+```sql
+SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate
+FROM Case
+WHERE IsClosed = false
+  AND Subject LIKE '%New voicemail%'
+  AND Subject LIKE '%VENDOR RELATIONS%'
+ORDER BY CreatedDate DESC
+LIMIT 50
 ```
-group_id:159000485013 AND status:2 AND type:'KSOnboarding'
-```
 
-Then **post-filter** to voicemail items only — see
-[reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md).
-
-**In scope:** subject **includes** `New voicemail` (case-insensitive).
-
-**Out of scope:** everything else in the KSOnboarding queue — including tickets
-whose body or thread mentions `voicemail`, `ACH`, payment, or billing but whose
-subject does not include `New voicemail`. Log skipped IDs; do not triage.
-
-- SPM group `159000485013`; ticket type `KSOnboarding`.
-- Use `search_tickets`; paginate all pages; apply voicemail filter.
-- For each in-scope ticket: `get_ticket`, conversations, attachments; download and
-  transcribe the **audio attachment** (`.wav` or `.mp3`, required). The notification
-  **email body does not contain the spoken message** — only caller metadata and
-  routing boilerplate.
-
-**Batch REST script (Freshdesk-only):** When running
-`scripts/batch_process_freshdesk.py`, the script downloads the ticket **audio
-attachment** (`.wav` or `.mp3`) and transcribes via **local faster-whisper**
-(no API key). Transcription **must succeed** before any note, forward, or resolve —
-failed STT leaves the ticket open. For scheduled automation without external vetting,
-use sibling **`sp-voicemail-triage-fast`**. See
-[reference/automation-setup.md](reference/automation-setup.md).
+- Notification body (Email-to-Case): *"Your extension **4046** just received a
+  new voicemail. Tap the attachment to listen…"* — metadata only, not a transcript.
+- Download `.wav` / `.mp3` from `EmailMessage` → `ContentDocumentLink` →
+  `ContentVersion`; transcribe with faster-whisper before routing.
+- **No Freshdesk** for this source — post Completed Case Tasks (or close
+  Billing/Payment / short as Duplicate per policy).
+- Prefer SF Case over Outlook when the same 4046 message exists in both.
 
 ### 2. Outlook — {{employee_name}}'s **VM** folder
 
@@ -107,8 +116,8 @@ needed.
    Whisper. The email body is notification metadata only — **not a transcript** and
    not used for classification.
 
-Dedupe: if the same voicemail exists in Freshdesk and Outlook, triage once and
-link both IDs in the packet.
+Dedupe: if the same 4046 voicemail exists as an **SF Case** and in Outlook,
+triage once on the SF Case and link the Outlook message id in the Task.
 
 **Same-contact combine:** When multiple voicemails share a contact (same callback
 number, same company name, or same Freshdesk requester) within the batch
@@ -123,6 +132,24 @@ window, **merge into one triage item** before routing. Produce:
 Do not send separate forwards to the same routing address for the same contact
 in one batch run.
 
+### 3. Freshdesk — QSIAP AP voicemails (`qsiap@vixxo.com`)
+
+Open SPM tickets with subject **`New voicemail`** gated to recipient
+**`qsiap@vixxo.com`**. Full rules:
+[reference/qsiap-voicemail.md](reference/qsiap-voicemail.md).
+
+- Discover via type-sliced SPM searches (`Invoice Support` + `type:null`), then
+  subject filter + QSIAP recipient gate.
+- **Transcript-first:** never use 8x8 caller ID as company; extract company /
+  contact / SR from Whisper transcript.
+- **Billing / Payment:** internal note + tags (`qsiap-source`,
+  `voicemail-triaged`) + `cf_sp`; **no forward** (already on QSIAP); leave Open
+  when callback Yes/Recommended; resolve only for short/foul/minimal branches.
+- **Misroute** (COI, onboarding, SPM, SR, etc.): forward to the normal triage
+  recipient, then resolve.
+- **Batch REST script:** `scripts/batch_process_qsiap.py`
+  (`--dry-run`, `--re-triage`).
+
 ## Output format
 
 ### Batch summary (top of every batch run)
@@ -132,9 +159,10 @@ in one batch run.
 
 | # | Source | ID | Company | Category | Callback | Entity | Route to | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | FD #12345 | … | Apex Mechanical | Payment | Yes | Known SP | aphelp@vixxo.com | routed |
+| 1 | SF 00008035 | … | Facility Maintenance Pros | General | Yes | Known SP | SPM (Case Task) | task posted |
+| 2 | QSIAP #86700 | … | Goodson Services | Payment | Recommended | Known SP | qsiap@ (stay) | noted / open |
 
-**Counts:** {n} triaged | {n} skipped (non-voicemail) | {n} callback Yes | {n} routed | {n} failed
+**Counts:** {n} triaged | {n} SF 4046 | {n} QSIAP | {n} Outlook | {n} callback Yes | {n} routed | {n} failed
 ```
 
 Then one **triage packet** per item (see below).
@@ -146,7 +174,7 @@ Then one **triage packet** per item (see below).
 
 | Field | Value |
 | --- | --- |
-| **Source** | Freshdesk #{id} / Outlook message {id} |
+| **Source** | SF Case {CaseNumber} / QSIAP Freshdesk #{id} / Outlook message {id} |
 | **Callback required** | Yes / No / Recommended |
 | **Urgency** | Critical / High / Normal / Low |
 | **Category** | {primary category} |
@@ -160,7 +188,7 @@ Then one **triage packet** per item (see below).
 | **SF Case** | {CaseNumber / Status or None} |
 | **SF writes** | Lead Task / Case Task / Case create — {posted | failed | N/A} |
 | **Route to** | {email list} |
-| **Freshdesk disposition** | {Resolve + forward / note only / …} |
+| **Disposition** | {SF Task / Case closed / FD resolve + forward / note only / …} |
 | **Confidence** | High / Medium / Low |
 
 ### Company vetting
@@ -183,8 +211,9 @@ Then one **triage packet** per item (see below).
 ## Workflow (per voicemail)
 
 1. **Acquire content** — download and transcribe the **audio attachment** (`.wav`
-   or `.mp3`, required for Freshdesk/Outlook intake); or user-pasted transcript /
-   attached audio in single-item mode ([Acquire and transcribe](#acquire-and-transcribe)).
+   or `.mp3`) from SF Case EmailMessage, Outlook, or QSIAP Freshdesk; or
+   user-pasted transcript / attached audio in single-item mode
+   ([Acquire and transcribe](#acquire-and-transcribe)).
 2. **Transcribe** verbatim; capture name, company, callback #, SR/invoice IDs.
 3. **Classify** — one primary category from [reference/categories.md](reference/categories.md).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
@@ -193,18 +222,21 @@ Then one **triage packet** per item (see below).
    Lead/Case/Account/Contact). See [reference/salesforce-notes.md](reference/salesforce-notes.md).
 6. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
    - VixxoLink, Technical, General → `service.providermanagement@vixxo.com`
-   - Billing / Invoice / Payment → `aphelp@vixxo.com`
+     (4046: Case Task; Outlook-only: forward)
+   - Billing / Invoice / Payment → `aphelp@vixxo.com` or QSIAP stay; **no SF
+     writes** on AP path (close mistaken 4046 Cases as Duplicate)
    - Insurance / COI → `COI@vixxo.com`
-   - Onboarding → Salesforce Lead branch → Lead note + resolve FD, or forward
+   - Onboarding → Salesforce Lead branch → Lead Task, or forward
      `spm-recruitment@vixxo.com`
    - SR assistance → Gateway PM + Support emails; subject `{SR#}, Need Assistance`
-7. **Post internal note** — [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md).
-8. **Forward** — per [reference/routing-actions.md](reference/routing-actions.md).
-9. **Salesforce** — Lead Task, Case Task, and/or Case create per
-   [reference/salesforce-notes.md](reference/salesforce-notes.md). Search for
-   existing Case with `Freshdesk #{id}` before creating.
-10. **Resolve Freshdesk** — `status: 5` with valid `type` and required
-    `custom_fields.cf_sp` (use `Unknown` when SP is not identified).
+7. **SF 4046:** Completed Case Task (or close per short/AP rules) — see
+   [salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md).
+8. **QSIAP only:** post Freshdesk internal note
+   ([freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md)),
+   forward when misrouted, resolve when disposition requires it.
+9. **Outlook-only (no SF Case):** forward per routing-actions; create SF Case +
+   Task when category warrants (not Billing/Payment).
+10. **Do not** search or update Freshdesk KSOnboarding.
 
 ## Acquire and transcribe
 
@@ -218,23 +250,26 @@ Do not post Freshdesk internal notes, forwards, or resolves until that verbatim
 transcript exists. If audio download or STT fails, **leave the ticket/message
 unchanged** and report the failure.
 
-**Freshdesk KSOnboarding voicemails:** Each ticket includes an audio attachment
-(typically **`.wav`**, sometimes **`.mp3`**) from the 8x8 voicemail email.
-Download and transcribe that file. Do not read, parse, or classify from the ticket
-description, email body, or conversation thread.
+**Salesforce 4046 (Vendor Relations):** Audio is on the Case's inbound
+`EmailMessage` ContentDocument (`.wav` / `.mp3`). Download via Salesforce CLI
+`ContentVersion` VersionData; transcribe before any Case Task or close. Body
+text is 8x8 metadata only (extension 4046 notice) — not a transcript.
 
 **Outlook voicemails:** Same rule — body is notification metadata only. Download
 the **`.wav` or `.mp3` attachment** (`download-bytes` on M365) and transcribe via
 Whisper or agent STT.
 
-**Batch REST script steps:**
+**QSIAP Freshdesk:** Download ticket audio attachment URL; same Whisper path.
 
-1. Pick the first `.wav` or `.mp3` attachment on the ticket (prefers `.wav` when both exist).
-2. Download via Freshdesk attachment URL (authenticated).
+**STT steps (all sources):**
+
+1. Pick the first `.wav` or `.mp3` attachment (prefers `.wav` when both exist).
+2. Download (SF ContentVersion, Graph `download-bytes`, or Freshdesk URL).
 3. Transcribe via **faster-whisper** (local; `pip install -r scripts/requirements.txt`, ffmpeg on PATH).
 4. Note `Transcript source: faster-whisper`.
 5. If transcript matches a **no-forward** rule (foul language, &lt;10s duration,
-   blank or one/two words) → internal note, **skip forward**, resolve.
+   blank or one/two words) → document skip; close SF Case or resolve QSIAP as
+   applicable; **no route forward**.
 6. Only then run classify, vetting (if applicable), and Phase 2 writes.
 
 **Single-item exception:** {{employee_name}} may paste a transcript or attach audio
@@ -248,25 +283,27 @@ in production runs.
 Track per item during Phase 2:
 
 ```
-Route progress — {ticket/message id}:
-- [ ] Internal note posted (create_ticket_note, private)
-- [ ] Forward sent (forward_ticket or forward-mail-message)
-- [ ] Salesforce dedupe search (`Freshdesk #{id}` in Case Description)
+Route progress — {SF Case / QSIAP # / Outlook id}:
+- [ ] Audio transcribed (faster-whisper)
+- [ ] SF 4046: Completed Case Task (or Case closed for AP/short)
+- [ ] QSIAP: internal note posted (create_ticket_note, private)
+- [ ] Forward sent when required (forward_ticket or forward-mail-message)
 - [ ] Salesforce Lead Task posted (if Lead match / onboarding)
-- [ ] Salesforce Case Task posted or Case created (if applicable)
-- [ ] Freshdesk resolved (update_ticket status 5)
+- [ ] Outlook-only: Case created when warranted (not Billing/Payment)
+- [ ] QSIAP resolved when disposition requires (update_ticket status 5)
 ```
 
-For **onboarding + Lead found**: resolve Freshdesk after SF Lead Task is recorded
-(or document SF write failure in the internal note before resolve).
+For **onboarding + Lead found**: post Lead Task; resolve QSIAP Freshdesk when
+applicable; on 4046 leave Case with Completed Task.
 
 For **SR branch**: confirm PM/support emails from Gateway before forward; subject
 must be `{SR_NUMBER}, Need Assistance`.
 
-For **foul language in transcript**: post internal note, **do not forward**, resolve.
+For **foul language in transcript**: document skip, **do not forward**; close SF
+Case or resolve QSIAP as applicable.
 
-For **voicemail under 10 seconds** or **blank / one–two words**: post internal
-note, **do not forward**, resolve.
+For **voicemail under 10 seconds** or **blank / one–two words**: document skip,
+**do not forward**; close SF Case or resolve QSIAP.
 
 If any write fails, continue the pipeline where safe, record the failure in the
 batch summary **Status** column, and do not re-attempt without user direction.
@@ -276,43 +313,48 @@ batch summary **Status** column, and do not re-attempt without user direction.
 - Work context only — Vixxo SP operations.
 - Facts from recording/transcript and MCP responses; mark assumptions.
 - **Transcription required** from **audio attachment** (`.wav` or `.mp3`) — email
-  body has no spoken content; failed download/STT → skip ticket.
-- **Foul language:** profanity in the transcript → internal note + resolve,
-  **no forward** (overrides category routing). See
-  [reference/routing-actions.md](reference/routing-actions.md).
-- **Short duration:** voicemail under **10 seconds** → internal note + resolve,
-  **no forward**.
-- **Minimal speech:** blank transcript or **one/two words** only → internal note
-  + resolve, **no forward**.
+  body has no spoken content; failed download/STT → skip item.
+- **No Freshdesk KSOnboarding** — mailbox retired; SPM voicemails are SF 4046.
+- **Foul language:** profanity in the transcript → skip forward; close SF Case
+  or resolve QSIAP. See [reference/routing-actions.md](reference/routing-actions.md).
+- **Short duration:** voicemail under **10 seconds** → skip forward; close SF
+  Case or resolve QSIAP.
+- **Minimal speech:** blank transcript or **one/two words** only → same as short.
 - **Sourcing / account team:** transcript asks to speak with sourcing,
   procurement, or an account/program manager about work opportunities → route
   **`service.providermanagement@vixxo.com`**, **not** `aphelp@vixxo.com`. Set
   **Review for {{employee_name}}: Yes** when a Vixxo contact is named or the
   caller explicitly wants sourcing. See FD **#57452** in
   [reference/examples.md](reference/examples.md).
-- Phase 2 writes (internal notes, forwards, SF Lead/Case Tasks, Case create,
-  resolve) run automatically when this skill is invoked — except in explicit
-  **dry-run** mode or **`sp-voicemail-triage-fast`** (`--skip-vetting`).
-- **Salesforce:** run Lead/Case/Account/Contact SOQL on every item; dedupe Case
-  by `Freshdesk #{id}` before create. See [reference/salesforce-notes.md](reference/salesforce-notes.md).
+- Phase 2 writes run automatically when this skill is invoked — except in
+  explicit **dry-run** mode.
+- **Salesforce:** for 4046, Case already exists — Task (or close AP/short). For
+  Outlook-only / QSIAP non-AP, run Lead/Case/Account/Contact SOQL; dedupe before
+  Case create. See [reference/salesforce-notes.md](reference/salesforce-notes.md)
+  and [reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md).
 - Never invent recipient emails — resolve via Gateway SR payload or `list-users`.
 - Redact full phone numbers in shared-channel summaries; keep full numbers in
-  internal notes for {{employee_name}}.
+  internal notes / Task bodies for {{employee_name}}.
 
 ## Additional resources
 
 | File | Purpose |
 | --- | --- |
+| [reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md) | Primary SPM intake — extension 4046 SF Cases |
 | [reference/categories.md](reference/categories.md) | Category taxonomy |
 | [reference/callback-rules.md](reference/callback-rules.md) | Callback decision |
 | [reference/company-vetting.md](reference/company-vetting.md) | Siebel, Gateway, JDE, SF |
 | [reference/salesforce-notes.md](reference/salesforce-notes.md) | SF SOQL, Tasks, Case create, dedupe |
 | [reference/routing-actions.md](reference/routing-actions.md) | Forwards + resolve rules |
-| [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | Voicemail-only queue filter |
-| [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | Note body |
+| [reference/freshdesk-voicemail-filter.md](reference/freshdesk-voicemail-filter.md) | QSIAP Freshdesk voicemail-only filter |
+| [reference/freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md) | QSIAP note body |
 | [reference/examples.md](reference/examples.md) | Sample outputs |
-| [reference/automation-setup.md](reference/automation-setup.md) | Scheduled cron + batch script |
+| [reference/automation-setup.md](reference/automation-setup.md) | Scheduled automation notes |
+| [reference/qsiap-voicemail.md](reference/qsiap-voicemail.md) | QSIAP AP mailbox intake + disposition |
 
 Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
-**`sp-voicemail-triage-webhook`** (WAV webhook intake),
-**`sp-voicemail-triage-fast`** (Whisper + no vetting, for automation).
+**`sp-voicemail-triage-webhook`** (WAV webhook intake).
+**`sp-voicemail-triage-fast`** is legacy FD KSOnboarding automation — not for
+default 4046 runs.
+**`sp-inbound-vetting`** owns non-voicemail AP Help / SF queue identity
+enrichment — QSIAP **voicemails** are owned here.

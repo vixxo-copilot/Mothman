@@ -1,0 +1,15 @@
+{
+  "fd_ticket_id": 49414,
+  "sf_case_id": "500TS00000nmtkLYAQ",
+  "sf_case_number": null,
+  "policy": "full",
+  "include_original_packet": true,
+  "dry_run": false,
+  "results": [
+    {
+      "title": "ER12480.pdf",
+      "action": "uploaded",
+      "content_document_id": "069TS00000fTIA7YAO"
+    }
+  ]
+}

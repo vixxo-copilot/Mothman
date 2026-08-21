@@ -1,13 +1,13 @@
 name: sp-voicemail-triage
 title: "SP Voicemail Triage"
-description: "Auto-transcribes and triages SP voicemails from Freshdesk KSOnboarding and Outlook VM folder using local faster-whisper; vets companies across Siebel, Gateway, JDE, and Salesforce (Lead, Case, Account, Contact); posts Freshdesk notes, SF Lead/Case Tasks, optional SF Cases, forwards, and resolves tickets."
+description: "Auto-transcribes and triages SP voicemails from Salesforce Cases (8x8 extension 4046 Vendor Relations), Freshdesk QSIAP (qsiap@vixxo.com), and Outlook VM folder using local faster-whisper; vets companies across Siebel, Gateway, JDE, and Salesforce; posts SF Case Tasks for 4046 (no Freshdesk KSOnboarding — mailbox retired); QSIAP Billing/Payment stay Freshdesk-only; forwards and resolves per routing rules."
 category: operations
 agents:
   - cursor
   - claude-code
 author: "{{employee_name}}"
-version: "2.6.3"
-tags: [voicemail, transcription, service-provider, triage, callback, freshdesk, ksonboarding, salesforce, gateway, vixxo]
+version: "2.8.0"
+tags: [voicemail, transcription, service-provider, triage, callback, salesforce, extension-4046, qsiap, freshdesk, outlook, gateway, vixxo]
 status: approved
 requires_mcp: [microsoft-365, freshdesk, gateway, vixxolink, salesforce]
 source: vixxo

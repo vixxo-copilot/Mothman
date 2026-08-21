@@ -50,10 +50,18 @@ draft-then-approve, no exceptions.
 - **Teams outbound (DMs, group chats, channel posts, replies):** sign inline
   at the end of the last paragraph as `-- AI assistant for {{employee_name}}`.
   No assistant proper name; no standalone signature line.
-- **Microsoft 365 email:** do NOT add an AI sign-off. {{employee_name}}'s
-  email signature handles it.
+- **Microsoft 365 email:** do NOT add an AI sign-off. Instead, append
+  {{employee_name}}'s **Outlook Reply signature** (compact spacing, same
+  colors/content) when sending via Graph. Graph does **not** auto-insert
+  Outlook signatures. Use Reply for both new messages and replies/forwards.
+  - Canonical HTML: `assets/email-signature/reply.compact.html`
+  - Loader: `python .cursor/bin/outlook_signature.py --json`
+  - Append the returned `html` to the message body
+  - Plain-text drafts for approval may note `[Outlook Reply signature]`
+    rather than pasting the full HTML
 - **Messages drafted to be sent in {{employee_name}}'s voice (leadership
   comms, strategy, feedback):** do NOT carry an AI sign-off. The message is
-  drafted to read as {{employee_name}}'s own words.
+  drafted to read as {{employee_name}}'s own words. Email still gets the
+  Outlook signature above when sent via Graph.
 
 <!-- Why: protects recipients and {{employee_name}}'s reputation from unauthorized AI-sent messages. -->

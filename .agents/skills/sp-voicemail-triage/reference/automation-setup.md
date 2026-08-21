@@ -1,7 +1,29 @@
 # Scheduled Cursor Automation Setup
 
-Wire **`sp-voicemail-triage-fast`** to a cron trigger for hands-off KSOnboarding
-voicemail processing.
+**SPM Vendor Relations (extension 4046)** is Salesforce Email-to-Case — run the
+full **`sp-voicemail-triage`** agent (SOQL + ContentVersion STT + Case Tasks),
+not Freshdesk KSOnboarding. The FD KSOnboarding mailbox is **retired**.
+
+For **QSIAP** AP voicemails (`qsiap@vixxo.com`), schedule
+`scripts/batch_process_qsiap.py` (or a full `sp-voicemail-triage` agent run).
+
+Legacy **`sp-voicemail-triage-fast`** / `batch_process_freshdesk.py` targeted
+KSOnboarding and should not be used for default SPM intake.
+
+## Windows Task Scheduler (local, durable)
+
+Cursor agent loops die when the session ends. Prefer a weekday Scheduled Task:
+
+| Item | Value |
+| --- | --- |
+| Task name | `MothmanVoicemailTriage` |
+| Schedule | Every **2 hours**, Mon–Fri, 07:00–19:00 local |
+| Install | `powershell -File .agents/skills/sp-voicemail-triage/scripts/install_voicemail_triage_task.ps1` |
+| Tick | `scripts/run_voicemail_triage_tick.ps1` — Outlook VM incremental batch + marker under `.tmp/scheduler-ticks/` |
+| Uninstall | `...\install_voicemail_triage_task.ps1 -Uninstall` |
+
+The tick runs **Outlook** unattended. **SF 4046 Case Tasks** still need a
+Cursor/`sp-voicemail-triage` agent pass (or a future SF batch script).
 
 ## Transcription is mandatory
 
@@ -96,8 +118,11 @@ python .agents/skills/sp-voicemail-triage/scripts/verify_transcription.py --load
 # First run only (or after env rebuild):
 python .agents/skills/sp-voicemail-triage/scripts/setup_transcription.py
 
-# Every cron tick:
+# Every cron tick (KSOnboarding fast path):
 python .agents/skills/sp-voicemail-triage-fast/scripts/batch_process_freshdesk.py
+
+# QSIAP AP voicemails (full triage disposition — stay on qsiap or misroute):
+python .agents/skills/sp-voicemail-triage/scripts/batch_process_qsiap.py
 ```
 
 The fast wrapper runs a **preflight** verify automatically (skip with

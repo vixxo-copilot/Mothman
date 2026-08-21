@@ -1,0 +1,11 @@
+{
+  "name": "salesforce-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vendored @salesforce/mcp for fast Cursor MCP startup",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@salesforce/mcp": "0.30.15"
+  }
+}
