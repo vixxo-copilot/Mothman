@@ -39,13 +39,45 @@ def check_cmd(name: str) -> bool:
     return False
 
 
+def check_gateway_oauth_config() -> tuple[bool, str]:
+    """Gateway uses Cursor static OAuth (url + auth.CLIENT_ID), not file tokens."""
+    if not MCP_JSON.is_file():
+        return False, f"missing {MCP_JSON}"
+    try:
+        payload = json.loads(MCP_JSON.read_text(encoding="utf-8"))
+        gw = (payload.get("mcpServers") or {}).get("gateway") or {}
+    except json.JSONDecodeError as exc:
+        return False, f"invalid mcp.json: {exc}"
+    if gw.get("command") or gw.get("args"):
+        return False, "gateway must use native url entry (not command/npx/mcp-remote)"
+    url = (gw.get("url") or "").strip()
+    if url != "https://vixxonow.com/mcp/gateway":
+        return False, "gateway.url must be https://vixxonow.com/mcp/gateway"
+    auth = gw.get("auth") or {}
+    client_id = (auth.get("CLIENT_ID") or "").strip()
+    if not client_id.startswith("cursor-"):
+        return False, "gateway.auth.CLIENT_ID missing or not a cursor- DCR client id"
+    if auth.get("CLIENT_SECRET"):
+        return False, "remove gateway.auth.CLIENT_SECRET (public client)"
+    return True, f"oauth client configured (…{client_id[-4:]})"
+
+
 def main() -> int:
     results: list[dict] = []
+
+    gw_ok, gw_detail = check_gateway_oauth_config()
+    results.append(
+        {
+            "check": "gateway OAuth config",
+            "status": "PASS" if gw_ok else "FAIL",
+            "fix": gw_detail if not gw_ok else gw_detail,
+        }
+    )
 
     checks = [
         ("freshdesk", has_secret("FRESHDESK_API_KEY", "FRESHDESK_TOKEN"), "freshdesk_token in ~/.vixxo or FRESHDESK_API_KEY in .env"),
         ("freshservice", has_secret("FRESHSERVICE_API_KEY"), "freshservice_api_key in ~/.vixxo"),
-        ("gateway/vixxolink/vixxonow", has_secret("VIXXOLINK_API_TOKEN", "GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"), "vixxolink_api_token or vixxonow_api_token in ~/.vixxo"),
+        ("vixxolink/vixxonow tokens", has_secret("VIXXOLINK_API_TOKEN", "VIXXONOW_API_TOKEN"), "vixxolink_api_token / vixxonow_api_token in ~/.vixxo (shell scripts only)"),
         ("salesforce CLI", check_cmd("sf"), "npm install -g @salesforce/cli && sf org login web"),
         ("github MCP binary", (ROOT / ".cursor" / "bin" / "github-mcp-server.exe").is_file(), "see .cursor/mcp.README.md § GitHub"),
         ("node/npx", check_cmd("npx"), "install Node.js"),

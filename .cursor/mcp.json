@@ -9,19 +9,17 @@
     },
     "chatfpt": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/chatfpt"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "chatfpt"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "dynamics365": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/dynamics365"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "dynamics365"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "freshdesk": {
       "args": [],
@@ -42,11 +40,10 @@
       }
     },
     "gateway": {
-      "args": [
-        "/c",
-        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-gateway-mcp.cmd"
-      ],
-      "command": "C:\\Windows\\System32\\cmd.exe"
+      "url": "https://vixxonow.com/mcp/gateway",
+      "auth": {
+        "CLIENT_ID": "cursor-J9RgSM_v7_HGcIgOJ93bLLCG5nMYcUgZ"
+      }
     },
     "github": {
       "args": [
@@ -64,11 +61,10 @@
     },
     "gong-transact": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://transact.vixxo.com/mcp/gong"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "gong-transact"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "hubspot": {
       "url": "https://mcp.hubspot.com"
@@ -92,22 +88,14 @@
     },
     "powerbi-prod": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/powerbi"
+        ".cursor/bin/run-vixxo-http-mcp.py",
+        "powerbi-prod"
       ],
-      "command": "npx"
+      "command": "python3"
     },
     "salesforce": {
       "args": [],
       "command": "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-salesforce-mcp.cmd"
-    },
-    "skills": {
-      "args": [
-        "-y",
-        "@vixxo-copilot/skills-mcp"
-      ],
-      "command": "npx"
     },
     "smartsheet": {
       "args": [],

@@ -53,6 +53,10 @@ def load_vixxo_secrets() -> None:
         stem = path.stem.upper().replace("-", "_")
         if not os.environ.get(stem):
             os.environ[stem] = secret
+        if stem == "FRESHDESK_TOKEN" and not os.environ.get("FRESHDESK_API_KEY"):
+            os.environ["FRESHDESK_API_KEY"] = secret
+        if stem == "FRESHSERVICE_API_KEY" and not os.environ.get("FRESHSERVICE_API_KEY"):
+            os.environ["FRESHSERVICE_API_KEY"] = secret
 
 
 def load_workspace_env(root: Path | None = None) -> None:
@@ -64,6 +68,7 @@ def load_workspace_env(root: Path | None = None) -> None:
 
 
 def ensure_node_path() -> None:
+    """Ensure Node/npm directories are on PATH for Cursor-spawned MCP processes."""
     if os.name != "nt":
         return
     extras: list[str] = []
