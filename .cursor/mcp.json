@@ -97,13 +97,6 @@
       "args": [],
       "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-salesforce-mcp.cmd"
     },
-    "skills": {
-      "args": [
-        "-y",
-        "@vixxo-copilot/skills-mcp"
-      ],
-      "command": "npx"
-    },
     "smartsheet": {
       "args": [],
       "command": "C:\\Users\\CGagner\\source\\assistant-CGagner\\.cursor\\bin\\run-smartsheet-mcp.cmd"

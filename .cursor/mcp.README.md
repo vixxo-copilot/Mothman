@@ -125,22 +125,19 @@ in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 **Transport:** local stdio via `.cursor/bin/run-vixxo-http-mcp.py`, which wraps
 `npx mcp-remote` and injects a Bearer token header.
 
-**Auth:** Bearer token required. The gateway endpoint rejects unauthenticated
-requests (`Bearer token required for MCP gateway`). Store your token in one of:
+**Auth:** Static OAuth client via DCR (one-time). Mint **one** `cursor-…` client id,
+then set `auth.CLIENT_ID` in `.cursor/mcp.json`. Cursor uses that id instead of
+dynamic registration — do **not** re-run DCR curl; each run registers another
+client on Gateway.
 
-- `~/.vixxo/gateway_api_token` (recommended for gateway)
-- `~/.vixxo/vixxolink_api_token` (shared across Vixxo HTTP MCPs)
-- `~/.vixxo/vixxonow_api_token`
-- or `GATEWAY_API_TOKEN` / `VIXXOLINK_API_TOKEN` / `VIXXONOW_API_TOKEN` in `.env`
+**Do not** use `mcp-remote` or `run-vixxo-http-mcp.py` for gateway.
 
-The launcher falls back across those names so one token file can cover multiple
-servers when your Vixxo account uses a shared API token.
+**skills MCP:** `@vixxo-copilot/skills-mcp` syncs a url-only gateway manifest and
+was stripping `auth.CLIENT_ID`, which forced repeated dynamic OAuth/DCR. Keep
+`skills` disabled in Customize → MCP while gateway auth is settling, or ensure
+`.cursor/mcp-sync-state.json` marks `gateway` resolution as `user`.
 
-**Windows:** if `python3` is not on PATH, point `.cursor/mcp.json` at
-`.cursor/bin/run-vixxo-http-mcp.cmd` instead (same args).
-
-After auth changes, open **Cursor Settings → MCP** and restart the affected
-servers (`gateway`, `vixxolink`, `vixxonow`, etc.).
+After auth changes, open **Cursor Settings → MCP** and restart **gateway** only.
 
 **Verify:**
 
