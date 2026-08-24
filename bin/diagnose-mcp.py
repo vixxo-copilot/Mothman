@@ -39,8 +39,47 @@ def check_cmd(name: str) -> bool:
     return False
 
 
+def check_vixxolink_launcher() -> tuple[bool, str]:
+    """VixxoLink must use bearer wrapper (not url-only / OAuth in Cursor)."""
+    if not MCP_JSON.is_file():
+        return False, f"missing {MCP_JSON}"
+    try:
+        payload = json.loads(MCP_JSON.read_text(encoding="utf-8"))
+        vl = (payload.get("mcpServers") or {}).get("vixxolink") or {}
+    except json.JSONDecodeError as exc:
+        return False, f"invalid mcp.json: {exc}"
+    if vl.get("url"):
+        return False, "vixxolink must use run-vixxolink-mcp.cmd (not native url OAuth)"
+    cmd = (vl.get("command") or "").lower()
+    if "run-vixxolink-mcp" not in cmd and "run-vixxolink-mcp" not in " ".join(vl.get("args") or []):
+        return False, "vixxolink command must point at run-vixxolink-mcp.cmd"
+    token_ok = has_secret("VIXXOLINK_API_TOKEN") or (
+        Path.home() / ".vixxo" / "vixxolink_api_token"
+    ).is_file()
+    if not token_ok:
+        return False, "run: python .cursor/bin/sync_vixxolink_token.py (after Gateway OAuth)"
+    return True, "bearer wrapper + token file"
+
+
+def check_salesforce_launcher() -> tuple[bool, str]:
+    entry = ROOT / ".cursor" / "bin" / "salesforce-mcp" / "node_modules" / "@salesforce" / "mcp" / "bin" / "run.js"
+    sf_cmd = Path(os.environ.get("APPDATA", "")) / "npm" / "sf.cmd"
+    if not entry.is_file():
+        return False, f"vendored MCP missing at {entry} — run npm install in .cursor/bin/salesforce-mcp"
+    if not sf_cmd.is_file():
+        return False, f"sf CLI missing at {sf_cmd} — npm install -g @salesforce/cli && sf org login web"
+    return True, "vendored @salesforce/mcp + sf.cmd present"
+
+
 def main() -> int:
     results: list[dict] = []
+
+    for label, fn in (
+        ("vixxolink launcher", check_vixxolink_launcher),
+        ("salesforce launcher", check_salesforce_launcher),
+    ):
+        ok, detail = fn()
+        results.append({"check": label, "status": "PASS" if ok else "FAIL", "fix": detail})
 
     checks = [
         ("freshdesk", has_secret("FRESHDESK_API_KEY", "FRESHDESK_TOKEN"), "freshdesk_token in ~/.vixxo or FRESHDESK_API_KEY in .env"),

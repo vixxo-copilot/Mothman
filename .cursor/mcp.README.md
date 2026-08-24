@@ -155,19 +155,16 @@ Then restart **gateway**, **vixxolink**, **vixxonow**, and **business-objects**
 in Cursor Settings → MCP.
 
 **OAuth troubleshooting (`Authorization state is invalid or expired` /
-`Connection closed` / localhost callback / port 29069 or 37882):**
+`Connection closed` / localhost callback / port 37882):**
 
-1. Run `.cursor/bin/repair-gateway-oauth.cmd`,
-   `.cursor/bin/repair-vixxolink-oauth.cmd`, or
-   `.cursor/bin/repair-vixxonow-oauth.cmd` (clears stale listener / OAuth
-   cache for that server).
-2. For gateway / vixxolink: **Cursor Settings → MCP → Reconnect** and complete
-   browser sign-in once when prompted.
-3. `python .cursor/bin/sync_gateway_token.py` and/or
-   `python .cursor/bin/sync_vixxolink_token.py` to copy fresh OAuth tokens
-   into `~/.vixxo/`.
-4. Restart the MCP servers in Cursor. `vixxonow` and `business-objects` reuse
-   the Gateway bearer — no separate browser login.
+The Cursor launcher does **not** open browser OAuth. Populate bearer tokens instead:
+
+1. Complete Gateway sign-in once (gateway MCP or `repair-gateway-oauth.cmd`).
+2. `python .cursor/bin/sync_gateway_token.py`
+3. `python .cursor/bin/sync_vixxolink_token.py`
+4. Restart **vixxolink** in Cursor Settings → MCP.
+
+To clear stale mcp-remote listeners: `.cursor/bin/repair-vixxolink-oauth.cmd`
 
 **Verify:**
 
