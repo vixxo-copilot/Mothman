@@ -92,11 +92,10 @@
     },
     "powerbi-prod": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/powerbi"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-powerbi-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "salesforce": {
       "args": [],

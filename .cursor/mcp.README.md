@@ -130,6 +130,7 @@ in `.cursor/mcp.json` and are not invoked through Cursor's MCP UI.
 - `.cursor/bin/run-vixxolink-mcp.cmd`
 - `.cursor/bin/run-vixxonow-mcp.cmd`
 - `.cursor/bin/run-business-objects-mcp.cmd`
+- `.cursor/bin/run-powerbi-mcp.cmd`
 
 Each wrapper runs `npx mcp-remote <url> --header Authorization:Bearer <token>` so
 shell and Cursor share one token path — no localhost OAuth callback ports.
@@ -151,7 +152,7 @@ python .cursor/bin/sync_gateway_token.py
 python .cursor/bin/sync_vixxolink_token.py
 ```
 
-Then restart **gateway**, **vixxolink**, **vixxonow**, and **business-objects**
+Then restart **gateway**, **vixxolink**, **vixxonow**, **business-objects**, and **powerbi-prod**
 in Cursor Settings → MCP.
 
 **OAuth troubleshooting (`Authorization state is invalid or expired` /
