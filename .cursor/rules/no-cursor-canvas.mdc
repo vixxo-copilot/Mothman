@@ -1,0 +1,24 @@
+---
+description: Never create Cursor canvases unless Crystal explicitly asks
+alwaysApply: true
+---
+
+# No Cursor Canvas Unless Requested
+
+Default all answers to chat. Do not create, edit, or open a Cursor canvas
+unless Crystal explicitly asks for one (for example: "use a canvas", "make
+a .canvas.tsx", or "put this on a canvas").
+
+## Forbidden unless explicitly requested
+
+- Creating or writing any `*.canvas.tsx` file
+- Reading or following the Cursor `canvas` skill
+- Offering or switching to a canvas as a "better" presentation for tables,
+  MCP results, audits, or reports
+
+## Allowed
+
+- Continue in this chat with markdown, lists, and citations
+- Use a canvas only after an explicit request in the current conversation
+
+<!-- Why: canvases are opt-in; chat is the default deliverable. -->
