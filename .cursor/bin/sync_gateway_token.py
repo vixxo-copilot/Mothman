@@ -7,18 +7,54 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mcp_env import GATEWAY_AUTH_ID, load_oauth_access_token, resolve_vixxo_bearer_token  # noqa: E402
+from mcp_env import (  # noqa: E402
+    GATEWAY_AUTH_ID,
+    gateway_token_expiry,
+    is_gateway_token_usable,
+    load_oauth_access_token,
+    load_token_file,
+)
+
+
+def pick_usable_gateway_token() -> str | None:
+    candidates: list[str] = []
+    oauth = load_oauth_access_token(GATEWAY_AUTH_ID)
+    if oauth:
+        candidates.append(oauth)
+    file_token = load_token_file(Path.home() / ".vixxo" / "gateway_api_token")
+    if file_token:
+        candidates.append(file_token)
+    for token in candidates:
+        if is_gateway_token_usable(token):
+            return token
+    return None
+
+
+def stale_gateway_expiry() -> str | None:
+    candidates: list[str] = []
+    oauth = load_oauth_access_token(GATEWAY_AUTH_ID)
+    if oauth:
+        candidates.append(oauth)
+    file_token = load_token_file(Path.home() / ".vixxo" / "gateway_api_token")
+    if file_token:
+        candidates.append(file_token)
+    for token in candidates:
+        expiry = gateway_token_expiry(token)
+        if expiry is not None:
+            return expiry.isoformat(sep=" ", timespec="seconds")
+    return None
 
 
 def main() -> int:
-    # Prefer fresh OAuth cache over stale ~/.vixxo file tokens (same as first BO setup).
-    token = load_oauth_access_token(GATEWAY_AUTH_ID) or resolve_vixxo_bearer_token()
+    token = pick_usable_gateway_token()
     if not token:
-        print("status=FAIL reason=no_gateway_token")
-        print(
-            "Populate ~/.vixxo/gateway_api_token manually, or sign in once so "
-            "~/.mcp-auth contains a Gateway access token."
-        )
+        stale = stale_gateway_expiry()
+        if stale:
+            print(f"status=FAIL reason=expired_gateway_token expiry={stale}")
+        else:
+            print("status=FAIL reason=no_gateway_token")
+        print("Run: .cursor\\bin\\refresh-gateway-bearer.cmd")
+        print("Then restart gateway, business-objects, powerbi-prod, and vixxonow in Cursor MCP.")
         return 1
 
     token_path = Path.home() / ".vixxo" / "gateway_api_token"

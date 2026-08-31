@@ -12,6 +12,15 @@ MCP_JSON = ROOT / ".cursor" / "mcp.json"
 SYNC_STATE = ROOT / ".cursor" / "mcp-sync-state.json"
 BIN = ROOT / ".cursor" / "bin"
 
+sys.path.insert(0, str(BIN))
+from mcp_env import (  # noqa: E402
+    gateway_token_expiry,
+    is_gateway_token_usable,
+    load_token_file,
+    resolve_vixxolink_bearer_token,
+    resolve_vixxo_bearer_token,
+)
+
 SERVERS = {
     "gateway": "run-gateway-mcp",
     "vixxolink": "run-vixxolink-mcp",
@@ -51,16 +60,28 @@ def main() -> int:
         results.append({"server": name, "status": "PASS" if ok else "FAIL", "detail": detail})
 
     vixxo = Path.home() / ".vixxo"
-    gateway_token = (vixxo / "gateway_api_token").is_file()
-    vixxolink_token = (vixxo / "vixxolink_api_token").is_file()
+    gateway_usable = bool(resolve_vixxo_bearer_token())
+    vixxolink_usable = bool(resolve_vixxolink_bearer_token())
+    gateway_raw = load_token_file(vixxo / "gateway_api_token")
+    gateway_expiry = gateway_token_expiry(gateway_raw)
+    gateway_detail = {
+        "gateway_api_token_file": (vixxo / "gateway_api_token").is_file(),
+        "gateway_usable": gateway_usable,
+        "gateway_expiry": (
+            gateway_expiry.isoformat(sep=" ", timespec="seconds")
+            if gateway_expiry is not None
+            else None
+        ),
+        "vixxolink_api_token_file": (vixxo / "vixxolink_api_token").is_file(),
+        "vixxolink_usable": vixxolink_usable,
+    }
+    if not gateway_usable and gateway_raw and not is_gateway_token_usable(gateway_raw):
+        gateway_detail["gateway_fix"] = ".cursor/bin/refresh-gateway-bearer.cmd"
     results.append(
         {
             "server": "tokens",
-            "status": "PASS" if gateway_token and vixxolink_token else "FAIL",
-            "detail": {
-                "gateway_api_token": gateway_token,
-                "vixxolink_api_token": vixxolink_token,
-            },
+            "status": "PASS" if gateway_usable and vixxolink_usable else "FAIL",
+            "detail": gateway_detail,
         }
     )
 

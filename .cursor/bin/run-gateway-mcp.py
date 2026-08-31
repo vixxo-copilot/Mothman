@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mcp_env import (  # noqa: E402
     GATEWAY_URL,
     auth_header_value,
+    gateway_token_expiry,
+    load_token_file,
     resolve_npx,
     resolve_vixxo_bearer_token,
 )
@@ -19,13 +21,25 @@ from mcp_env import (  # noqa: E402
 def main() -> int:
     token = resolve_vixxo_bearer_token()
     if not token:
-        print("gateway MCP: no Gateway bearer token found.", file=sys.stderr)
-        print(
-            "Fix: save a token to ~/.vixxo/gateway_api_token, or complete Gateway "
-            "OAuth once so ~/.mcp-auth is populated, then run "
-            ".cursor/bin/sync_gateway_token.py",
-            file=sys.stderr,
-        )
+        raw = load_token_file(Path.home() / ".vixxo" / "gateway_api_token")
+        expiry = gateway_token_expiry(raw) if raw else None
+        if expiry is not None:
+            print(
+                f"gateway MCP: bearer token expired at {expiry.isoformat(sep=' ', timespec='seconds')}.",
+                file=sys.stderr,
+            )
+            print(
+                "Fix: .cursor/bin/refresh-gateway-bearer.cmd (one browser sign-in), "
+                "then restart gateway in Cursor MCP.",
+                file=sys.stderr,
+            )
+        else:
+            print("gateway MCP: no Gateway bearer token found.", file=sys.stderr)
+            print(
+                "Fix: .cursor/bin/refresh-gateway-bearer.cmd, or save a token to "
+                "~/.vixxo/gateway_api_token, then restart gateway.",
+                file=sys.stderr,
+            )
         return 1
 
     npx = resolve_npx()
