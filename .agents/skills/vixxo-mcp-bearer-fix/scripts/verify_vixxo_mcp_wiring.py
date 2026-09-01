@@ -14,11 +14,11 @@ BIN = ROOT / ".cursor" / "bin"
 
 sys.path.insert(0, str(BIN))
 from mcp_env import (  # noqa: E402
+    GATEWAY_URL,
+    ensure_gateway_bearer_for_url,
     gateway_token_expiry,
-    is_gateway_token_usable,
     load_token_file,
     resolve_vixxolink_bearer_token,
-    resolve_vixxo_bearer_token,
 )
 
 SERVERS = {
@@ -60,7 +60,7 @@ def main() -> int:
         results.append({"server": name, "status": "PASS" if ok else "FAIL", "detail": detail})
 
     vixxo = Path.home() / ".vixxo"
-    gateway_usable = bool(resolve_vixxo_bearer_token())
+    gateway_usable = bool(ensure_gateway_bearer_for_url(GATEWAY_URL))
     vixxolink_usable = bool(resolve_vixxolink_bearer_token())
     gateway_raw = load_token_file(vixxo / "gateway_api_token")
     gateway_expiry = gateway_token_expiry(gateway_raw)
@@ -75,7 +75,7 @@ def main() -> int:
         "vixxolink_api_token_file": (vixxo / "vixxolink_api_token").is_file(),
         "vixxolink_usable": vixxolink_usable,
     }
-    if not gateway_usable and gateway_raw and not is_gateway_token_usable(gateway_raw):
+    if not gateway_usable:
         gateway_detail["gateway_fix"] = ".cursor/bin/refresh-gateway-bearer.cmd"
     results.append(
         {

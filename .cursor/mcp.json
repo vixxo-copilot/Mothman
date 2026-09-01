@@ -9,19 +9,17 @@
     },
     "chatfpt": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/chatfpt"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-chatfpt-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "dynamics365": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://vixxonow.com/mcp/dynamics365"
+        "/c",
+        "C:\\Users\\CGagner\\source\\mothman\\.cursor\\bin\\run-dynamics365-mcp.cmd"
       ],
-      "command": "npx"
+      "command": "C:\\Windows\\System32\\cmd.exe"
     },
     "freshdesk": {
       "args": [],

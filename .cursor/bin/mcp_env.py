@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -52,6 +54,8 @@ def load_vixxo_secrets() -> None:
         if not secret:
             continue
         stem = path.stem.upper().replace("-", "_")
+        if stem in ("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN") and not is_gateway_token_usable(secret):
+            continue
         if not os.environ.get(stem):
             os.environ[stem] = secret
 
@@ -259,6 +263,56 @@ def is_gateway_token_usable(token: str | None) -> bool:
     return expiry > datetime.now()
 
 
+def collect_gateway_bearer_candidates() -> list[str]:
+    load_workspace_env()
+    candidates: list[str] = []
+    seen: set[str] = set()
+
+    def add(token: str | None) -> None:
+        if not token or not token.strip():
+            return
+        value = token.strip()
+        if value in seen:
+            return
+        seen.add(value)
+        candidates.append(value)
+
+    add(first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"))
+    vixxo = Path.home() / ".vixxo"
+    for name in ("gateway_api_token", "vixxonow_api_token"):
+        add(load_token_file(vixxo / name))
+    add(load_oauth_access_token(GATEWAY_AUTH_ID))
+    return candidates
+
+
+def ensure_gateway_bearer_for_url(url: str) -> str | None:
+    """Return a bearer token that tools/list accepts for url (no browser OAuth)."""
+    for token in collect_gateway_bearer_candidates():
+        if mcp_tools_list_ok(url, token):
+            return token
+    return None
+
+
+def gateway_bearer_failure_message(url: str | None = None) -> str:
+    raw = load_token_file(Path.home() / ".vixxo" / "gateway_api_token")
+    expiry = gateway_token_expiry(raw) if raw else None
+    lines = [
+        "Gateway bearer missing or rejected by the server (no browser OAuth fallback).",
+        "Fix: .cursor/bin/refresh-gateway-bearer.cmd (one browser sign-in in terminal only).",
+    ]
+    if expiry is not None:
+        lines.insert(
+            1,
+            f"Local gateway_api_token stamp: {expiry.isoformat(sep=' ', timespec='seconds')}.",
+        )
+    if url:
+        lines.append(f"Endpoint: {url}")
+    lines.append(
+        "Then restart gateway, business-objects, powerbi-prod, vixxonow, chatfpt, and dynamics365 in Cursor MCP."
+    )
+    return "\n".join(lines)
+
+
 def resolve_vixxo_bearer_token() -> str | None:
     load_workspace_env()
     token = first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN")
@@ -295,6 +349,32 @@ def resolve_vixxolink_bearer_token() -> str | None:
     return None
 
 
+def mcp_tools_list_ok(url: str, token: str) -> bool:
+    """Return True if tools/list accepts this bearer. Does not print the token."""
+    payload = json.dumps(
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": "mcp-remote/0.1.38",
+            "Authorization": auth_header_value(token),
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            if resp.status != 200:
+                return False
+            body = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError):
+        return False
+    return isinstance(body, dict) and "result" in body
+
+
 def ensure_vixxolink_access_token() -> str | None:
     """Prefer a freshly refreshed OAuth access token, else fall back to cache/file."""
     refreshed = refresh_vixxolink_oauth_tokens()
@@ -306,7 +386,7 @@ def ensure_vixxolink_access_token() -> str | None:
 def resolve_bearer_token_for_url(url: str) -> str | None:
     if "/vixxolink" in url:
         return resolve_vixxolink_bearer_token()
-    return resolve_vixxo_bearer_token()
+    return ensure_gateway_bearer_for_url(url) or resolve_vixxo_bearer_token()
 
 
 def auth_header_value(token: str) -> str:
@@ -314,3 +394,58 @@ def auth_header_value(token: str) -> str:
     if token.lower().startswith("bearer "):
         return token
     return f"Bearer {token}"
+
+
+MCP_REMOTE_CONFIG_VERSION = 1
+
+
+def mcp_remote_server_url_hash(server_url: str, headers: dict[str, str]) -> str:
+    parts = [server_url]
+    if headers:
+        parts.append(json.dumps(headers, sort_keys=True, separators=(",", ":")))
+    return hashlib.md5("|".join(parts).encode("utf-8")).hexdigest()
+
+
+def seed_mcp_remote_token_cache(server_url: str, token: str, headers: dict[str, str]) -> Path:
+    """Write mcp-remote tokens.json so bearer launches skip browser OAuth."""
+    raw = token.strip()
+    if raw.lower().startswith("bearer "):
+        raw = raw.split(None, 1)[1]
+
+    expiry = gateway_token_expiry(raw)
+    now_ms = int(datetime.now().timestamp() * 1000)
+    if expiry is not None:
+        expires_ms = int(expiry.timestamp() * 1000)
+        if expires_ms <= now_ms:
+            expires_ms = now_ms + 86400 * 1000
+    else:
+        expires_ms = now_ms + 7 * 86400 * 1000
+
+    url_hash = mcp_remote_server_url_hash(server_url, headers)
+    config_dir = Path.home() / ".mcp-auth" / f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    path = config_dir / f"{url_hash}_tokens.json"
+    payload = {
+        "access_token": raw,
+        "token_type": "Bearer",
+        "expires_at": expires_ms,
+    }
+    path.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+    return path
+
+
+def launch_mcp_remote_with_bearer(server_url: str, token: str) -> int:
+    header = auth_header_value(token)
+    headers = {"Authorization": header}
+    seed_mcp_remote_token_cache(server_url, token, headers)
+    npx = resolve_npx()
+    return subprocess.call(
+        [
+            npx,
+            "-y",
+            "mcp-remote",
+            server_url,
+            "--header",
+            f"Authorization:{header}",
+        ]
+    )

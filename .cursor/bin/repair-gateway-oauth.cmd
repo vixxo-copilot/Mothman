@@ -5,6 +5,6 @@ powershell -NoProfile -Command ^
 echo.
 echo Port 29069 should be free.
 echo Gateway uses bearer auth via run-gateway-mcp.cmd (no browser OAuth in Cursor).
-echo If MCP still fails with expired token: .cursor\bin\refresh-gateway-bearer.cmd
-echo If token is fresh: python .cursor\bin\sync_gateway_token.py
+echo Gateway does not open a browser login. If Cursor is red, restart gateway
+echo after python .cursor\bin\sync_gateway_token.py
 echo Then restart gateway, business-objects, powerbi-prod, and vixxonow in Cursor MCP.

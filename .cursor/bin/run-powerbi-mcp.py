@@ -3,40 +3,24 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mcp_env import (  # noqa: E402
     POWERBI_URL,
-    auth_header_value,
-    resolve_npx,
-    resolve_vixxo_bearer_token,
+    ensure_gateway_bearer_for_url,
+    gateway_bearer_failure_message,
+    launch_mcp_remote_with_bearer,
 )
 
 
 def main() -> int:
-    token = resolve_vixxo_bearer_token()
+    token = ensure_gateway_bearer_for_url(POWERBI_URL)
     if not token:
-        print("powerbi-prod MCP: no Gateway bearer token found.", file=sys.stderr)
-        print(
-            "Fix: python .cursor/bin/sync_gateway_token.py after Gateway auth, "
-            "or save a token to ~/.vixxo/gateway_api_token, then restart powerbi-prod.",
-            file=sys.stderr,
-        )
+        print(gateway_bearer_failure_message(POWERBI_URL), file=sys.stderr)
         return 1
-
-    npx = resolve_npx()
-    cmd = [
-        npx,
-        "-y",
-        "mcp-remote",
-        POWERBI_URL,
-        "--header",
-        f"Authorization:{auth_header_value(token)}",
-    ]
-    return subprocess.call(cmd)
+    return launch_mcp_remote_with_bearer(POWERBI_URL, token)
 
 
 if __name__ == "__main__":
