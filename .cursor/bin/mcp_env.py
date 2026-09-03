@@ -383,9 +383,56 @@ def ensure_vixxolink_access_token() -> str | None:
     return resolve_vixxolink_bearer_token()
 
 
+def ensure_vixxolink_bearer_for_url(url: str = VIXXOLINK_URL) -> str | None:
+    """Return a bearer for VixxoLink MCP. Prefer shared gateway_api_token when Gateway is up."""
+    gateway_token = ensure_gateway_bearer_for_url(GATEWAY_URL)
+    if gateway_token:
+        if mcp_tools_list_ok(url, gateway_token):
+            return gateway_token
+        if "/vixxolink" in url:
+            return gateway_token
+
+    candidates: list[str] = []
+    seen: set[str] = set()
+
+    def add(token: str | None) -> None:
+        if not token or not token.strip():
+            return
+        value = token.strip()
+        if value in seen:
+            return
+        seen.add(value)
+        candidates.append(value)
+
+    add(refresh_vixxolink_oauth_tokens())
+    load_workspace_env()
+    add(first_env("VIXXOLINK_API_TOKEN"))
+    add(load_token_file(Path.home() / ".vixxo" / "vixxolink_api_token"))
+    for auth_id in VIXXOLINK_AUTH_IDS:
+        add(load_oauth_access_token(auth_id))
+
+    for token in candidates:
+        if mcp_tools_list_ok(url, token):
+            return token
+    return None
+
+
+def vixxolink_bearer_failure_message(url: str | None = None) -> str:
+    lines = [
+        "VixxoLink bearer missing or rejected (no browser OAuth in Cursor).",
+        "Fix: python .cursor/bin/sync_gateway_token.py",
+        "If gateway is still red: .cursor/bin/refresh-gateway-bearer.cmd",
+        "Legacy VixxoLink-only login: python .cursor/bin/refresh_vixxolink_oauth.py",
+    ]
+    if url:
+        lines.append(f"Endpoint: {url}")
+    lines.append("Then restart vixxolink in Cursor Settings -> MCP.")
+    return "\n".join(lines)
+
+
 def resolve_bearer_token_for_url(url: str) -> str | None:
     if "/vixxolink" in url:
-        return resolve_vixxolink_bearer_token()
+        return ensure_vixxolink_bearer_for_url(url)
     return ensure_gateway_bearer_for_url(url) or resolve_vixxo_bearer_token()
 
 
@@ -399,11 +446,61 @@ def auth_header_value(token: str) -> str:
 MCP_REMOTE_CONFIG_VERSION = 1
 
 
-def mcp_remote_server_url_hash(server_url: str, headers: dict[str, str]) -> str:
+def mcp_remote_server_url_hash(server_url: str, headers: dict[str, str] | None = None) -> str:
+    """Match mcp-remote getServerUrlHash (URL, then JSON.stringify(headers, sortedKeys))."""
     parts = [server_url]
     if headers:
-        parts.append(json.dumps(headers, sort_keys=True, separators=(",", ":")))
+        sorted_keys = sorted(headers)
+        parts.append(json.dumps({k: headers[k] for k in sorted_keys}, separators=(",", ":")))
     return hashlib.md5("|".join(parts).encode("utf-8")).hexdigest()
+
+
+def mcp_remote_config_dirs() -> list[Path]:
+    base = Path.home() / ".mcp-auth"
+    dirs = [base / f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}"]
+    if base.is_dir():
+        dirs.extend(sorted(p for p in base.glob("mcp-remote-*") if p.is_dir() and p not in dirs))
+    return dirs
+
+
+def clear_vixxolink_oauth_in_progress() -> int:
+    """Remove in-flight VixxoLink PKCE files so mcp-remote does not resume browser OAuth."""
+    removed = 0
+    prefix = f"{VIXXOLINK_AUTH_ID}_code_verifier"
+    lock_suffix = f"{VIXXOLINK_AUTH_ID}_lock.json"
+    for config_dir in mcp_remote_config_dirs():
+        if not config_dir.is_dir():
+            continue
+        for path in config_dir.iterdir():
+            name = path.name
+            if name.startswith(prefix) or name == lock_suffix:
+                path.unlink(missing_ok=True)
+                removed += 1
+    return removed
+
+
+def mirror_gateway_bearer_to_vixxolink(token: str) -> Path:
+    """Keep ~/.vixxo/vixxolink_api_token aligned with the shared Gateway bearer."""
+    token_path = Path.home() / ".vixxo" / "vixxolink_api_token"
+    token_path.parent.mkdir(parents=True, exist_ok=True)
+    token_path.write_text(token.strip(), encoding="utf-8")
+    return token_path
+
+
+def clear_gateway_oauth_in_progress() -> int:
+    """Remove in-flight Gateway PKCE files so mcp-remote does not resume browser OAuth."""
+    removed = 0
+    prefix = f"{GATEWAY_AUTH_ID}_code_verifier"
+    lock_suffix = f"{GATEWAY_AUTH_ID}_lock.json"
+    for config_dir in mcp_remote_config_dirs():
+        if not config_dir.is_dir():
+            continue
+        for path in config_dir.iterdir():
+            name = path.name
+            if name.startswith(prefix) or name == lock_suffix:
+                path.unlink(missing_ok=True)
+                removed += 1
+    return removed
 
 
 def seed_mcp_remote_token_cache(server_url: str, token: str, headers: dict[str, str]) -> Path:
@@ -412,31 +509,39 @@ def seed_mcp_remote_token_cache(server_url: str, token: str, headers: dict[str, 
     if raw.lower().startswith("bearer "):
         raw = raw.split(None, 1)[1]
 
-    expiry = gateway_token_expiry(raw)
+    # CGAGNER:YYYYMMDDHHMMSS is advisory. Using it as expires_at makes
+    # mcp-remote treat the cache as expired and start OAuth for a refresh_token.
     now_ms = int(datetime.now().timestamp() * 1000)
-    if expiry is not None:
-        expires_ms = int(expiry.timestamp() * 1000)
-        if expires_ms <= now_ms:
-            expires_ms = now_ms + 86400 * 1000
-    else:
-        expires_ms = now_ms + 7 * 86400 * 1000
-
-    url_hash = mcp_remote_server_url_hash(server_url, headers)
-    config_dir = Path.home() / ".mcp-auth" / f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    path = config_dir / f"{url_hash}_tokens.json"
-    payload = {
-        "access_token": raw,
-        "token_type": "Bearer",
-        "expires_at": expires_ms,
-    }
-    path.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
-    return path
+    expires_ms = now_ms + 7 * 86400 * 1000
+    payload = json.dumps(
+        {"access_token": raw, "token_type": "Bearer", "expires_at": expires_ms},
+        separators=(",", ":"),
+    )
+    hashes = {mcp_remote_server_url_hash(server_url, headers), mcp_remote_server_url_hash(server_url)}
+    if server_url.rstrip("/").endswith("/gateway"):
+        hashes.add(GATEWAY_AUTH_ID)
+    if server_url.rstrip("/").endswith("/vixxolink"):
+        hashes.add(VIXXOLINK_AUTH_ID)
+    primary: Path | None = None
+    for config_dir in mcp_remote_config_dirs():
+        config_dir.mkdir(parents=True, exist_ok=True)
+        for url_hash in hashes:
+            path = config_dir / f"{url_hash}_tokens.json"
+            path.write_text(payload, encoding="utf-8")
+            if primary is None and config_dir.name == f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}":
+                primary = path
+    if primary is None:
+        raise RuntimeError("failed to seed mcp-remote token cache")
+    return primary
 
 
 def launch_mcp_remote_with_bearer(server_url: str, token: str) -> int:
     header = auth_header_value(token)
     headers = {"Authorization": header}
+    if server_url.rstrip("/").endswith("/gateway"):
+        clear_gateway_oauth_in_progress()
+    if server_url.rstrip("/").endswith("/vixxolink"):
+        clear_vixxolink_oauth_in_progress()
     seed_mcp_remote_token_cache(server_url, token, headers)
     npx = resolve_npx()
     return subprocess.call(

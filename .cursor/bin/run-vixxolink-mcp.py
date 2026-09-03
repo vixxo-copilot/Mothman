@@ -9,21 +9,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mcp_env import (  # noqa: E402
     VIXXOLINK_URL,
-    ensure_vixxolink_access_token,
+    ensure_vixxolink_bearer_for_url,
     launch_mcp_remote_with_bearer,
-    mcp_tools_list_ok,
+    vixxolink_bearer_failure_message,
 )
 
 
 def main() -> int:
-    token = ensure_vixxolink_access_token()
-    if not token or not mcp_tools_list_ok(VIXXOLINK_URL, token):
-        print("vixxolink MCP: bearer missing or rejected (no browser fallback).", file=sys.stderr)
-        print(
-            "Run: python .cursor/bin/sync_vixxolink_token.py after Gateway refresh, "
-            "then restart vixxolink in Cursor MCP.",
-            file=sys.stderr,
-        )
+    token = ensure_vixxolink_bearer_for_url(VIXXOLINK_URL)
+    if not token:
+        print(vixxolink_bearer_failure_message(VIXXOLINK_URL), file=sys.stderr)
         return 1
     return launch_mcp_remote_with_bearer(VIXXOLINK_URL, token)
 
