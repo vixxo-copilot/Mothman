@@ -19,7 +19,10 @@ from mcp_env import (  # noqa: E402
     ensure_gateway_bearer_for_url,
     ensure_vixxolink_bearer_for_url,
     gateway_token_expiry,
+    is_gateway_token_usable,
     load_token_file,
+    mcp_tools_list_ok,
+    vixxolink_bearer_acceptable_for_launch,
 )
 
 SERVERS = {
@@ -65,6 +68,11 @@ def main() -> int:
     vixxolink_usable = bool(ensure_vixxolink_bearer_for_url(VIXXOLINK_URL))
     gateway_raw = load_token_file(vixxo / "gateway_api_token")
     gateway_expiry = gateway_token_expiry(gateway_raw)
+    vixxolink_file = load_token_file(vixxo / "vixxolink_api_token")
+    vixxolink_launch_ok = (
+        bool(vixxolink_file)
+        and vixxolink_bearer_acceptable_for_launch(VIXXOLINK_URL, vixxolink_file)
+    )
     gateway_detail = {
         "gateway_api_token_file": (vixxo / "gateway_api_token").is_file(),
         "gateway_usable": gateway_usable,
@@ -73,13 +81,18 @@ def main() -> int:
             if gateway_expiry is not None
             else None
         ),
+        "gateway_stamp_usable": is_gateway_token_usable(gateway_raw),
         "vixxolink_api_token_file": (vixxo / "vixxolink_api_token").is_file(),
         "vixxolink_usable": vixxolink_usable,
+        "vixxolink_launch_ok": vixxolink_launch_ok,
+        "vixxolink_tools_list": (
+            mcp_tools_list_ok(VIXXOLINK_URL, vixxolink_file) if vixxolink_file else False
+        ),
     }
     if not gateway_usable:
         gateway_detail["gateway_fix"] = ".cursor/bin/refresh-gateway-bearer.cmd"
     if not vixxolink_usable:
-        gateway_detail["vixxolink_fix"] = "python .cursor/bin/sync_gateway_token.py"
+        gateway_detail["vixxolink_fix"] = "python .cursor/bin/refresh_vixxolink_oauth.py"
     results.append(
         {
             "server": "tokens",

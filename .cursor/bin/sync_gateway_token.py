@@ -20,6 +20,7 @@ from mcp_env import (  # noqa: E402
     mirror_gateway_bearer_to_vixxolink,
     mcp_tools_list_ok,
     seed_mcp_remote_token_cache,
+    vixxolink_bearer_acceptable_for_launch,
     VIXXOLINK_URL,
 )
 
@@ -29,7 +30,7 @@ def pick_sync_gateway_token() -> str | None:
     if working:
         return working
     for token in collect_gateway_bearer_candidates():
-        if is_gateway_token_usable(token) and mcp_tools_list_ok(GATEWAY_URL, token):
+        if mcp_tools_list_ok(GATEWAY_URL, token):
             return token
     return None
 
@@ -63,7 +64,11 @@ def main() -> int:
     header = auth_header_value(token)
     seed_mcp_remote_token_cache(GATEWAY_URL, token, {"Authorization": header})
     mirror_gateway_bearer_to_vixxolink(token)
-    seed_mcp_remote_token_cache(VIXXOLINK_URL, token, {"Authorization": header})
+    if vixxolink_bearer_acceptable_for_launch(VIXXOLINK_URL, token):
+        seed_mcp_remote_token_cache(VIXXOLINK_URL, token, {"Authorization": header})
+        print("vixxolink_seed=ok")
+    else:
+        print("vixxolink_seed=skipped reason=vixxolink_rejected_bearer")
     print(f"wrote={token_path}")
     print(f"changed={existing != token}")
     print(f"oauth_pkce_cleared={removed}")

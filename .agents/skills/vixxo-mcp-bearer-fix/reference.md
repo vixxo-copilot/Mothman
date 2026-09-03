@@ -89,7 +89,8 @@ for (const k of ['gateway','vixxolink','business-objects','powerbi-prod']) conso
 | Chrome for powerbi only | Still bare `npx` | powerbi wrapper |
 | Config reverts overnight | skills-mcp sync | local resolution + fingerprints |
 | Connect on vixxolink | url/npx config | wrapper in mcp.json |
-| Wrapper exists, Chrome opens | Stale mcp-remote PIDs | repair scripts |
+| Wrapper exists, Chrome opens | Stale mcp-remote PIDs, or VixxoLink 401 on Gateway token | repair scripts; require VixxoLink `tools/list` before launch |
+| Multiple VixxoLink Chrome tabs | mcp-remote walks 8 OAuth ports after 401 | `refresh_vixxolink_oauth.py` then `sync_vixxolink_token.py`; do not click Connect |
 | PASS verify, red in Cursor | Did not full quit Cursor | Quit app, reopen |
 
 ## Related repo docs

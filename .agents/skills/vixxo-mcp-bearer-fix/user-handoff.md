@@ -107,7 +107,14 @@ python .cursor\bin\sync_gateway_token.py
 python .cursor\bin\sync_vixxolink_token.py
 ```
 
-Both should show **status=OK**.
+Both should show **status=OK**. If VixxoLink prints
+`vixxolink_rejected_gateway_bearer`, run one terminal sign-in (not Cursor
+Connect):
+
+```text
+python .cursor\bin\refresh_vixxolink_oauth.py
+python .cursor\bin\sync_vixxolink_token.py
+```
 
 ```text
 dir %USERPROFILE%\.vixxo\gateway_api_token

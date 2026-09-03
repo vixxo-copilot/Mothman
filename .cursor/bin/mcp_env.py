@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,6 +27,7 @@ GATEWAY_URL = "https://vixxonow.com/mcp/gateway"
 VIXXOLINK_URL = "https://vixxonow.com/mcp/vixxolink"
 VIXXONOW_URL = "https://vixxonow.com/mcp/vixxonow"
 VIXXOLINK_TOKEN_URL = "https://vixxonow.com/mcp/vixxolink/oauth/token"
+GATEWAY_TOKEN_URL = "https://vixxonow.com/mcp/gateway/oauth/token"
 VIXXONOW_TOKEN_URL = "https://vixxonow.com/mcp/vixxonow/oauth/token"
 
 
@@ -233,6 +235,11 @@ def refresh_vixxolink_oauth_tokens(auth_id: str = VIXXOLINK_AUTH_ID) -> str | No
     return refresh_oauth_tokens(auth_id, VIXXOLINK_TOKEN_URL)
 
 
+def refresh_gateway_oauth_tokens(auth_id: str = GATEWAY_AUTH_ID) -> str | None:
+    """Refresh Gateway access token via OAuth refresh_token grant."""
+    return refresh_oauth_tokens(auth_id, GATEWAY_TOKEN_URL)
+
+
 def refresh_vixxonow_oauth_tokens(auth_id: str = VIXXONOW_AUTH_ID) -> str | None:
     """Refresh VixxoNow access token via OAuth refresh_token grant."""
     return refresh_oauth_tokens(auth_id, VIXXONOW_TOKEN_URL)
@@ -277,6 +284,7 @@ def collect_gateway_bearer_candidates() -> list[str]:
         seen.add(value)
         candidates.append(value)
 
+    add(refresh_gateway_oauth_tokens())
     add(first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"))
     vixxo = Path.home() / ".vixxo"
     for name in ("gateway_api_token", "vixxonow_api_token"):
@@ -383,14 +391,21 @@ def ensure_vixxolink_access_token() -> str | None:
     return resolve_vixxolink_bearer_token()
 
 
+def vixxolink_bearer_acceptable_for_launch(url: str, token: str) -> bool:
+    """True only when this exact URL accepts the bearer.
+
+    Do not treat a working Gateway stamp as enough for VixxoLink. mcp-remote
+    treats a VixxoLink 401 as an OAuth challenge and can open up to 8 Chrome
+    windows.
+    """
+    return mcp_tools_list_ok(url, token)
+
+
 def ensure_vixxolink_bearer_for_url(url: str = VIXXOLINK_URL) -> str | None:
     """Return a bearer for VixxoLink MCP. Prefer shared gateway_api_token when Gateway is up."""
     gateway_token = ensure_gateway_bearer_for_url(GATEWAY_URL)
-    if gateway_token:
-        if mcp_tools_list_ok(url, gateway_token):
-            return gateway_token
-        if "/vixxolink" in url:
-            return gateway_token
+    if gateway_token and vixxolink_bearer_acceptable_for_launch(url, gateway_token):
+        return gateway_token
 
     candidates: list[str] = []
     seen: set[str] = set()
@@ -412,18 +427,25 @@ def ensure_vixxolink_bearer_for_url(url: str = VIXXOLINK_URL) -> str | None:
         add(load_oauth_access_token(auth_id))
 
     for token in candidates:
-        if mcp_tools_list_ok(url, token):
+        if vixxolink_bearer_acceptable_for_launch(url, token):
             return token
     return None
 
 
 def vixxolink_bearer_failure_message(url: str | None = None) -> str:
+    raw = load_token_file(Path.home() / ".vixxo" / "gateway_api_token")
+    expiry = gateway_token_expiry(raw) if raw else None
     lines = [
         "VixxoLink bearer missing or rejected (no browser OAuth in Cursor).",
-        "Fix: python .cursor/bin/sync_gateway_token.py",
-        "If gateway is still red: .cursor/bin/refresh-gateway-bearer.cmd",
-        "Legacy VixxoLink-only login: python .cursor/bin/refresh_vixxolink_oauth.py",
+        "Gateway token is not enough when VixxoLink returns 401 Invalid Bearer token.",
+        "Fix: python .cursor/bin/refresh_vixxolink_oauth.py (one terminal Chrome sign-in).",
+        "Then: python .cursor/bin/sync_vixxolink_token.py",
     ]
+    if expiry is not None and not is_gateway_token_usable(raw):
+        lines.insert(
+            1,
+            f"gateway_api_token stamp expired: {expiry.isoformat(sep=' ', timespec='seconds')}.",
+        )
     if url:
         lines.append(f"Endpoint: {url}")
     lines.append("Then restart vixxolink in Cursor Settings -> MCP.")
@@ -542,6 +564,9 @@ def launch_mcp_remote_with_bearer(server_url: str, token: str) -> int:
         clear_gateway_oauth_in_progress()
     if server_url.rstrip("/").endswith("/vixxolink"):
         clear_vixxolink_oauth_in_progress()
+        if not mcp_tools_list_ok(server_url, token):
+            print(vixxolink_bearer_failure_message(server_url), file=sys.stderr)
+            return 1
     seed_mcp_remote_token_cache(server_url, token, headers)
     npx = resolve_npx()
     return subprocess.call(

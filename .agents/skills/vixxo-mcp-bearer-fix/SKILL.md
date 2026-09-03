@@ -34,8 +34,13 @@ each endpoint opens its own browser OAuth tab. Bearer wrappers inject
 | `~/.vixxo/gateway_api_token` | gateway, business-objects, powerbi-prod, vixxonow |
 | `~/.vixxo/vixxolink_api_token` | vixxolink only |
 
-Wrappers **fail fast** without tokens (no browser). If Chrome still opens,
-Cursor is still on OAuth path or stale `mcp-remote` processes are running.
+Wrappers **fail fast** without tokens (no browser). VixxoLink must accept
+its own bearer — a working Gateway stamp is not enough. If the launcher
+starts `mcp-remote` with a token VixxoLink 401s, `mcp-remote` treats that
+as an OAuth challenge and can open up to 8 Chrome windows (ports 37882+).
+
+If Chrome still opens after a fail-fast launcher: Cursor is still on the
+OAuth path, or a stale `mcp-remote` process is running.
 
 ## Guardrails
 
@@ -136,8 +141,12 @@ python .cursor/bin/sync_gateway_token.py
 python .cursor/bin/sync_vixxolink_token.py
 ```
 
-Both sync scripts should report `status=OK`. If FAIL: one Gateway sign-in to
-populate `~/.mcp-auth`, then re-run sync (not four separate logins).
+Both sync scripts should report `status=OK`. If Gateway FAIL: one terminal
+sign-in via `.cursor/bin/refresh-gateway-bearer.cmd`. If VixxoLink FAIL
+(`vixxolink_rejected_gateway_bearer` or `vixxolink_tools_list=false`): one
+terminal sign-in via `python .cursor/bin/refresh_vixxolink_oauth.py`, then
+`python .cursor/bin/sync_vixxolink_token.py`. Do not click Connect in
+Cursor MCP — that restarts the Chrome loop.
 
 Check for duplicate user-level config:
 
