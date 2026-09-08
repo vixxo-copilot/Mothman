@@ -63,8 +63,8 @@ def main() -> int:
     removed = clear_gateway_oauth_in_progress()
     header = auth_header_value(token)
     seed_mcp_remote_token_cache(GATEWAY_URL, token, {"Authorization": header})
-    mirror_gateway_bearer_to_vixxolink(token)
     if vixxolink_bearer_acceptable_for_launch(VIXXOLINK_URL, token):
+        mirror_gateway_bearer_to_vixxolink(token)
         seed_mcp_remote_token_cache(VIXXOLINK_URL, token, {"Authorization": header})
         print("vixxolink_seed=ok")
     else:
