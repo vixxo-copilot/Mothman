@@ -68,8 +68,74 @@ def write_block(pdf: ReferencePDF, text: str, h: float = 4.5) -> None:
 
 
 def parse_table_row(line: str) -> list[str]:
-    cells = [c.strip() for c in line.strip().strip("|").split("|")]
-    return cells
+    return [c.strip().replace("**", "") for c in line.strip().strip("|").split("|")]
+
+
+def _page_bottom(pdf: ReferencePDF) -> float:
+    return pdf.h - 16
+
+
+def _ensure_table_space(pdf: ReferencePDF, needed: float) -> None:
+    if pdf.get_y() + needed > _page_bottom(pdf):
+        pdf.add_page()
+
+
+def _table_widths(pdf: ReferencePDF, header: list[str]) -> list[float]:
+    cols = len(header)
+    if cols == 4:
+        return [pdf.epw * 0.06, pdf.epw * 0.28, pdf.epw * 0.22, pdf.epw * 0.44]
+    if cols == 3:
+        return [pdf.epw * 0.22, pdf.epw * 0.22, pdf.epw * 0.56]
+    if cols == 2:
+        return [pdf.epw * 0.34, pdf.epw * 0.66]
+    return [pdf.epw / cols] * cols
+
+
+def _measure_row_height(
+    pdf: ReferencePDF, cells: list[str], widths: list[float], line_h: float
+) -> float:
+    x0, y0 = pdf.get_x(), pdf.get_y()
+    max_h = line_h
+    for cell, width in zip(cells, widths):
+        height = pdf.multi_cell(
+            width,
+            line_h,
+            safe_text(cell),
+            dry_run=True,
+            output="HEIGHT",
+        )
+        max_h = max(max_h, float(height))
+    pdf.set_xy(x0, y0)
+    return max_h
+
+
+def _draw_table_row(
+    pdf: ReferencePDF,
+    cells: list[str],
+    widths: list[float],
+    *,
+    font_size: float,
+    line_h: float,
+    bold: bool,
+    fill: bool,
+) -> None:
+    pdf.set_font("Helvetica", "B" if bold else "", font_size)
+    if fill:
+        pdf.set_fill_color(230, 230, 230)
+    x0 = pdf.l_margin
+    _ensure_table_space(pdf, _measure_row_height(pdf, cells, widths, line_h) + 2)
+    y0 = pdf.get_y()
+    pdf.set_auto_page_break(auto=False)
+    heights = []
+    for i, cell in enumerate(cells):
+        pdf.set_xy(x0 + sum(widths[:i]), y0)
+        pdf.multi_cell(widths[i], line_h, safe_text(cell), border=0, fill=fill, align="L")
+        heights.append(pdf.get_y() - y0)
+    row_height = max(heights) if heights else line_h
+    for i in range(len(cells)):
+        pdf.rect(x0 + sum(widths[:i]), y0, widths[i], row_height)
+    pdf.set_xy(x0, y0 + row_height)
+    pdf.set_auto_page_break(auto=True, margin=16)
 
 
 def render_table(pdf: ReferencePDF, header: list[str], rows: list[list[str]]) -> None:
@@ -77,39 +143,15 @@ def render_table(pdf: ReferencePDF, header: list[str], rows: list[list[str]]) ->
     if col_count == 0:
         return
 
-    widths = [pdf.epw / col_count] * col_count
-    if col_count == 4:
-        widths = [pdf.epw * 0.06, pdf.epw * 0.28, pdf.epw * 0.22, pdf.epw * 0.44]
-    elif col_count == 3:
-        widths = [pdf.epw * 0.22, pdf.epw * 0.22, pdf.epw * 0.56]
-    elif col_count == 2:
-        widths = [pdf.epw * 0.34, pdf.epw * 0.66]
-
-    pdf.set_font("Helvetica", "B", 7.5)
-    pdf.set_fill_color(230, 230, 230)
-    x0 = pdf.l_margin
-    y0 = pdf.get_y()
-    row_h = 5.5
-    for i, cell in enumerate(header):
-        pdf.set_xy(x0 + sum(widths[:i]), y0)
-        pdf.multi_cell(widths[i], row_h, safe_text(cell), border=1, fill=True, align="L")
-    pdf.ln(0)
-
-    pdf.set_font("Helvetica", "", 7)
+    widths = _table_widths(pdf, header)
+    _draw_table_row(
+        pdf, header, widths, font_size=7.5, line_h=5.5, bold=True, fill=True
+    )
     for row in rows:
-        if pdf.get_y() > pdf.h - 20:
-            pdf.add_page()
-        y_start = pdf.get_y()
-        x_start = pdf.l_margin
-        heights = []
-        for i, cell in enumerate(row):
-            pdf.set_xy(x_start + sum(widths[:i]), y_start)
-            pdf.multi_cell(widths[i], 4.2, safe_text(cell), border=0, align="L")
-            heights.append(pdf.get_y() - y_start)
-        row_height = max(heights) if heights else row_h
-        for i in range(col_count):
-            pdf.rect(x_start + sum(widths[:i]), y_start, widths[i], row_height)
-        pdf.set_xy(x_start, y_start + row_height)
+        padded = (list(row) + [""] * col_count)[:col_count]
+        _draw_table_row(
+            pdf, padded, widths, font_size=7, line_h=4.2, bold=False, fill=False
+        )
 
 
 def build_pdf(md_text: str, pdf_path: Path, header_title: str) -> None:

@@ -94,6 +94,41 @@ def _table_widths(pdf: ReferencePDF, header: list[str], compact: bool) -> list[f
     return [pdf.epw / cols] * cols
 
 
+def _page_bottom(pdf: ReferencePDF, compact: bool) -> float:
+    return pdf.h - (8 if compact else 16)
+
+
+def _ensure_table_space(pdf: ReferencePDF, needed: float, compact: bool) -> None:
+    if pdf.get_y() + needed > _page_bottom(pdf, compact):
+        pdf.add_page()
+
+
+def _draw_table_row(
+    pdf: ReferencePDF,
+    cells: list[str],
+    widths: list[float],
+    *,
+    font_size: float,
+    line_h: float,
+    bold: bool,
+    fill: bool,
+) -> None:
+    pdf.set_font("Helvetica", "B" if bold else "", font_size)
+    if fill:
+        pdf.set_fill_color(230, 230, 230)
+    x0 = pdf.l_margin
+    y0 = pdf.get_y()
+    heights = []
+    for i, cell in enumerate(cells):
+        pdf.set_xy(x0 + sum(widths[:i]), y0)
+        pdf.multi_cell(widths[i], line_h, safe_text(cell), border=0, fill=fill, align="L")
+        heights.append(pdf.get_y() - y0)
+    row_height = max(heights) if heights else line_h
+    for i in range(len(cells)):
+        pdf.rect(x0 + sum(widths[:i]), y0, widths[i], row_height)
+    pdf.set_xy(x0, y0 + row_height)
+
+
 def render_table(
     pdf: ReferencePDF,
     header: list[str],
@@ -106,34 +141,35 @@ def render_table(
         return
 
     font_size = 6.5 if compact else 7
-    row_h = 4.0 if compact else 5.5
-    cell_h = 3.2 if compact else 4.2
-
+    line_h = 4.0 if compact else 5.5
     widths = _table_widths(pdf, header, compact)
 
-    pdf.set_font("Helvetica", "B", font_size)
-    pdf.set_fill_color(230, 230, 230)
-    x0 = pdf.l_margin
-    y0 = pdf.get_y()
-    for i, cell in enumerate(header):
-        pdf.set_xy(x0 + sum(widths[:i]), y0)
-        pdf.multi_cell(widths[i], row_h, safe_text(cell), border=1, fill=True, align="L")
+    # Keep the whole header on one page. A near-bottom start used to
+    # page-break after each header cell (blank pages with only "State").
+    _ensure_table_space(pdf, line_h * 3, compact)
 
-    pdf.set_font("Helvetica", "", font_size)
+    old_auto, old_margin = pdf.auto_page_break, pdf.b_margin
+    pdf.set_auto_page_break(auto=False)
+    _draw_table_row(
+        pdf, header, widths, font_size=font_size, line_h=line_h, bold=True, fill=True
+    )
+    pdf.set_auto_page_break(auto=old_auto, margin=old_margin)
+
     for row in rows:
-        if pdf.get_y() > pdf.h - 14:
-            pdf.add_page()
-        y_start = pdf.get_y()
-        x_start = pdf.l_margin
-        heights = []
-        for i, cell in enumerate(row):
-            pdf.set_xy(x_start + sum(widths[:i]), y_start)
-            pdf.multi_cell(widths[i], cell_h, safe_text(cell), border=0, align="L")
-            heights.append(pdf.get_y() - y_start)
-        row_height = max(heights) if heights else row_h
-        for i in range(col_count):
-            pdf.rect(x_start + sum(widths[:i]), y_start, widths[i], row_height)
-        pdf.set_xy(x_start, y_start + row_height)
+        padded = list(row) + [""] * (col_count - len(row))
+        padded = padded[:col_count]
+        _ensure_table_space(pdf, line_h * 2, compact)
+        pdf.set_auto_page_break(auto=False)
+        _draw_table_row(
+            pdf,
+            padded,
+            widths,
+            font_size=font_size,
+            line_h=3.2 if compact else 4.2,
+            bold=False,
+            fill=False,
+        )
+        pdf.set_auto_page_break(auto=old_auto, margin=old_margin)
 
 
 def build_pdf(
