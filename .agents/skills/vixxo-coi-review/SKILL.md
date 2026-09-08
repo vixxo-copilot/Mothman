@@ -22,20 +22,24 @@ Per `.cursor/rules/outbound-messaging-guardrail.mdc`, **never send a reply, note
 
 Follow these steps in order every time:
 
-1. **Read the SP's COI.** Extract every relevant field — insurer(s), insured name, policy numbers, effective and expiration dates, coverage types, limits, additional insured wording, waiver of subrogation, primary & non-contributory wording, notice of cancellation, certificate holder, and any endorsement form numbers/editions referenced in the Description of Operations or attached endorsements.
-2. **Compare against Vixxo's minimum requirements** (see `references/vixxo-requirements.md`). Check each requirement individually rather than scanning generally.
-3. **Produce the review output** in the format described under "Output format" below.
-4. **Draft the reply** to the service provider in formal tone, listing only the items that are missing, expired, deficient, or unclear. Do not include items that are already compliant.
-5. **In Mode B only:** wait for operator approval, then post the reply through Freshdesk and apply the appropriate outcome tags / status (see "Mode B — Freshdesk SPM COI queue" below).
+1. **Classify scope of work** before scoring limits. Use the provider’s trade, Case/Lead notes, licenses, website, and `references/addendum-b-scope-coverages.md`. Decide default vs Vertical Transportation GL tiers, and whether Professional Liability and/or Pollution Liability apply.
+2. **Read the SP's COI.** Extract every relevant field — insurer(s), insured name, policy numbers, effective and expiration dates, coverage types, limits, additional insured wording, waiver of subrogation, primary & non-contributory wording, notice of cancellation, certificate holder, any endorsement form numbers/editions, and any Professional / Pollution / umbrella lines.
+3. **Compare against Vixxo's minimum requirements** (see `references/vixxo-requirements.md` and the Addendum B overlay). Check each requirement individually rather than scanning generally. Limits below the **scope-applicable** Addendum B minimum are deficient.
+4. **Produce the review output** in the format described under "Output format" below.
+5. **Draft the reply** to the service provider in formal tone, listing only the items that are missing, expired, deficient, or unclear. Do not include items that are already compliant.
+6. **In Mode B only:** wait for operator approval, then post the reply through Freshdesk and apply the appropriate outcome tags / status (see "Mode B — Freshdesk SPM COI queue" below).
 
 ## Vixxo's minimum requirements (summary)
 
-The authoritative list lives in `references/vixxo-requirements.md` — read it before every review. At a high level, an acceptable COI must show all of the following:
+The authoritative list lives in `references/vixxo-requirements.md` (limits and extra lines overlay: `references/addendum-b-scope-coverages.md`) — read both before every review. At a high level, an acceptable COI must show all of the following:
 
-- **Commercial General Liability** (occurrence form) with the standard limit boxes populated (Each Occurrence, Damage to Rented Premises, Med Exp, Personal & Adv Injury, General Aggregate, Products – Comp/Op Aggregate).
-- **Automobile Liability** with Combined Single Limit (or Bodily Injury / Property Damage equivalents) and the appropriate auto coverage box checked (Any Auto / All Owned / Hired / Non-Owned, etc.).
-- **Workers' Compensation / Employers' Liability** with statutory WC limits and EL Each Accident / EL Disease – Each Employee / EL Disease – Policy Limit populated. If "Proprietor/Partner/Executive Officer/Member Excluded" is marked Yes, an explanation must appear in the Description of Operations.
-- **Umbrella / Excess Liability** if the underlying limits do not meet the required totals (occurrence form preferred).
+- **Commercial General Liability** (occurrence form, 2013 ISO or equivalent) with the standard limit boxes populated and Addendum B minima: **$1,000,000** Each Occurrence / **$2,000,000** General Aggregate, unless Vertical Transportation scope upgrades to **$2M / $4M** or public high-traffic VT to **$5M / $5M**.
+- **Automobile Liability** with Combined Single Limit (or Bodily Injury / Property Damage equivalents) of at least **$1,000,000** and the appropriate auto coverage box checked (Any Auto / All Owned / Hired / Non-Owned, etc.).
+- **Workers' Compensation / Employers' Liability** with statutory WC limits, Voluntary Compensation / All States extensions when shown, and EL **$500,000 / $500,000 / $500,000**. If "Proprietor/Partner/Executive Officer/Member Excluded" is marked Yes, an explanation must appear in the Description of Operations.
+- **Professional Liability (E&O) $1,000,000** when the provider is an architect or engineer.
+- **Contractor’s Pollution Liability (or equivalent) $3,000,000 / $3,000,000** when scope includes pollution-related work (waste removal, transportation, hauling, hazmat/abatement). Coverage must include loading, unloading, transportation, and disposal.
+- **Umbrella / Excess Liability** if the underlying GL or Auto limits do not meet the required totals (occurrence form preferred).
+- **Insurers** licensed and A.M. Best **A IX** or better.
 - **Additional Insured wording** in the Description of Operations naming: *"Vixxo Corporation, its subsidiaries, affiliates, related entities and their officers, officials, employees, volunteers (collectively, 'Vixxo'), its customers, the owner, operator and, if required, mortgagee of any site where SP performs Services."*
 - **Additional Insured endorsements** referenced by form number and edition:
   - General Liability: **CG 20 10 04/13** (or equivalent) **and** **CG 20 37 04/13** (or equivalent) — both are required (ongoing operations *and* completed operations).
@@ -244,7 +248,7 @@ Structure your reply to the user in three clearly labeled sections, in this orde
 A short statement: either *"This COI meets Vixxo's minimum requirements"* or *"This COI does NOT meet Vixxo's minimum requirements. The following items are missing or need clarification:"*
 
 ### 2. Findings
-For every requirement, state whether it is **Compliant**, **Missing**, **Deficient**, or **Needs clarification**, with a one-line note. Group by coverage line (General Liability, Auto, WC/EL, Umbrella, Additional Insured / Endorsements / Waivers / Notice, Certificate Holder, Dates). Include exact values from the COI where useful (e.g., "GL Each Occurrence: $1,000,000 — Compliant").
+For every requirement, state whether it is **Compliant**, **Missing**, **Deficient**, **Needs clarification**, or **N/A (not in scope)**, with a one-line note. Open with the **scope classification** (default / VT / VT public; E&O yes/no; Pollution yes/no). Group by coverage line (General Liability, Auto, WC/EL, Professional, Pollution, Umbrella, Carrier rating, Additional Insured / Endorsements / Waivers / Notice, Certificate Holder, Dates). Include exact values from the COI where useful (e.g., "GL Each Occurrence: $1,000,000 — Compliant for default scope").
 
 ### 3. Reply draft
 A formal reply addressed to the service provider. Structure depends on mode:
@@ -268,6 +272,7 @@ Keep the tone professional, neutral, and non-accusatory in both modes. Do not us
 ## Important rules
 
 - **Never invent values.** If a field is illegible or absent on the COI, treat it as missing and ask for it in the email — do not guess limits or dates.
+- **Never skip scope classification.** Base $1M / $2M GL is wrong for Vertical Transportation. Do not treat Professional or Pollution as optional when the provider’s work triggers Addendum B.
 - **Never mark something Compliant by inference.** If the COI does not actually show CG 20 37 04/13 (or equivalent), do not assume it is included just because CG 20 10 is present. They are separate endorsements. Use `references/endorsement-equivalents.md` to decide whether a submitted form is an acceptable equivalent.
 - **Waiver of Subrogation must apply to all three lines** (GL, Auto, WC/EL). Confirm each one individually; if only "Waiver of Subrogation applies" is written without specifying the lines, flag it as needs clarification. For WC WOS, consult `references/state-law-quick-reference.md` — several states prohibit or limit WC waivers (KY, NH, monopolistic fund states, construction bans in MO/OR/KS).
 - **The Additional Insured wording is exact.** The Vixxo language is long and specific (see `references/vixxo-requirements.md` for the verbatim text). If the SP's COI uses generic "Vixxo Corporation is named as Additional Insured," flag it as deficient and request the full wording.
@@ -277,11 +282,13 @@ Keep the tone professional, neutral, and non-accusatory in both modes. Do not us
 
 ## Reference files
 
-- `references/vixxo-requirements.md` — Full verbatim Vixxo additional insured language, required endorsement form numbers and editions, certificate holder address, and a per-requirement checklist. Read this file at the start of every review.
+- `references/vixxo-requirements.md` — Full verbatim Vixxo additional insured language, Addendum B dollar minima, required endorsement form numbers and editions, certificate holder address, and a per-requirement checklist. Read this file at the start of every review.
+- `references/addendum-b-scope-coverages.md` — Scope-triggered GL upgrades, Professional Liability, Pollution Liability, A.M. Best, and Addendum B vs Sample COI deltas.
 - `references/endorsement-equivalents.md` — Endorsement equivalents map for every Sample COI 2026 Description of Operations provision (AI ongoing/completed, auto AI, primary/non-contributory, WOS by line, notice of cancellation, umbrella forms, carrier proprietary examples). Read when evaluating non-ISO or older-edition endorsements.
 - `references/state-law-cancellation-wos.md` — State law analysis for cancellation notices and WC waiver of subrogation (prohibited states, partial-protection states, monopolistic fund states, COI review actions).
 - `references/state-law-quick-reference.md` — One-page reviewer quick reference (tier tables, decision shortcuts, endorsement lookup).
 - `assets/endorsement-equivalents.pdf` — PDF export of the endorsement equivalents reference (regenerate with `scripts/build_endorsement_equivalents_pdf.py`).
+- `assets/addendum-b-scope-coverages.pdf` — PDF export of Addendum B limits and scope-triggered lines (same script).
 - `assets/state-law-cancellation-wos.pdf` — PDF export of the full state law analysis (regenerate with `scripts/build_state_law_pdfs.py`).
 - `assets/state-law-quick-reference.pdf` — One-page landscape PDF quick reference (regenerate with `scripts/build_state_law_pdfs.py`).
 - `assets/email-template.md` — Standalone email skeleton for **Mode A** (ad-hoc COI review outside Freshdesk). Includes copy-paste deficiency phrasings.

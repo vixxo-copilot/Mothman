@@ -2,6 +2,8 @@
 
 Operational guidance for Vixxo COI review. Not legal advice. Companion to `vixxo-requirements.md` and `endorsement-equivalents.md`.
 
+**Addendum B overlay (2026):** This SOP still governs cancellation-notice and WC waiver-of-subrogation **state-law** questions only. Dollar minima, Vertical Transportation GL upgrades, Professional Liability, Pollution Liability, and A.M. Best A IX live in Addendum B — see `addendum-b-scope-coverages.md`. Do not use this file as the limit source.
+
 ---
 
 ## Executive summary

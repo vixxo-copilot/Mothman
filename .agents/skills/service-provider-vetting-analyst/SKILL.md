@@ -1,6 +1,6 @@
 ---
 name: service-provider-vetting-analyst
-description: Service Provider Vetting Analyst workflow. Use when investigating named companies, vendors, contractors, service providers, subcontractors, or potential Vixxo SPs for source-backed vetting reports covering registration, licensing, addresses, reviews, digital footprint, subcontracting, and vendor risk.
+description: Service Provider Vetting Analyst workflow. Use when investigating named companies, vendors, contractors, service providers, subcontractors, or potential Vixxo SPs for source-backed vetting reports covering registration, licensing, addresses, reviews, digital footprint, subcontracting, vendor risk, and Addendum B insurance lines required by the provider's scope of work (base GL/Auto/WC plus Professional Liability, Pollution, and Vertical Transportation GL upgrades when triggered).
 ---
 
 # Service Provider Vetting Analyst
@@ -12,12 +12,13 @@ Your job is to investigate named companies/vendors using a strict, source-backed
 Prioritize sources in this order:
 1. State business registries / Secretary of State
 2. Licensing boards — use [contractor-licensing-by-state.xlsx](reference/contractor-licensing-by-state.xlsx) (Excel: states template layout + Municipal Licensing + Backflow + Fire + Pest + Locksmith/LV sheets); also [contractor-licensing-complete-report.md](reference/contractor-licensing-complete-report.md) / [contractor-licensing-complete-report.pdf](reference/contractor-licensing-complete-report.pdf); component references: [contractor-licensing-us-states-territories.md](reference/contractor-licensing-us-states-territories.md), [contractor-licensing-quick-lookup-table.md](reference/contractor-licensing-quick-lookup-table.md), [contractor-licensing-specialty-trades.md](reference/contractor-licensing-specialty-trades.md). Regenerate Excel: `python .agents/skills/service-provider-vetting-analyst/scripts/export_contractor_licensing_xlsx.py`
-3. BBB
-4. Company website
-5. LinkedIn
-6. Google / Google Maps / Street View
-7. Yelp
-8. Forums or trade-specific review sites
+3. Scope-of-work insurance overlay — [addendum-b-insurance-by-scope.md](reference/addendum-b-insurance-by-scope.md). Classify trades **before** the final assessment so Professional Liability, Pollution, and Vertical Transportation GL upgrades are not missed. Full certificate scoring is `vixxo-coi-review`.
+4. BBB
+5. Company website
+6. LinkedIn
+7. Google / Google Maps / Street View
+8. Yelp
+9. Forums or trade-specific review sites
 
 Do not contact the company. Do not reveal sensitive personal data. Use neutral, non-defamatory language.
 
@@ -93,6 +94,27 @@ Include:
 
 Use “Not Found” where unavailable.
 
+## Step 5b – Insurance required by scope (Addendum B)
+
+Classify from website, licenses, LinkedIn, and Case/Lead notes. Do not skip.
+
+### Scope class
+{default FM trade / architect-engineer / pollution-related / vertical transportation / VT at public high-traffic sites / mixed}
+
+### Required lines
+| Line | Required? | Minimum | Why (scope evidence) |
+| --- | --- | --- | --- |
+| WC statutory + Voluntary Comp / All States | Always | Statutory + extensions | — |
+| Employers' Liability | Always | $500k / $500k / $500k | — |
+| CGL (occurrence, 2013 ISO or equiv.) | Always | $1M / $2M or VT upgrade | {cite services} |
+| Auto Liability | Always | $1M CSL | — |
+| Professional Liability (E&O) | Yes / No | $1M CSL | {architect/engineer evidence or N/A} |
+| Contractor’s Pollution Liability | Yes / No | $3M / $3M | {waste/haul/hazmat evidence or N/A} |
+| A.M. Best A IX carriers | Always | A IX | Look up if a COI is in the packet |
+
+### COI in packet
+{None / Yes — hand off field-level review to vixxo-coi-review; do not mark insurance-compliant from web research alone}
+
 ## Step 6 – Final Assessment
 
 Assign:
@@ -107,6 +129,7 @@ For corporations, weigh:
 - commercial capability: high
 - subcontracting transparency: high
 - license status and complaints: high
+- scope-triggered insurance gaps (missing E&O, Pollution, or VT GL when the trade requires them): high
 - online review patterns: high
 - formation/registry status: medium
 - address verification: medium
@@ -117,6 +140,7 @@ For sole proprietors, weigh:
 - commercial capability: high
 - subcontracting transparency: high
 - license status and complaints: high
+- scope-triggered insurance gaps (missing E&O, Pollution, or VT GL when the trade requires them): high
 - online review patterns: high
 - address verification: low
 - formation details: low
@@ -143,5 +167,10 @@ Append this exact section:
 - [ ] Review company website for services, service area, vendor/partner pages, and contact info.
 - [ ] Review LinkedIn company page for headcount, roles, and staffing signals.
 - [ ] Search for lawsuits, liens, sanctions, or major complaints.
+- [ ] Classify scope of work against Addendum B (default vs VT vs public-site VT; architect/engineer; pollution/waste/hauling).
+- [ ] Record required extra policies (E&O $1M; Pollution $3M/$3M) as Required or N/A with evidence.
+- [ ] If a COI is in the packet, confirm extra lines and limit upgrades are present; otherwise flag them as onboarding asks.
 - [ ] Document all “Not Found” items for manual follow-up.
 ```
+
+Fill Step 5b from [reference/addendum-b-insurance-by-scope.md](reference/addendum-b-insurance-by-scope.md). If a COI is in the packet, run **`vixxo-coi-review`** for field-level scoring; this skill only classifies which lines apply.

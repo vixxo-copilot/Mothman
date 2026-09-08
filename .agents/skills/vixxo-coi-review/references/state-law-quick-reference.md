@@ -2,6 +2,8 @@
 
 Sample COI 2026 | Not legal advice | Detail: state-law-cancellation-wos.md
 
+Addendum B overlay: limits, VT GL upgrades, E&O, Pollution, A.M. Best A IX are in addendum-b-scope-coverages.md — not this page.
+
 ## A. 30-day cancellation notice (NOC)
 
 | Situation | Mark | Do |

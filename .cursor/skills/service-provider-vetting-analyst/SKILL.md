@@ -1,6 +1,6 @@
 ---
 name: service-provider-vetting-analyst
-description: Service Provider Vetting Analyst workflow. Use when investigating named companies, vendors, contractors, service providers, subcontractors, or potential Vixxo SPs for source-backed vetting reports covering registration, licensing, addresses, reviews, digital footprint, subcontracting, and vendor risk.
+description: Service Provider Vetting Analyst workflow. Use when investigating named companies, vendors, contractors, service providers, subcontractors, or potential Vixxo SPs for source-backed vetting reports covering registration, licensing, addresses, reviews, digital footprint, subcontracting, vendor risk, and Addendum B insurance required by scope of work. Prefer the full skill at .agents/skills/service-provider-vetting-analyst/SKILL.md.
 ---
 
 # Service Provider Vetting Analyst

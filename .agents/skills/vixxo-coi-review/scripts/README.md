@@ -130,7 +130,10 @@ Regenerates `assets/endorsement-equivalents.pdf` from `references/endorsement-eq
 python .agents\skills\vixxo-coi-review\scripts\build_endorsement_equivalents_pdf.py
 ```
 
-Output: `.agents/skills/vixxo-coi-review/assets/endorsement-equivalents.pdf`
+Output:
+- `.agents/skills/vixxo-coi-review/assets/endorsement-equivalents.pdf`
+- `.agents/skills/vixxo-coi-review/assets/addendum-b-scope-coverages.pdf`
+- Desktop copies under `Vixxo - Vendor Forms\Legacy SPS\Internal SOPs` (Endorsement Equivalents 2026 + Addendum B Scope Coverages 2026)
 
 ---
 
@@ -147,6 +150,7 @@ python .agents\skills\vixxo-coi-review\scripts\build_state_law_pdfs.py
 Output:
 - `.agents/skills/vixxo-coi-review/assets/state-law-cancellation-wos.pdf` (full analysis)
 - `.agents/skills/vixxo-coi-review/assets/state-law-quick-reference.pdf` (one-page landscape quick reference)
+- Desktop copies: `Vixxo COI State Law Analysis 2026.pdf` and `Vixxo COI State Law Quick Reference 2026.pdf`
 
 ## Security notes
 

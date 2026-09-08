@@ -9,8 +9,25 @@ from pathlib import Path
 from fpdf import FPDF
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-MD_PATH = SKILL_ROOT / "references" / "endorsement-equivalents.md"
-PDF_PATH = SKILL_ROOT / "assets" / "endorsement-equivalents.pdf"
+ASSETS = SKILL_ROOT / "assets"
+DESKTOP_SOPS = Path(
+    r"C:\Users\CGagner\OneDrive - Vixxo\Desktop\Vixxo - Vendor Forms\Legacy SPS\Internal SOPs"
+)
+
+BUILDS = [
+    {
+        "md": SKILL_ROOT / "references" / "endorsement-equivalents.md",
+        "pdf": ASSETS / "endorsement-equivalents.pdf",
+        "header": "Vixxo COI - Endorsement Equivalents Reference",
+        "desktop": DESKTOP_SOPS / "Vixxo COI Endorsement Equivalents 2026.pdf",
+    },
+    {
+        "md": SKILL_ROOT / "references" / "addendum-b-scope-coverages.md",
+        "pdf": ASSETS / "addendum-b-scope-coverages.pdf",
+        "header": "Vixxo COI - Addendum B Scope Coverages",
+        "desktop": DESKTOP_SOPS / "Vixxo COI Addendum B Scope Coverages 2026.pdf",
+    },
+]
 
 
 def safe_text(text: str) -> str:
@@ -26,12 +43,16 @@ def safe_text(text: str) -> str:
 
 
 class ReferencePDF(FPDF):
+    def __init__(self, header_title: str) -> None:
+        super().__init__()
+        self.header_title = header_title
+
     def header(self) -> None:
         if self.page_no() == 1:
             return
         self.set_font("Helvetica", "I", 8)
         self.set_text_color(100, 100, 100)
-        self.cell(0, 8, safe_text("Vixxo COI - Endorsement Equivalents Reference"), align="L")
+        self.cell(0, 8, safe_text(self.header_title), align="L")
         self.ln(4)
 
     def footer(self) -> None:
@@ -91,8 +112,8 @@ def render_table(pdf: ReferencePDF, header: list[str], rows: list[list[str]]) ->
         pdf.set_xy(x_start, y_start + row_height)
 
 
-def build_pdf(md_text: str, pdf_path: Path) -> None:
-    pdf = ReferencePDF()
+def build_pdf(md_text: str, pdf_path: Path, header_title: str) -> None:
+    pdf = ReferencePDF(header_title)
     pdf.set_margins(12, 14, 12)
     pdf.set_auto_page_break(auto=True, margin=16)
     pdf.add_page()
@@ -180,9 +201,18 @@ def build_pdf(md_text: str, pdf_path: Path) -> None:
 
 
 def main() -> None:
-    md_text = MD_PATH.read_text(encoding="utf-8")
-    build_pdf(md_text, PDF_PATH)
-    print(f"Wrote {PDF_PATH}")
+    import shutil
+
+    for spec in BUILDS:
+        md_text = spec["md"].read_text(encoding="utf-8")
+        build_pdf(md_text, spec["pdf"], spec["header"])
+        print(f"Wrote {spec['pdf']}")
+        desktop = spec.get("desktop")
+        if desktop and desktop.parent.is_dir():
+            shutil.copy2(spec["pdf"], desktop)
+            print(f"Copied {desktop}")
+        elif desktop:
+            print(f"Skipped desktop copy (folder missing): {desktop.parent}")
 
 
 if __name__ == "__main__":

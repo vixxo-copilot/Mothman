@@ -2,7 +2,9 @@
 
 Authoritative companion to `vixxo-requirements.md`. Maps every provision in the **Sample COI 2026** Description of Operations to the ISO endorsements named on the certificate and commonly accepted equivalent forms.
 
-Source: Vixxo Sample COI 2026 (Description of Operations block).
+Source: Vixxo Sample COI 2026 (Description of Operations block), still attached to Addendum B.
+
+Addendum B adds **dollar minima**, **Vertical Transportation GL upgrades**, **Professional Liability**, **Pollution Liability**, and **A.M. Best A IX**. Those are **not** endorsement-form questions — see `addendum-b-scope-coverages.md`. This file remains the AI / PNC / WOS / NOC map. Addendum B also says *all* required insurance is primary and shall contain a waiver of subrogation; the Sample COI still only prints GL primary and WOS on GL / Auto / WC/EL. Keep requiring the sample trio on every COI; extend primary and WOS asks to E&O / Pollution when those lines apply.
 
 ---
 
@@ -165,5 +167,6 @@ Not named on the Sample COI but often accompanies the same risk-transfer package
 
 ## Related files
 
-- `vixxo-requirements.md` — Full verbatim Vixxo COI language, limits checklist, certificate holder address
+- `vixxo-requirements.md` — Full verbatim Vixxo COI language, Addendum B limits, certificate holder address
+- `addendum-b-scope-coverages.md` — Scope-triggered extra lines and GL upgrades
 - `../assets/endorsement-equivalents.pdf` — PDF export of this reference (regenerate via `scripts/build_endorsement_equivalents_pdf.py`)

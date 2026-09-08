@@ -11,6 +11,9 @@ from fpdf import FPDF
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 ASSETS = SKILL_ROOT / "assets"
+DESKTOP_SOPS = Path(
+    r"C:\Users\CGagner\OneDrive - Vixxo\Desktop\Vixxo - Vendor Forms\Legacy SPS\Internal SOPs"
+)
 
 BUILDS = [
     {
@@ -19,6 +22,7 @@ BUILDS = [
         "header": "Vixxo COI - State Law Analysis (Cancellation & WC WOS)",
         "landscape": False,
         "compact": False,
+        "desktop": DESKTOP_SOPS / "Vixxo COI State Law Analysis 2026.pdf",
     },
     {
         "md": SKILL_ROOT / "references" / "state-law-quick-reference.md",
@@ -26,6 +30,7 @@ BUILDS = [
         "header": "Vixxo COI - State Law Quick Reference",
         "landscape": True,
         "compact": True,
+        "desktop": DESKTOP_SOPS / "Vixxo COI State Law Quick Reference 2026.pdf",
     },
 ]
 
@@ -231,6 +236,8 @@ def build_pdf(
 
 
 def main() -> None:
+    import shutil
+
     for spec in BUILDS:
         md_text = spec["md"].read_text(encoding="utf-8")
         build_pdf(
@@ -241,6 +248,12 @@ def main() -> None:
             compact=spec["compact"],
         )
         print(f"Wrote {spec['pdf']}")
+        desktop = spec.get("desktop")
+        if desktop and desktop.parent.is_dir():
+            shutil.copy2(spec["pdf"], desktop)
+            print(f"Copied {desktop}")
+        elif desktop:
+            print(f"Skipped desktop copy (folder missing): {desktop.parent}")
 
 
 if __name__ == "__main__":
