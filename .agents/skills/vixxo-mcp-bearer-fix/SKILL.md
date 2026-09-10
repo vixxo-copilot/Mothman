@@ -59,6 +59,24 @@ python .agents/skills/vixxo-mcp-bearer-fix/scripts/verify_vixxo_mcp_wiring.py
 python bin/diagnose-mcp.py
 ```
 
+## VixxoLink probe (morning / scheduled)
+
+Probe before opening Cursor when VixxoLink has been expiring (~7 days, no
+`refresh_token` from the server today).
+
+```bash
+# Morning Good Morning cascade (silent refresh, then Chrome if needed)
+.cursor/bin/probe-vixxolink-bearer-morning.cmd
+
+# Check only
+python .agents/skills/vixxo-mcp-bearer-fix/scripts/probe_vixxolink_bearer.py --json
+
+# Task Scheduler — silent refresh only (no browser)
+.cursor/bin/probe-vixxolink-bearer.cmd
+```
+
+Artifact: `.tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json`
+
 ## Workflow A — Fix this workspace (agent)
 
 Copy this checklist and track progress:

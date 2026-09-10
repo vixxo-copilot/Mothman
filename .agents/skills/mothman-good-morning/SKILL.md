@@ -5,9 +5,10 @@ description: >-
   cryptid-themed HTML: weather, calendar, Salesforce workload, daily SF queue
   Excel workbook (by case type × status, oldest first), SF case mail sync,
   account corrections, email briefing (urgency + date, folder ignore list),
-  and first moves. Then runs a Phase 2 skill cascade: Crystal-queue SF
-  duplicate review (report-only), SF Task overview, and voicemail triage when
-  inventory is waiting. Use for good morning, Good Morning Crystal, mothman
+  and first moves. Then runs a Phase 2 skill cascade: SF Task breakdown HTML
+  (priority queue + buckets), SF Task overview, Crystal-queue duplicate review
+  (report-only), and voicemail triage when inventory is waiting. Use for good
+  morning, Good Morning Crystal, mothman
   good morning, full morning, or HTML morning report. Say "brief only" to
   skip the cascade.
 ---
@@ -252,13 +253,59 @@ summary of cascade results is enough if re-render is slow).
 
 | # | Skill / script | Morning mode | Writes? |
 | --- | --- | --- | --- |
-| 1 | SF Task overview | Read-only export | No |
-| 2 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
-| 3 | `sp-voicemail-triage` | Full batch **only if** inventory &gt; 0 | Yes (per that skill) |
+| 0 | `vixxo-mcp-bearer-fix` — VixxoLink probe | Silent refresh + Chrome if needed | Yes (`~/.vixxo`, `~/.mcp-auth`) |
+| 1 | SF Task breakdown (HTML) | Read-only export + render | No |
+| 2 | SF Task overview | Read-only export | No |
+| 3 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
+| 4 | `sp-voicemail-triage` | Full batch **only if** inventory &gt; 0 | Yes (per that skill) |
 
 Skip individual legs if Crystal says e.g. "skip voicemail" / "dupes only".
 
-### 2.1 SF Task overview
+### 2.0 VixxoLink MCP bearer probe
+
+Load [`vixxo-mcp-bearer-fix`](../vixxo-mcp-bearer-fix/SKILL.md). Run **before**
+other cascade legs so VixxoLink MCP is green when Crystal opens Cursor.
+
+```bash
+.cursor/bin/probe-vixxolink-bearer-morning.cmd
+```
+
+Or:
+
+```bash
+python .agents/skills/vixxo-mcp-bearer-fix/scripts/probe_vixxolink_bearer.py \
+  --silent-refresh --prompt-oauth --write-tmp --json
+```
+
+- Artifact: `.tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json`
+- If `status=ok`: note token healthy (include `oauth_expires_at` when present).
+- If Chrome opens: Crystal completes sign-in once; do **not** toggle VixxoLink
+  in Cursor until probe reports `ok`.
+- Fold into `skill_cascade.vixxolink_mcp` (`status`, `launch_ok`, `expires_at`,
+  `actions`, `artifact`).
+- Skip if Crystal says "skip vixxolink" / "skip mcp probe".
+
+**Scheduled (optional):** Task Scheduler can run
+`.cursor/bin/probe-vixxolink-bearer.cmd` daily (silent refresh only, no browser).
+
+### 2.1 SF Task breakdown (HTML)
+
+Priority-ranked snapshot of open Tasks, High/Medium Cases, new assignments
+(last 3 days), Rate New, and Leads — **priority items at the top**, with
+**Created** dates on every row.
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_sf_task_breakdown.py --json
+python .agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html.py \
+  .tmp/mothman-good-morning/sf-task-breakdown-YYYY-MM-DD.json --open
+```
+
+- Artifacts: `.tmp/mothman-good-morning/sf-task-breakdown-YYYY-MM-DD.{json,html}`
+- Chat: tasks open / overdue, High Cases, Rate New, new Cases (3d), top buckets
+- Fold summary into `skill_cascade.task_breakdown`
+- Also run on demand when Crystal asks to refresh the task breakdown report
+
+### 2.2 SF Task overview
 
 There is no separate skill — this is owned by Good Morning:
 
@@ -270,17 +317,27 @@ python .agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py --
 - Chat: open total, overdue, due today, top buckets
 - Fold summary into `skill_cascade.task_overview`
 
-### 2.2 SF duplicate review — **Crystal queue only**
+### 2.3 SF duplicate review — **Crystal queue only**
 
 Load [`sp-fd-sf-duplicate-bridge`](../sp-fd-sf-duplicate-bridge/SKILL.md).
 Morning default is **SF-only, Crystal-owned seed, report-only**.
 
-1. Ensure a Case window cache exists (Rate Negotiation + Service Provider
-   Support open Cases since ~60 days **or** Owner = Crystal). Prefer reusing
-   today’s
+1. **Always refresh the Case window cache for today** (do **not** reuse a
+   prior-day file — owner changes like Case 6472 → Shelby drop off only when
+   the cache is current). Export:
+
+```bash
+python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/export_crystal_queue_case_window.py \
+  --date YYYYMMDD
+```
+
+   Writes
    `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json`
-   when fresh; otherwise export via SOQL/`sf` and save that path.
-2. Run:
+   (open Rate Negotiation / SP Support / Onboarding / Coverage Change /
+   Recruitment Request, `CreatedDate = LAST_N_DAYS:100`, **plus** all open
+   Cases Crystal still owns — any RecordType).
+
+2. Run the Crystal-owned seed scan against **today’s** cache:
 
 ```bash
 python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_duplicates.py \
@@ -290,10 +347,11 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 ```
 
 3. Present: groups count, Cases with dupes, other-owner sibling count, HTML path.
+   Open HTML in Chrome (Crystal’s default).
 4. **Do not** run `merge_sf_duplicates.py --execute` from Good Morning.
    Offer merge plan only if Crystal asks.
 
-### 2.3 Voicemail triage
+### 2.4 Voicemail triage
 
 Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
 
@@ -305,10 +363,12 @@ Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
 - If Crystal said "inventory only" / "dry-run voicemail" → triage preview only
   (`dry-run` mode in that skill); no writes.
 
-### 2.4 Cascade chat wrap
+### 2.5 Cascade chat wrap
 
-After Phase 2, add 3–6 lines:
+After Phase 2, add 4–8 lines:
 
+- VixxoLink MCP: ok / refreshed / needs sign-in + expires_at
+- Task breakdown HTML path + priority highlights (High Cases, Rate New, new 3d)
 - Tasks: open / overdue / due today
 - Dupes: N groups (M with other-owner siblings) + report path
 - Voicemail: skipped / dry-run / batch summary line

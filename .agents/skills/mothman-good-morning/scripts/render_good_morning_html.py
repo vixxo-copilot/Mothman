@@ -509,6 +509,23 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
         "<h2>Skill cascade</h2>",
         f"<div class='card'><p><strong>Status:</strong> {status}</p>",
     ]
+    breakdown = cascade.get("task_breakdown") or {}
+    if breakdown:
+        parts.append("<h3 class='subheading'>SF Task breakdown</h3>")
+        parts.append(
+            "<p>"
+            f"Tasks {_esc(breakdown.get('tasks_total', '—'))} · "
+            f"Overdue {_esc(breakdown.get('tasks_overdue', '—'))} · "
+            f"High Cases {_esc(breakdown.get('cases_high', '—'))} · "
+            f"Rate New {_esc(breakdown.get('rate_new', '—'))} · "
+            f"New (3d) {_esc(breakdown.get('cases_new_3d', '—'))}"
+            f" <span class='muted'>({_esc(breakdown.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        if breakdown.get("html"):
+            parts.append(
+                f"<p class='muted'>HTML: {_esc(breakdown['html'])}</p>"
+            )
     tasks = cascade.get("task_overview") or {}
     if tasks:
         parts.append("<h3 class='subheading'>SF Task overview</h3>")
@@ -545,6 +562,20 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
         if dupes.get("html"):
             parts.append(
                 f"<p class='muted'>HTML: {_esc(dupes['html'])}</p>"
+            )
+    vl = cascade.get("vixxolink_mcp") or {}
+    if vl:
+        parts.append("<h3 class='subheading'>VixxoLink MCP</h3>")
+        parts.append(
+            "<p>"
+            f"Launch OK {_esc(vl.get('launch_ok', '—'))} · "
+            f"Expires {_esc(vl.get('oauth_expires_at') or '—')}"
+            f" <span class='muted'>({_esc(vl.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        if vl.get("artifact"):
+            parts.append(
+                f"<p class='muted'>Probe: {_esc(vl['artifact'])}</p>"
             )
     vm = cascade.get("voicemail") or {}
     if vm:

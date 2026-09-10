@@ -93,6 +93,21 @@ for (const k of ['gateway','vixxolink','business-objects','powerbi-prod']) conso
 | Multiple VixxoLink Chrome tabs | mcp-remote walks 8 OAuth ports after 401 | `refresh_vixxolink_oauth.py` then `sync_vixxolink_token.py`; do not click Connect |
 | PASS verify, red in Cursor | Did not full quit Cursor | Quit app, reopen |
 
+## VixxoLink probe + Task Scheduler
+
+| Script | Browser? | Use |
+| --- | --- | --- |
+| `probe_vixxolink_bearer.py --json` | No | Status only |
+| `probe-vixxolink-bearer.cmd` | No | Daily silent refresh attempt |
+| `probe-vixxolink-bearer-morning.cmd` | Yes if needed | Good Morning cascade |
+
+**Task Scheduler (optional):** trigger `probe-vixxolink-bearer.cmd` weekdays
+7:30 AM before login. Logs to `.tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json`.
+If `status=needs_auth`, run `refresh-vixxolink-bearer.cmd` once at the desk.
+
+Long-term: platform-issued `vixxolink_api_token` (CGAGNER stamp) or OAuth
+`refresh_token` — see SKILL.md probe section.
+
 ## Related repo docs
 
 - `.cursor/mcp.README.md` — Vixxo HTTP MCPs section

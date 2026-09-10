@@ -291,6 +291,16 @@ Present on every Good Morning unless brief-only (`enabled: false`).
 {
   "enabled": true,
   "status": "planned",
+  "task_breakdown": {
+    "status": "pending",
+    "tasks_total": null,
+    "tasks_overdue": null,
+    "cases_high": null,
+    "rate_new": null,
+    "cases_new_3d": null,
+    "json": null,
+    "html": null
+  },
   "task_overview": {
     "status": "pending",
     "total_open": null,
@@ -317,6 +327,13 @@ Present on every Good Morning unless brief-only (`enabled: false`).
     },
     "ran_batch": false,
     "summary": null
+  },
+  "vixxolink_mcp": {
+    "status": "pending",
+    "launch_ok": null,
+    "oauth_expires_at": null,
+    "actions": [],
+    "artifact": null
   }
 }
 ```
