@@ -547,6 +547,22 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
             parts.append(
                 f"<p class='muted'>Report: {_esc(tasks['path'])}</p>"
             )
+    pmail = cascade.get("priority_mail") or {}
+    if pmail:
+        parts.append("<h3 class='subheading'>Priority mail review</h3>")
+        parts.append(
+            "<p>"
+            f"Unread {_esc(pmail.get('unread_total', '—'))} · "
+            f"Urgent {_esc(pmail.get('urgent', '—'))} · "
+            f"Today {_esc(pmail.get('today', '—'))} · "
+            f"This week {_esc(pmail.get('this_week', '—'))}"
+            f" <span class='muted'>({_esc(pmail.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        if pmail.get("html"):
+            parts.append(
+                f"<p class='muted'>HTML: {_esc(pmail['html'])}</p>"
+            )
     dupes = cascade.get("duplicates") or {}
     if dupes:
         parts.append("<h3 class='subheading'>SF duplicates (your queue)</h3>")
@@ -563,6 +579,13 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
             parts.append(
                 f"<p class='muted'>HTML: {_esc(dupes['html'])}</p>"
             )
+    cascade_status = cascade.get("status") or ""
+    if cascade_status == "blocked_vixxolink_mcp":
+        parts.append(
+            "<p class='urgent'><strong>Cascade blocked:</strong> VixxoLink MCP probe "
+            "did not pass — legs 2.1–2.4 were skipped. Run "
+            "<code>.cursor/bin/refresh-vixxolink-bearer.cmd</code>.</p>"
+        )
     vl = cascade.get("vixxolink_mcp") or {}
     if vl:
         parts.append("<h3 class='subheading'>VixxoLink MCP</h3>")
@@ -581,11 +604,22 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
     if vm:
         inv = vm.get("inventory") or {}
         parts.append("<h3 class='subheading'>Voicemail triage</h3>")
+        extra = []
+        if inv.get("new_assigned") is not None:
+            extra.append(f"new assigned {_esc(inv.get('new_assigned'))}")
+        if inv.get("sf_generic_subject") is not None:
+            extra.append(f"generic subject {_esc(inv.get('sf_generic_subject'))}")
+        extra_txt = f" · {' · '.join(extra)}" if extra else ""
+        updated = vm.get("subjects_updated")
+        updated_txt = (
+            f" · subjects updated {_esc(updated)}" if updated is not None else ""
+        )
         parts.append(
             "<p>"
             f"Inventory SF {_esc(inv.get('sf_new_voicemail', 0))} · "
             f"Outlook VM {_esc(inv.get('outlook_vm', 0))} · "
             f"QSIAP {_esc(inv.get('qsiap', 0))}"
+            f"{extra_txt}{updated_txt}"
             f" <span class='muted'>({_esc(vm.get('status') or 'pending')})</span>"
             "</p>"
         )

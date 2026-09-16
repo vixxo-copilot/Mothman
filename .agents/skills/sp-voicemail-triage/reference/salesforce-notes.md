@@ -122,6 +122,24 @@ SuppliedPhone='{callback_phone}'"
 
 Then post the **Task** on the new Case Id.
 
+### Rewrite voicemail Case Subject (4046 / Crystal-owned)
+
+After company vetting and classification, update the existing Case:
+
+```
+Voicemail — {SP Name} ({SP#}) — {request}
+```
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py \
+  --case-id {CaseId} --sp-name "{Company}" --sp-number "{SP#}" \
+  --request "{sub-reason}"
+```
+
+Skip when Subject already starts with `Voicemail —` or `VM Triage —`.
+Applies to 8x8 `New voicemail from …` **and** SP Support `Vixxo Voicemail`.
+Failed STT → leave Subject unchanged.
+
 **Case Description must include** `Freshdesk #{ticket_id}` when a Freshdesk
 ticket exists — this is the cross-system dedupe key.
 

@@ -322,9 +322,12 @@ Present on every Good Morning unless brief-only (`enabled: false`).
     "status": "pending",
     "inventory": {
       "sf_new_voicemail": 0,
+      "sf_generic_subject": 0,
+      "new_assigned": 0,
       "outlook_vm": 0,
       "qsiap": 0
     },
+    "subjects_updated": 0,
     "ran_batch": false,
     "summary": null
   },
@@ -334,6 +337,15 @@ Present on every Good Morning unless brief-only (`enabled: false`).
     "oauth_expires_at": null,
     "actions": [],
     "artifact": null
+  },
+  "priority_mail": {
+    "status": "pending",
+    "unread_total": null,
+    "urgent": null,
+    "today": null,
+    "this_week": null,
+    "json": null,
+    "html": null
   }
 }
 ```

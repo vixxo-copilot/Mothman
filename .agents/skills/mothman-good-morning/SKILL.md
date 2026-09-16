@@ -6,9 +6,11 @@ description: >-
   Excel workbook (by case type × status, oldest first), SF case mail sync,
   account corrections, email briefing (urgency + date, folder ignore list),
   and first moves. Then runs a Phase 2 skill cascade: SF Task breakdown HTML
-  (priority queue + buckets), SF Task overview, Crystal-queue duplicate review
-  (report-only), and voicemail triage when inventory is waiting. Use for good
-  morning, Good Morning Crystal, mothman
+  (priority queue + buckets), SF Task overview, priority mail HTML (Inbox +
+  Maria/Leslie/SPM, Kate/ORMB, Invoices/Statements), Crystal-queue duplicate
+  review (report-only), and voicemail triage + vet/rename for new Cases
+  assigned to Crystal. Use
+  for good morning, Good Morning Crystal, mothman
   good morning, full morning, or HTML morning report. Say "brief only" to
   skip the cascade.
 ---
@@ -81,7 +83,9 @@ Run in parallel where possible. Constants: [reference.md](reference.md).
 - Do not send outbound mail or Teams. Do not mutate SF Accounts during brief.
 - Phase 2 duplicate review is **report-only** (no merges/closes).
 - Voicemail triage in Phase 2 follows `sp-voicemail-triage` write rules
-  (pre-authorized for that skill) — only when inventory is waiting.
+  (pre-authorized for that skill): **always** vet/rename newly assigned
+  Crystal-owned generic-subject VM Cases; Outlook/QSIAP only when inventory
+  is waiting.
 
 ### 1. Weather — Wichita, KS
 
@@ -139,12 +143,18 @@ python .agents/skills/mothman-good-morning/scripts/export_sf_queue_workbook.py -
 
 During Phase 1, count pending sources (no transcription yet):
 
-- SF open Cases: Subject LIKE `%New voicemail%` owned by Crystal **or**
-  Vendor Relations / 4046 queue markers (see `sp-voicemail-triage`)
+- SF open Cases: Subject LIKE `%New voicemail%` **or** (RecordType
+  `Service Provider Support` + Subject `Vixxo Voicemail`) owned by Crystal
+  **or** Vendor Relations / 4046 queue markers (see `sp-voicemail-triage`)
+- **New assigned / still generic:** Crystal-owned Cases whose Subject is
+  still raw intake — 8x8 `New voicemail from …` **or** SP Support
+  `Vixxo Voicemail` — Status = New **or** CreatedDate in the last 3 days.
+  These are the Phase 2.4 vet+rename set.
 - Outlook folder **VM**: unread / recent `New voicemail` subjects
 - Optional: open QSIAP FD tickets with subject `New voicemail`
 
-Store counts in `skill_cascade.voicemail.inventory` (see reference-json).
+Store counts in `skill_cascade.voicemail.inventory` (see reference-json),
+including `sf_generic_subject` / `new_assigned`.
 Do **not** run full triage until Phase 2.
 
 ### 4. SF case mail to sync (dry-run)
@@ -251,39 +261,51 @@ Run **after** the HTML brief opens, in this order. Load each sibling
 Record outcomes into `skill_cascade` (re-render HTML optional; chat
 summary of cascade results is enough if re-render is slow).
 
+**Hard gate:** Leg **2.0 VixxoLink probe is mandatory** on every full
+morning (not brief-only). Run it **before** legs 2.1–2.4. If probe
+`status` is not `ok` after `--prompt-oauth`, **stop the cascade** — do
+not run task breakdown, mail, dupes, or voicemail. Report the blocker
+in chat and set `skill_cascade.status` to `blocked_vixxolink_mcp`. Only
+skip 2.0 when Crystal explicitly says "skip vixxolink" / "skip mcp probe".
+
 | # | Skill / script | Morning mode | Writes? |
 | --- | --- | --- | --- |
-| 0 | `vixxo-mcp-bearer-fix` — VixxoLink probe | Silent refresh + Chrome if needed | Yes (`~/.vixxo`, `~/.mcp-auth`) |
+| 0 | `vixxo-mcp-bearer-fix` — VixxoLink probe (**required gate**) | Silent refresh + Chrome if needed | Yes (`~/.vixxo`, `~/.mcp-auth`) |
 | 1 | SF Task breakdown (HTML) | Read-only export + render | No |
 | 2 | SF Task overview | Read-only export | No |
+| 2b | `mothman-priority-mail-review` | Unread Inbox + 3 named boxes HTML | No |
 | 3 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
-| 4 | `sp-voicemail-triage` | Full batch **only if** inventory &gt; 0 | Yes (per that skill) |
+| 4 | `sp-voicemail-triage` | New Crystal-assigned VM Cases: transcribe + **company vet** + **Subject rewrite**; Outlook/QSIAP if inventory &gt; 0 | Yes (per that skill) |
 
-Skip individual legs if Crystal says e.g. "skip voicemail" / "dupes only".
+Skip individual legs **2.1–2.4** if Crystal says e.g. "skip voicemail" /
+"dupes only". **Never skip 2.0** unless she explicitly skips the VixxoLink probe.
 
-### 2.0 VixxoLink MCP bearer probe
+### 2.0 VixxoLink MCP bearer probe (**required**)
 
-Load [`vixxo-mcp-bearer-fix`](../vixxo-mcp-bearer-fix/SKILL.md). Run **before**
-other cascade legs so VixxoLink MCP is green when Crystal opens Cursor.
+Load [`vixxo-mcp-bearer-fix`](../vixxo-mcp-bearer-fix/SKILL.md). Run **first**
+every morning so VixxoLink MCP is green when Crystal uses Cursor. Crystal
+does **not** need a separate VixxoLink login — run this at the desk; complete
+Chrome if it opens (~once per week).
 
 ```bash
 .cursor/bin/probe-vixxolink-bearer-morning.cmd
 ```
 
-Or:
+Or (same behavior + hard gate exit code):
 
 ```bash
 python .agents/skills/vixxo-mcp-bearer-fix/scripts/probe_vixxolink_bearer.py \
-  --silent-refresh --prompt-oauth --write-tmp --json
+  --silent-refresh --prompt-oauth --write-tmp --json --gate
 ```
 
+- **Agent must execute this command** — do not infer token health from memory.
 - Artifact: `.tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json`
-- If `status=ok`: note token healthy (include `oauth_expires_at` when present).
-- If Chrome opens: Crystal completes sign-in once; do **not** toggle VixxoLink
-  in Cursor until probe reports `ok`.
-- Fold into `skill_cascade.vixxolink_mcp` (`status`, `launch_ok`, `expires_at`,
+- If `status=ok`: set `skill_cascade.vixxolink_mcp.status=done`, continue to 2.1.
+- If Chrome opens: Crystal completes sign-in once; re-run probe until `ok`.
+- If still not `ok`: **stop cascade**; set `skill_cascade.status=blocked_vixxolink_mcp`;
+  list fix: `.cursor/bin/refresh-vixxolink-bearer.cmd`.
+- Fold into `skill_cascade.vixxolink_mcp` (`status`, `launch_ok`, `oauth_expires_at`,
   `actions`, `artifact`).
-- Skip if Crystal says "skip vixxolink" / "skip mcp probe".
 
 **Scheduled (optional):** Task Scheduler can run
 `.cursor/bin/probe-vixxolink-bearer.cmd` daily (silent refresh only, no browser).
@@ -316,6 +338,22 @@ python .agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py --
 - Artifacts: `.tmp/mothman-good-morning/Crystal-SF-Tasks-YYYY-MM-DD.{json,md}`
 - Chat: open total, overdue, due today, top buckets
 - Fold summary into `skill_cascade.task_overview`
+
+### 2.2b Priority mail review (HTML)
+
+Load [`mothman-priority-mail-review`](../mothman-priority-mail-review/SKILL.md).
+Unread only in **Inbox**, **Maria/Leslie/SPM & Adam**, **ORMB/Kate**, and
+**Invoices/Statements**. Rank higher-priority asks; list each box oldest → newest.
+
+```bash
+python .agents/skills/mothman-priority-mail-review/scripts/export_priority_mail.py \
+  --json --open
+```
+
+- Artifacts: `.tmp/mothman-priority-mail/priority-mail-YYYY-MM-DD.{json,html}`
+- Chat: unread total, urgent/today/this-week counts, HTML path, 2–4 first moves
+- Fold into `skill_cascade.priority_mail`
+- Skip if Crystal says "skip mail" / "skip priority mail"
 
 ### 2.3 SF duplicate review — **Crystal queue only**
 
@@ -351,17 +389,48 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 4. **Do not** run `merge_sf_duplicates.py --execute` from Good Morning.
    Offer merge plan only if Crystal asks.
 
-### 2.4 Voicemail triage
+### 2.4 Voicemail triage + vet/rename (new assignments)
 
 Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
 
-- If Phase 1 inventory is **0** across SF / Outlook VM / QSIAP → skip; note
+**Always list Crystal-owned generic-subject VM Cases first** (do not skip this
+list when Outlook/QSIAP inventory is 0):
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/list_crystal_new_vm_cases.py --json
+```
+
+- **In scope:** open Cases Crystal owns whose Subject is still raw intake
+  and Status = **New** or CreatedDate in the last **3 days**:
+  - 8x8: `New voicemail from …` / `via VENDOR RELATIONS` / `via SERVICE
+    PROVIDER MANAGEMENT`
+  - **Service Provider Support** RecordType with Subject **`Vixxo Voicemail`**
+    (Amazon Connect / same-queue VM)
+- Skip Cases already rewritten to `Voicemail — …` / `VM Triage — …`.
+- For **each** in-scope Case: transcribe audio, classify, **company-vet**
+  (Gateway + SF Account/Lead/Contact), then rewrite Subject:
+
+```
+Voicemail — {SP Name} ({SP#}) — {request}
+```
+
+`{request}` is the plain-English sub-reason (not the raw 8x8 caller ID).
+Omit `({SP#})` when unknown. Apply with:
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py \
+  --case-id 500... --sp-name "ACR Maintenance" --sp-number KS12345 \
+  --request "SR callback / dispatch"
+```
+
+- Then run Outlook VM / QSIAP batches when those inventories are **&gt; 0**.
+- If the list is empty **and** Outlook/QSIAP inventory is 0 → skip; note
   "no voicemails waiting" in `skill_cascade.voicemail`.
-- If inventory **&gt; 0** → run the skill’s default batch (transcribe + route).
-  That skill’s outbound/SF writes are pre-authorized **for voicemail triage**;
-  still do **not** send Teams or non-voicemail mail from this cascade.
-- If Crystal said "inventory only" / "dry-run voicemail" → triage preview only
-  (`dry-run` mode in that skill); no writes.
+- That skill’s outbound/SF writes (Task, Subject, AccountId when confident)
+  are pre-authorized **for voicemail triage**; still do **not** send Teams or
+  non-voicemail mail from this cascade.
+- If Crystal said "inventory only" / "dry-run voicemail" → list + preview
+  subjects only (`--dry-run` on the updater); no writes.
 
 ### 2.5 Cascade chat wrap
 
@@ -370,8 +439,9 @@ After Phase 2, add 4–8 lines:
 - VixxoLink MCP: ok / refreshed / needs sign-in + expires_at
 - Task breakdown HTML path + priority highlights (High Cases, Rate New, new 3d)
 - Tasks: open / overdue / due today
+- Priority mail: unread total + urgent/today + HTML path
 - Dupes: N groups (M with other-owner siblings) + report path
-- Voicemail: skipped / dry-run / batch summary line
+- Voicemail: N generic in-scope · subjects updated · Outlook/QSIAP line
 
 ---
 
@@ -381,7 +451,8 @@ After Phase 2, add 4–8 lines:
 - Do not invent meetings, Case numbers, or weather.
 - Dry-run only for mail sync and account audit.
 - Duplicate cascade = report only; never auto-merge.
-- If an MCP/script fails, note it in `skipped` / `skill_cascade.*.error` and continue.
+- **Exception:** VixxoLink probe (2.0) failure **blocks** legs 2.1–2.4 — do not continue.
+- Other MCP/script failures: note in `skipped` / `skill_cascade.*.error` and continue.
 
 ## Trigger phrases
 

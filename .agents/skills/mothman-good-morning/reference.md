@@ -47,6 +47,9 @@ WMO weather_code → short text (common codes):
 | SF queue Excel (stable) | `.tmp/mothman-good-morning/Crystal-SF-Queue.xlsx` |
 | SF queue Excel (dated) | `.tmp/mothman-good-morning/Crystal-SF-Queue-YYYY-MM-DD.xlsx` |
 | Queue export script | `.agents/skills/mothman-good-morning/scripts/export_sf_queue_workbook.py` |
+| Task breakdown export | `.agents/skills/mothman-good-morning/scripts/export_sf_task_breakdown.py` |
+| Task breakdown renderer | `.agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html.py` |
+| Task breakdown JSON/HTML | `.tmp/mothman-good-morning/sf-task-breakdown-YYYY-MM-DD.{json,html}` |
 | Task overview script | `.agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py` |
 | Task overview JSON/MD | `.tmp/mothman-good-morning/Crystal-SF-Tasks-YYYY-MM-DD.{json,md}` |
 | Mail sync dry-run | `.tmp/sf-email-sync-morning.json` |
@@ -54,6 +57,8 @@ WMO weather_code → short text (common codes):
 | Crystal dupe scan script | `.agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_duplicates.py` |
 | Crystal dupe window cache | `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-cases-window-crystal-queue-YYYYMMDD.json` |
 | Crystal dupe report | `.agents/skills/sp-fd-sf-duplicate-bridge/.tmp/sf-intra-duplicate-*-crystal-owned-YYYYMMDD.*` |
+| Priority mail review | `.agents/skills/mothman-priority-mail-review/` |
+| Priority mail JSON/HTML | `.tmp/mothman-priority-mail/priority-mail-YYYY-MM-DD.{json,html}` |
 
 ## Salesforce SOQL (open workload)
 
@@ -170,6 +175,17 @@ Workbook layout:
 Fonts: **Cinzel** (display) + **Nunito** (body) — same pairing as Celestia,
 dark cryptid palette instead of lavender cream.
 
+## Phase 2 cascade — Task breakdown (HTML)
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_sf_task_breakdown.py --json
+python .agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html.py \
+  .tmp/mothman-good-morning/sf-task-breakdown-YYYY-MM-DD.json --open
+```
+
+Priority queue at top: High Cases, overdue Tasks, dupes, new assignments (3d).
+Then sections: High/Medium Cases, new Cases, Rate New, Leads, Tasks by bucket.
+
 ## Phase 2 cascade — Task overview SOQL
 
 ```sql
@@ -224,6 +240,11 @@ for voicemail inventory (not on the ignore list).
 
 - `morning-brief` — chat-oriented daily rundown (same data sources)
 - `sf-case-email-sync` — mail scan + account audit scripts
+- `mothman-priority-mail-review` — Phase 2 unread Inbox + named boxes HTML
 - `sp-fd-sf-duplicate-bridge` — Phase 2 Crystal-owned duplicate scan
-- `sp-voicemail-triage` — Phase 2 when voicemail inventory &gt; 0
+- `sp-voicemail-triage` — Phase 2.4: new Crystal-assigned VM Cases (8x8
+  `New voicemail` **and** SP Support `Vixxo Voicemail`; vet + Subject
+  rewrite) plus Outlook/QSIAP when inventory &gt; 0
+- VM list: `.agents/skills/sp-voicemail-triage/scripts/list_crystal_new_vm_cases.py`
+- VM subject write: `.agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py`
 - `daily-briefing` — lighter work-only brief when MCP is thin

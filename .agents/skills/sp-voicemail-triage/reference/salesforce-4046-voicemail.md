@@ -27,11 +27,16 @@ Open Cases owned for SPM / Crystal queue with Vendor Relations voicemail
 subjects. Prefer subject filters (Case `Description` is not filterable in SOQL):
 
 ```sql
-SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate
+SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate, RecordType.Name
 FROM Case
 WHERE IsClosed = false
-  AND Subject LIKE '%New voicemail%'
-  AND Subject LIKE '%VENDOR RELATIONS%'
+  AND (
+    (Subject LIKE '%New voicemail%' AND Subject LIKE '%VENDOR RELATIONS%')
+    OR (
+      RecordType.Name = 'Service Provider Support'
+      AND Subject LIKE '%Vixxo Voicemail%'
+    )
+  )
 ORDER BY CreatedDate DESC
 LIMIT 50
 ```
@@ -42,13 +47,20 @@ Optional owner scope when Crystal owns the Email-to-Case queue:
 … AND Owner.Name = 'Crystal Gagner'
 ```
 
-**In scope:** subject includes `New voicemail` **and** `VENDOR RELATIONS`
-(case-insensitive match on those phrases).
+**Morning cascade / new assignments:** list Crystal-owned Cases that still
+have a generic subject (`scripts/list_crystal_new_vm_cases.py`). In-scope
+= Status `New` or `CreatedDate` in the last 3 days. Those must be transcribed,
+vetted, and renamed before they stay in the queue as raw intake subjects.
+
+**In scope:**
+
+- 8x8: subject includes `New voicemail` **and** `VENDOR RELATIONS` (also
+  `SERVICE PROVIDER MANAGEMENT` Email-to-Case variants)
+- **Service Provider Support** RecordType with subject **`Vixxo Voicemail`**
+  (Amazon Connect / same-queue VM) — same vet + Subject rewrite as 8x8
 
 **Out of scope for this source:**
 
-- Amazon Connect Cases with subject `Vixxo Voicemail` (different intake —
-  triage only when {{employee_name}} explicitly asks for Connect backlog)
 - Freshdesk KSOnboarding tickets — **do not search or write** that mailbox
 - QSIAP AP voicemails — still Freshdesk; see [qsiap-voicemail.md](qsiap-voicemail.md)
 - Outlook **VM** folder — still M365; dedupe against SF Case by callback phone
@@ -74,6 +86,7 @@ There is **no Freshdesk ticket** for 4046 intake. Do **not** create FD tickets.
 | Short / foul / minimal | Completed Task documenting skip + close Case as Duplicate |
 | All other categories | Completed **Task** on the Case (`Status='Completed'`); forward email to route recipients when needed (M365); leave Case open/Working for callback |
 | Account link | Set `AccountId` when SP Account match is confident |
+| **Subject rewrite** | After company vet + classify, set Case Subject to `Voicemail — {SP Name} ({SP#}) — {request}`. `{request}` is the sub-reason (plain English). Omit `({SP#})` when unknown. Do not leave `New voicemail from {CALLER} via VENDOR RELATIONS` or bare `Vixxo Voicemail` on a vetted Case. Script: `scripts/update_vm_case_subject.py` |
 
 Task body must include category, caller, company, callback, route, posture,
 transcript source, and verbatim transcript. Avoid apostrophes in `sf --values`

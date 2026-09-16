@@ -80,11 +80,16 @@ these actions for this skill.
 [reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md).
 
 ```sql
-SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate
+SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate, RecordType.Name
 FROM Case
 WHERE IsClosed = false
-  AND Subject LIKE '%New voicemail%'
-  AND Subject LIKE '%VENDOR RELATIONS%'
+  AND (
+    (Subject LIKE '%New voicemail%' AND Subject LIKE '%VENDOR RELATIONS%')
+    OR (
+      RecordType.Name = 'Service Provider Support'
+      AND Subject LIKE '%Vixxo Voicemail%'
+    )
+  )
 ORDER BY CreatedDate DESC
 LIMIT 50
 ```
@@ -205,6 +210,7 @@ Then one **triage packet** per item (see below).
 - **Forward:** {recipients + subject | skipped + reason}
 - **Salesforce Lead Task:** {Lead Id + posted | N/A | failed}
 - **Salesforce Case Task / Case:** {CaseNumber + posted | created | N/A | failed}
+- **Case Subject:** {rewritten `Voicemail — {SP} — {request}` | skipped + reason}
 - **Resolved:** {yes/no + type}
 ```
 
@@ -220,7 +226,13 @@ Then one **triage packet** per item (see below).
 5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
    (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce
    Lead/Case/Account/Contact). See [reference/salesforce-notes.md](reference/salesforce-notes.md).
-6. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
+6. **Rewrite Case Subject (SF 4046 / Crystal-owned)** — after vetting, set
+   Subject to `Voicemail — {SP Name} ({SP#}) — {request}` (`{request}` =
+   sub-reason). Omit `({SP#})` when unknown. Use
+   `scripts/update_vm_case_subject.py`. Do not leave the 8x8
+   `New voicemail from {CALLER}` or bare `Vixxo Voicemail` subject on a
+   vetted Case.
+7. **Route** — [reference/routing-actions.md](reference/routing-actions.md):
    - VixxoLink, Technical, General → `service.providermanagement@vixxo.com`
      (4046: Case Task; Outlook-only: forward)
    - Billing / Invoice / Payment → `aphelp@vixxo.com` or QSIAP stay; **no SF
@@ -229,14 +241,14 @@ Then one **triage packet** per item (see below).
    - Onboarding → Salesforce Lead branch → Lead Task, or forward
      `spm-recruitment@vixxo.com`
    - SR assistance → Gateway PM + Support emails; subject `{SR#}, Need Assistance`
-7. **SF 4046:** Completed Case Task (or close per short/AP rules) — see
+8. **SF 4046:** Completed Case Task (or close per short/AP rules) — see
    [salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md).
-8. **QSIAP only:** post Freshdesk internal note
+9. **QSIAP only:** post Freshdesk internal note
    ([freshdesk-internal-note-template.md](reference/freshdesk-internal-note-template.md)),
    forward when misrouted, resolve when disposition requires it.
-9. **Outlook-only (no SF Case):** forward per routing-actions; create SF Case +
+10. **Outlook-only (no SF Case):** forward per routing-actions; create SF Case +
    Task when category warrants (not Billing/Payment).
-10. **Do not** search or update Freshdesk KSOnboarding.
+11. **Do not** search or update Freshdesk KSOnboarding.
 
 ## Acquire and transcribe
 
@@ -285,6 +297,7 @@ Track per item during Phase 2:
 ```
 Route progress — {SF Case / QSIAP # / Outlook id}:
 - [ ] Audio transcribed (faster-whisper)
+- [ ] SF 4046: Subject rewritten to `Voicemail — {SP} — {request}`
 - [ ] SF 4046: Completed Case Task (or Case closed for AP/short)
 - [ ] QSIAP: internal note posted (create_ticket_note, private)
 - [ ] Forward sent when required (forward_ticket or forward-mail-message)
@@ -341,6 +354,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | File | Purpose |
 | --- | --- |
 | [reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md) | Primary SPM intake — extension 4046 SF Cases |
+| `scripts/list_crystal_new_vm_cases.py` | Crystal-owned generic-subject VM Cases (morning 2.4) |
+| `scripts/update_vm_case_subject.py` | Rewrite Subject to SP name + request |
 | [reference/categories.md](reference/categories.md) | Category taxonomy |
 | [reference/callback-rules.md](reference/callback-rules.md) | Callback decision |
 | [reference/company-vetting.md](reference/company-vetting.md) | Siebel, Gateway, JDE, SF |
@@ -358,3 +373,5 @@ Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
 default 4046 runs.
 **`sp-inbound-vetting`** owns non-voicemail AP Help / SF queue identity
 enrichment — QSIAP **voicemails** are owned here.
+**`mothman-good-morning`** Phase 2.4 always lists Crystal-owned generic
+voicemail Cases, vets them, and rewrites Subject before Outlook/QSIAP.
