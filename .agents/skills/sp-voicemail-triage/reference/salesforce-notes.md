@@ -122,7 +122,7 @@ SuppliedPhone='{callback_phone}'"
 
 Then post the **Task** on the new Case Id.
 
-### Rewrite voicemail Case Subject (4046 / Crystal-owned)
+### Rewrite voicemail Case Subject (operator-owned 4046 / SP Support)
 
 After company vetting and classification, update the existing Case:
 

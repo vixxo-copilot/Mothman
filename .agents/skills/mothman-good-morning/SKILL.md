@@ -84,7 +84,7 @@ Run in parallel where possible. Constants: [reference.md](reference.md).
 - Phase 2 duplicate review is **report-only** (no merges/closes).
 - Voicemail triage in Phase 2 follows `sp-voicemail-triage` write rules
   (pre-authorized for that skill): **always** vet/rename newly assigned
-  Crystal-owned generic-subject VM Cases; Outlook/QSIAP only when inventory
+  operator-owned generic-subject VM Cases; Outlook/QSIAP only when inventory
   is waiting.
 
 ### 1. Weather — Wichita, KS
@@ -393,14 +393,17 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 
 Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
 
-**Always list Crystal-owned generic-subject VM Cases first** (do not skip this
-list when Outlook/QSIAP inventory is 0):
+**Always list the signed-in operator’s generic-subject VM Cases first** (do
+not skip this list when Outlook/QSIAP inventory is 0):
 
 ```bash
-python .agents/skills/sp-voicemail-triage/scripts/list_crystal_new_vm_cases.py --json
+python .agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py --json
 ```
 
-- **In scope:** open Cases Crystal owns whose Subject is still raw intake
+Crystal’s morning run uses her `sf` login. Teammates using
+`sp-voicemail-triage` from GitHub get **their** queue the same way.
+
+- **In scope:** open Cases the operator owns whose Subject is still raw intake
   and Status = **New** or CreatedDate in the last **3 days**:
   - 8x8: `New voicemail from …` / `via VENDOR RELATIONS` / `via SERVICE
     PROVIDER MANAGEMENT`

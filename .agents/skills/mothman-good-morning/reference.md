@@ -245,6 +245,6 @@ for voicemail inventory (not on the ignore list).
 - `sp-voicemail-triage` — Phase 2.4: new Crystal-assigned VM Cases (8x8
   `New voicemail` **and** SP Support `Vixxo Voicemail`; vet + Subject
   rewrite) plus Outlook/QSIAP when inventory &gt; 0
-- VM list: `.agents/skills/sp-voicemail-triage/scripts/list_crystal_new_vm_cases.py`
+- VM list: `.agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py`
 - VM subject write: `.agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py`
 - `daily-briefing` — lighter work-only brief when MCP is thin

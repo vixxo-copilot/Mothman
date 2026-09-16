@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""List operator-owned Salesforce voicemail Cases with generic subjects.
+
+Portable for any SPM / SPS Salesforce user. Default owner is the User on the
+signed-in `sf` org (not a hardcoded mailbox). Override with `--owner-email`
+or `SF_OWNER_EMAIL`.
+
+A Case is "generic" when it has not been rewritten to
+`Voicemail — {SP} — {request}` and matches either intake:
+
+- 8x8 Email-to-Case: Subject contains `New voicemail`
+- Amazon Connect / SP Support: RecordType = Service Provider Support and
+  Subject is (or contains) `Vixxo Voicemail`
+
+New assignment window (default 3 days): CreatedDate in LAST_N_DAYS, plus every
+generic-subject Case still in Status = New (assigned, not yet vetted/renamed).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+SF = os.path.expandvars(r"%APPDATA%\npm\sf.cmd")
+if not Path(SF).is_file():
+    SF = "sf"
+ORG_DEFAULT = os.environ.get("SF_ORG_ALIAS") or "vixxo"
+RENAMED_PREFIXES = ("voicemail —", "voicemail -", "vm triage —", "vm triage -")
+
+
+def sf_json(args: list[str]) -> dict:
+    proc = subprocess.run(
+        args,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    try:
+        data = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError:
+        data = {"raw": proc.stdout, "stderr": proc.stderr}
+    if proc.returncode != 0 and not data.get("result"):
+        raise SystemExit(
+            f"{' '.join(args[:4])} failed ({proc.returncode}): "
+            f"{(data.get('message') or proc.stderr or '')[:400]}"
+        )
+    return data
+
+
+def sf_query(soql: str, org: str) -> list[dict]:
+    data = sf_json([SF, "data", "query", "--query", soql, "--target-org", org, "--json"])
+    return ((data.get("result") or {}).get("records")) or []
+
+
+def org_login_identity(org: str) -> dict:
+    data = sf_json([SF, "org", "display", "--target-org", org, "--json"])
+    result = data.get("result") or {}
+    username = (result.get("username") or "").strip()
+    if not username:
+        raise SystemExit(f"sf org display for {org} returned no username — log in first")
+    return {"username": username, "org_id": result.get("id")}
+
+
+def resolve_owner(org: str, email: str | None) -> dict:
+    if email:
+        rows = sf_query(
+            "SELECT Id, Name, Email, Username FROM User "
+            f"WHERE (Email = '{email}' OR Username = '{email}') AND IsActive = true LIMIT 1",
+            org,
+        )
+        if not rows:
+            raise SystemExit(f"No active Salesforce User for {email}")
+        row = rows[0]
+        return {
+            "id": row["Id"],
+            "name": row.get("Name"),
+            "email": row.get("Email") or email,
+            "username": row.get("Username"),
+            "source": "owner-email",
+        }
+    login = org_login_identity(org)
+    username = login["username"].replace("'", "\\'")
+    rows = sf_query(
+        "SELECT Id, Name, Email, Username FROM User "
+        f"WHERE (Username = '{username}' OR Email = '{username}') AND IsActive = true LIMIT 1",
+        org,
+    )
+    if not rows:
+        raise SystemExit(f"No active Salesforce User matching org login {login['username']}")
+    row = rows[0]
+    return {
+        "id": row["Id"],
+        "name": row.get("Name"),
+        "email": row.get("Email") or login["username"],
+        "username": row.get("Username") or login["username"],
+        "source": "sf-org-display",
+    }
+
+
+def intake_kind(subject: str, record_type: str) -> str | None:
+    text = (subject or "").strip()
+    if not text:
+        return None
+    lowered = text.lower()
+    if any(lowered.startswith(p) for p in RENAMED_PREFIXES):
+        return None
+    if "new voicemail" in lowered:
+        return "8x8"
+    if "vixxo voicemail" in lowered and (
+        not record_type or record_type == "Service Provider Support"
+    ):
+        return "vixxo_voicemail"
+    return None
+
+
+def parse_sf_dt(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    text = raw.replace("+0000", "+00:00")
+    try:
+        return datetime.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--org", default=ORG_DEFAULT)
+    p.add_argument(
+        "--owner-email",
+        default=os.environ.get("SF_OWNER_EMAIL") or "",
+        help="Override Case owner (default: signed-in sf org User)",
+    )
+    p.add_argument(
+        "--new-days",
+        type=int,
+        default=3,
+        help="CreatedDate window for newly assigned Cases (default 3)",
+    )
+    p.add_argument(
+        "--all-generic",
+        action="store_true",
+        help="Include every generic-subject open VM Case the owner has (not only new/New)",
+    )
+    p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--output",
+        type=Path,
+        help="Write JSON to this path (in addition to stdout when --json)",
+    )
+    args = p.parse_args()
+
+    owner = resolve_owner(args.org, args.owner_email.strip() or None)
+    owner_id = owner["id"]
+    soql = (
+        "SELECT Id, CaseNumber, Subject, Status, CreatedDate, LastModifiedDate, "
+        "RecordType.Name, Account.Name, Account.Service_Provider_Number__c "
+        "FROM Case "
+        f"WHERE OwnerId = '{owner_id}' AND IsClosed = false "
+        "AND (Subject LIKE '%New voicemail%' "
+        "OR (RecordType.Name = 'Service Provider Support' "
+        "AND Subject LIKE '%Vixxo Voicemail%')) "
+        "ORDER BY CreatedDate DESC"
+    )
+    rows = sf_query(soql, args.org)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=args.new_days)
+
+    cases: list[dict] = []
+    for rec in rows:
+        subject = rec.get("Subject") or ""
+        record_type = ((rec.get("RecordType") or {}).get("Name")) or ""
+        kind = intake_kind(subject, record_type)
+        if not kind:
+            continue
+        created = parse_sf_dt(rec.get("CreatedDate"))
+        created_iso = (rec.get("CreatedDate") or "")[:10]
+        is_new_status = (rec.get("Status") or "") == "New"
+        newly_created = bool(created and created >= cutoff)
+        if not args.all_generic and not (is_new_status or newly_created):
+            continue
+        account = rec.get("Account") or {}
+        cases.append(
+            {
+                "id": rec.get("Id"),
+                "case_number": str(rec.get("CaseNumber") or "").lstrip("0") or rec.get("CaseNumber"),
+                "subject": subject,
+                "status": rec.get("Status"),
+                "record_type": record_type,
+                "intake": kind,
+                "created": created_iso,
+                "new_status": is_new_status,
+                "newly_created": newly_created,
+                "account_name": account.get("Name"),
+                "sp_number": account.get("Service_Provider_Number__c"),
+            }
+        )
+
+    payload = {
+        "ok": True,
+        "owner_email": owner["email"],
+        "owner_name": owner["name"],
+        "owner_id": owner_id,
+        "owner_source": owner["source"],
+        "new_days": args.new_days,
+        "all_generic": args.all_generic,
+        "generic_open": len(rows),
+        "in_scope": len(cases),
+        "cases": cases,
+    }
+    text = json.dumps(payload, indent=2)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(text, encoding="utf-8")
+    if args.json or args.output:
+        print(text)
+    else:
+        label = owner["name"] or owner["email"]
+        print(f"{len(cases)} generic voicemail Case(s) in scope for {label}")
+        for row in cases:
+            flags = []
+            if row["new_status"]:
+                flags.append("New")
+            if row["newly_created"]:
+                flags.append(f"created≤{args.new_days}d")
+            print(
+                f"  {row['case_number']}  {row['created']}  {row.get('intake')}  "
+                f"{'/'.join(flags) or row['status']}  {row['subject'][:80]}"
+            )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

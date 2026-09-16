@@ -226,7 +226,7 @@ Then one **triage packet** per item (see below).
 5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
    (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce
    Lead/Case/Account/Contact). See [reference/salesforce-notes.md](reference/salesforce-notes.md).
-6. **Rewrite Case Subject (SF 4046 / Crystal-owned)** — after vetting, set
+6. **Rewrite Case Subject (operator-owned SF Cases)** — after vetting, set
    Subject to `Voicemail — {SP Name} ({SP#}) — {request}` (`{request}` =
    sub-reason). Omit `({SP#})` when unknown. Use
    `scripts/update_vm_case_subject.py`. Do not leave the 8x8
@@ -354,7 +354,8 @@ batch summary **Status** column, and do not re-attempt without user direction.
 | File | Purpose |
 | --- | --- |
 | [reference/salesforce-4046-voicemail.md](reference/salesforce-4046-voicemail.md) | Primary SPM intake — extension 4046 SF Cases |
-| `scripts/list_crystal_new_vm_cases.py` | Crystal-owned generic-subject VM Cases (morning 2.4) |
+| `scripts/list_owner_vm_cases.py` | Operator-owned generic-subject VM Cases (signed-in SF User) |
+| `scripts/list_crystal_new_vm_cases.py` | Wrapper → `list_owner_vm_cases.py` (same flags) |
 | `scripts/update_vm_case_subject.py` | Rewrite Subject to SP name + request |
 | [reference/categories.md](reference/categories.md) | Category taxonomy |
 | [reference/callback-rules.md](reference/callback-rules.md) | Callback decision |
@@ -373,5 +374,25 @@ Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
 default 4046 runs.
 **`sp-inbound-vetting`** owns non-voicemail AP Help / SF queue identity
 enrichment — QSIAP **voicemails** are owned here.
-**`mothman-good-morning`** Phase 2.4 always lists Crystal-owned generic
-voicemail Cases, vets them, and rewrites Subject before Outlook/QSIAP.
+**`mothman-good-morning`** Phase 2.4 lists **the signed-in operator’s**
+generic voicemail Cases (Crystal when she runs morning), vets them, and
+rewrites Subject before Outlook/QSIAP.
+
+## Team use (SPM / SPS)
+
+This skill is **not Crystal-only**. Any SPM or SPS teammate with a Salesforce
+login can run it on **their** owned Cases after installing from GitHub.
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py --json
+python .agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py \
+  --case-id 500... --sp-name "Example SP" --sp-number KS12345 \
+  --request "VixxoLink login"
+```
+
+- Default owner = User on `sf org display` (`SF_ORG_ALIAS` or `vixxo`).
+- Override: `--owner-email teammate@vixxo.com` or `SF_OWNER_EMAIL`.
+- Salesforce writes (Case Subject, Tasks) apply only to Cases the operator
+  is working — do not retarget another user’s queue unless they pass
+  `--owner-email`.
+- Outlook **VM** and QSIAP still use the signed-in M365 / Freshdesk identity.

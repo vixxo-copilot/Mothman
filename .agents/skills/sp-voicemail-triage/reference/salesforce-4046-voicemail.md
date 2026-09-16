@@ -23,8 +23,9 @@ from the notification body alone.
 
 ## Discovery (SOQL)
 
-Open Cases owned for SPM / Crystal queue with Vendor Relations voicemail
-subjects. Prefer subject filters (Case `Description` is not filterable in SOQL):
+Open Cases owned by the **signed-in SPM / SPS Salesforce user** (Vendor
+Relations 8x8 and SP Support `Vixxo Voicemail`). Prefer subject filters
+(Case `Description` is not filterable in SOQL):
 
 ```sql
 SELECT Id, CaseNumber, Subject, Status, Owner.Name, CreatedDate, RecordType.Name
@@ -41,16 +42,17 @@ ORDER BY CreatedDate DESC
 LIMIT 50
 ```
 
-Optional owner scope when Crystal owns the Email-to-Case queue:
+Optional owner scope — use the operator’s User Id (from `sf org display`),
+not a hardcoded name:
 
 ```sql
-… AND Owner.Name = 'Crystal Gagner'
+… AND OwnerId = '{signed_in_user_id}'
 ```
 
-**Morning cascade / new assignments:** list Crystal-owned Cases that still
-have a generic subject (`scripts/list_crystal_new_vm_cases.py`). In-scope
-= Status `New` or `CreatedDate` in the last 3 days. Those must be transcribed,
-vetted, and renamed before they stay in the queue as raw intake subjects.
+**New assignments:** list operator-owned Cases that still have a generic
+subject (`scripts/list_owner_vm_cases.py`). In-scope = Status `New` or
+`CreatedDate` in the last 3 days. Those must be transcribed, vetted, and
+renamed before they stay in the queue as raw intake subjects.
 
 **In scope:**
 
