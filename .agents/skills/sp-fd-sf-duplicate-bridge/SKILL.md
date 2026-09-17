@@ -107,9 +107,12 @@ python scripts/scan_sf_duplicates.py \
 4. Operator approves before any Case status change or merge.
 
 **Crystal queue only (morning cascade / “my queue”):** seed from Crystal-owned
-open Cases; siblings may be other owners. Report-only from Good Morning:
+open Cases; siblings may be other owners. Report-only from Good Morning.
+**Refresh the Case window cache every morning** (do not reuse prior-day JSON —
+ownership moves like Case 6472 → Shelby will otherwise linger):
 
 ```bash
+python scripts/export_crystal_queue_case_window.py --date YYYYMMDD
 python scripts/scan_crystal_owned_duplicates.py \
   --sf-cache .tmp/sf-cases-window-crystal-queue-YYYYMMDD.json \
   --date YYYYMMDD \

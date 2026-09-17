@@ -27,7 +27,8 @@ afternoon check-in, or "what should I focus on today", follow this workflow:
 1. Load `.agents/skills/mothman-good-morning/SKILL.md` for morning HTML + Excel,
    or `.agents/skills/mothman-good-afternoon/SKILL.md` for afternoon check-in
    (same renderer). Use `morning-brief` / `daily-briefing` for chat-only.
-   Morning default continues into **Phase 2 skill cascade** (SF Task overview,
+   Morning default continues into **Phase 2 skill cascade** (**VixxoLink MCP
+   probe first — mandatory gate**; then SF Task overview, priority mail HTML,
    Crystal-queue duplicate review report-only, voicemail triage if inventory
    waiting) unless the user says "brief only".
 2. Pull live calendar, inbox, Teams, and Linear signals when MCPs are available.
@@ -42,7 +43,8 @@ afternoon check-in, or "what should I focus on today", follow this workflow:
    - **Blockers and risks**
    - **Follow-ups** — owner + timing
    - **First moves** — 2–3 concrete next actions
-   - **Skill cascade (morning)** — task overview + queue dupes + voicemail when waiting
+   - **Skill cascade (morning)** — VixxoLink probe (gate) + task overview +
+     priority mail boxes + queue dupes + voicemail when waiting
 4. Open with a short Mothman-style lead line. Keep sections scannable.
 
 Do not send outbound messages unless explicitly approved.

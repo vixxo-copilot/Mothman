@@ -1,0 +1,16 @@
+{
+  "description": "Skills Crystal Gagner planned and built for Mothman. Auto-include also matches mothman-* folders, provenance: mothman, and Crystal authors. Edit extra/exclude, then re-run the export.",
+  "extra": [
+    "mothman-priority-mail-review",
+    "sf-case-email-sync",
+    "sp-fd-sf-duplicate-bridge",
+    "sp-inbound-vetting",
+    "sp-voicemail-triage",
+    "sp-voicemail-triage-fast",
+    "sp-voicemail-triage-no-email",
+    "sp-voicemail-triage-webhook"
+  ],
+  "exclude": [
+    "_publish-sp-inbound-vetting"
+  ]
+}
