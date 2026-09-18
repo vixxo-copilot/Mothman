@@ -18,6 +18,8 @@ sys.path.insert(0, str(BIN))
 from mcp_env import (  # noqa: E402
     VIXXOLINK_AUTH_ID,
     VIXXOLINK_URL,
+    access_token_expires_at_iso,
+    access_token_exp_unix,
     ensure_vixxolink_bearer_for_url,
     load_oauth_payload,
     load_token_file,
@@ -28,6 +30,11 @@ from mcp_env import (  # noqa: E402
 
 
 def vixxolink_token_expiry_iso() -> str | None:
+    token_path = Path.home() / ".vixxo" / "vixxolink_api_token"
+    file_token = load_token_file(token_path)
+    jwt_iso = access_token_expires_at_iso(file_token) if file_token else None
+    if jwt_iso:
+        return jwt_iso
     loaded = load_oauth_payload(VIXXOLINK_AUTH_ID)
     if not loaded:
         return None
@@ -36,6 +43,17 @@ def vixxolink_token_expiry_iso() -> str | None:
     if isinstance(expires_at, (int, float)):
         return datetime.fromtimestamp(expires_at / 1000).isoformat(sep=" ", timespec="seconds")
     return None
+
+
+def needs_silent_refresh(report: dict) -> bool:
+    if report["status"] != "ok":
+        return True
+    token_path = Path.home() / ".vixxo" / "vixxolink_api_token"
+    file_token = load_token_file(token_path)
+    exp = access_token_exp_unix(file_token) if file_token else None
+    if exp is None:
+        return False
+    return exp - datetime.now().timestamp() < 15 * 60
 
 
 def probe() -> dict:
@@ -104,12 +122,17 @@ def main() -> int:
         action="store_true",
         help="Write report to .tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json",
     )
+    parser.add_argument(
+        "--gate",
+        action="store_true",
+        help="Exit 1 when the bearer is not usable (morning cascade)",
+    )
     args = parser.parse_args()
 
     report = probe()
     actions: list[dict[str, str]] = []
 
-    if report["status"] != "ok" and args.silent_refresh:
+    if args.silent_refresh and needs_silent_refresh(report):
         ok, detail = run_silent_refresh()
         actions.append({"action": "silent_refresh", "ok": str(ok).lower(), "detail": detail})
         report = probe()

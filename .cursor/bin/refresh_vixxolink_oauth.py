@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mcp_env import (  # noqa: E402
     VIXXOLINK_AUTH_ID,
     VIXXOLINK_TOKEN_URL,
+    access_token_exp_unix,
     mcp_tools_list_ok,
 )
 
@@ -107,7 +108,7 @@ def main() -> int:
         f"&code_challenge={urllib.parse.quote(challenge)}"
         f"&code_challenge_method=S256"
         f"&state={urllib.parse.quote(state)}"
-        f"&scope=openid"
+        f"&scope={urllib.parse.quote('openid offline_access')}"
     )
 
     server = HTTPServer(("127.0.0.1", 37882), _Handler)
@@ -143,9 +144,16 @@ def main() -> int:
         return 1
 
     TOKENS.parent.mkdir(parents=True, exist_ok=True)
+    exp_unix = access_token_exp_unix(access.strip())
+    if exp_unix is not None:
+        tokens["expires_at"] = exp_unix * 1000
     TOKENS.write_text(json.dumps(tokens), encoding="utf-8")
     print(f"wrote={TOKENS}")
+    print(f"has_refresh_token={bool(tokens.get('refresh_token'))}")
+    print(f"token_keys={sorted(tokens)}")
     print(f"tools_ok={mcp_tools_list_ok(VIXXOLINK_URL, access.strip())}")
+    if not tokens.get("refresh_token"):
+        print("note=server_did_not_return_refresh_token silent_renew_will_fail")
     return subprocess.call([sys.executable, str(SYNC)])
 
 

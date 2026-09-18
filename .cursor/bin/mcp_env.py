@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -29,6 +30,7 @@ VIXXONOW_URL = "https://vixxonow.com/mcp/vixxonow"
 VIXXOLINK_TOKEN_URL = "https://vixxonow.com/mcp/vixxolink/oauth/token"
 GATEWAY_TOKEN_URL = "https://vixxonow.com/mcp/gateway/oauth/token"
 VIXXONOW_TOKEN_URL = "https://vixxonow.com/mcp/vixxonow/oauth/token"
+MCP_REMOTE_CONFIG_VERSION = 1
 
 
 def load_env_file(path: Path) -> None:
@@ -172,6 +174,69 @@ def load_oauth_access_token(auth_id: str) -> str | None:
     return None
 
 
+def load_oauth_refresh_token(auth_id: str) -> str | None:
+    loaded = load_oauth_payload(auth_id)
+    if not loaded:
+        return None
+    _, payload = loaded
+    refresh = payload.get("refresh_token")
+    if isinstance(refresh, str) and refresh.strip():
+        return refresh.strip()
+    return None
+
+
+def decode_jwt_payload(token: str) -> dict[str, Any] | None:
+    """Decode a JWT/tmcp payload without verifying the signature."""
+    raw = token.strip()
+    if raw.lower().startswith("bearer "):
+        raw = raw.split(None, 1)[1]
+    if raw.startswith("tmcp."):
+        raw = raw.split(".", 1)[1]
+    parts = raw.split(".")
+    if len(parts) < 2:
+        return None
+    pad = parts[0] + "=" * ((4 - len(parts[0]) % 4) % 4)
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(pad))
+    except (json.JSONDecodeError, OSError, ValueError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def access_token_exp_unix(token: str) -> int | None:
+    claims = decode_jwt_payload(token)
+    if not claims:
+        return None
+    exp = claims.get("exp")
+    if isinstance(exp, (int, float)):
+        return int(exp)
+    return None
+
+
+def access_token_expires_at_iso(token: str) -> str | None:
+    exp = access_token_exp_unix(token)
+    if exp is None:
+        return None
+    return datetime.fromtimestamp(exp).isoformat(sep=" ", timespec="seconds")
+
+
+def persist_vixxolink_access_token(token: str) -> Path:
+    path = Path.home() / ".vixxo" / "vixxolink_api_token"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(token.strip(), encoding="utf-8")
+    return path
+
+
+def write_oauth_payload(auth_id: str, payload: dict[str, Any]) -> None:
+    blob = json.dumps(payload)
+    for path in oauth_token_paths(auth_id):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(blob, encoding="utf-8")
+    primary = Path.home() / ".mcp-auth" / f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}" / f"{auth_id}_tokens.json"
+    primary.parent.mkdir(parents=True, exist_ok=True)
+    primary.write_text(blob, encoding="utf-8")
+
+
 def refresh_oauth_tokens(auth_id: str, token_url: str) -> str | None:
     """Refresh an mcp-remote OAuth access token via refresh_token grant.
 
@@ -226,7 +291,15 @@ def refresh_oauth_tokens(auth_id: str, token_url: str) -> str | None:
     if isinstance(body.get("token_type"), str) and body["token_type"].strip():
         updated["token_type"] = body["token_type"].strip()
 
-    token_path.write_text(json.dumps(updated), encoding="utf-8")
+    exp_unix = access_token_exp_unix(access.strip())
+    if exp_unix is not None:
+        updated["expires_at"] = exp_unix * 1000
+    elif isinstance(body.get("expires_in"), (int, float)):
+        updated["expires_at"] = int((datetime.now().timestamp() + int(body["expires_in"])) * 1000)
+
+    write_oauth_payload(auth_id, updated)
+    if auth_id == VIXXOLINK_AUTH_ID:
+        persist_vixxolink_access_token(access.strip())
     return access.strip()
 
 
@@ -465,9 +538,6 @@ def auth_header_value(token: str) -> str:
     return f"Bearer {token}"
 
 
-MCP_REMOTE_CONFIG_VERSION = 1
-
-
 def mcp_remote_server_url_hash(server_url: str, headers: dict[str, str] | None = None) -> str:
     """Match mcp-remote getServerUrlHash (URL, then JSON.stringify(headers, sortedKeys))."""
     parts = [server_url]
@@ -525,31 +595,60 @@ def clear_gateway_oauth_in_progress() -> int:
     return removed
 
 
+def _auth_id_for_server_url(server_url: str) -> str | None:
+    trimmed = server_url.rstrip("/")
+    if trimmed.endswith("/gateway"):
+        return GATEWAY_AUTH_ID
+    if trimmed.endswith("/vixxolink"):
+        return VIXXOLINK_AUTH_ID
+    if trimmed.endswith("/vixxonow"):
+        return VIXXONOW_AUTH_ID
+    return None
+
+
 def seed_mcp_remote_token_cache(server_url: str, token: str, headers: dict[str, str]) -> Path:
     """Write mcp-remote tokens.json so bearer launches skip browser OAuth."""
     raw = token.strip()
     if raw.lower().startswith("bearer "):
         raw = raw.split(None, 1)[1]
 
-    # CGAGNER:YYYYMMDDHHMMSS is advisory. Using it as expires_at makes
-    # mcp-remote treat the cache as expired and start OAuth for a refresh_token.
-    now_ms = int(datetime.now().timestamp() * 1000)
-    expires_ms = now_ms + 7 * 86400 * 1000
-    payload = json.dumps(
-        {"access_token": raw, "token_type": "Bearer", "expires_at": expires_ms},
-        separators=(",", ":"),
-    )
+    auth_id = _auth_id_for_server_url(server_url)
+    refresh = load_oauth_refresh_token(auth_id) if auth_id else None
+    payload: dict[str, Any] = {"access_token": raw, "token_type": "Bearer"}
+    if refresh:
+        payload["refresh_token"] = refresh
+        exp_unix = access_token_exp_unix(raw)
+        if exp_unix is not None:
+            payload["expires_at"] = exp_unix * 1000
+        else:
+            payload["expires_at"] = int(datetime.now().timestamp() * 1000) + 7 * 86400 * 1000
+    else:
+        # Without a stored refresh_token, a real/short expires_at makes mcp-remote
+        # start browser OAuth. Keep a long advisory expiry and fail fast on tools/list.
+        payload["expires_at"] = int(datetime.now().timestamp() * 1000) + 7 * 86400 * 1000
+
     hashes = {mcp_remote_server_url_hash(server_url, headers), mcp_remote_server_url_hash(server_url)}
-    if server_url.rstrip("/").endswith("/gateway"):
-        hashes.add(GATEWAY_AUTH_ID)
-    if server_url.rstrip("/").endswith("/vixxolink"):
-        hashes.add(VIXXOLINK_AUTH_ID)
+    if auth_id:
+        hashes.add(auth_id)
     primary: Path | None = None
     for config_dir in mcp_remote_config_dirs():
         config_dir.mkdir(parents=True, exist_ok=True)
         for url_hash in hashes:
             path = config_dir / f"{url_hash}_tokens.json"
-            path.write_text(payload, encoding="utf-8")
+            out = dict(payload)
+            if not refresh and path.is_file():
+                try:
+                    existing = json.loads(path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, OSError):
+                    existing = None
+                if isinstance(existing, dict):
+                    candidate = existing.get("refresh_token")
+                    if isinstance(candidate, str) and candidate.strip():
+                        out["refresh_token"] = candidate.strip()
+                        exp_unix = access_token_exp_unix(raw)
+                        if exp_unix is not None:
+                            out["expires_at"] = exp_unix * 1000
+            path.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
             if primary is None and config_dir.name == f"mcp-remote-v{MCP_REMOTE_CONFIG_VERSION}":
                 primary = path
     if primary is None:
