@@ -37,7 +37,24 @@ This repo is a small Node.js CLI project (the Vixxo `assistants-template`). The
 "application" is the onboarding setup wizard at `bin/init` (also `npm start` /
 `npm run init`). Requires Node >= 20 (see `package.json` `engines`); the VM ships
 Node 22, which is fine. Cloud install is `.cursor/cloud-install-sf.sh` via
-`.cursor/environment.json` (JWT Salesforce auth + `npm install`).
+`.cursor/environment.json` (Freshdesk shell auth, JWT Salesforce auth, and
+`npm install`).
+
+### Freshdesk auth on Cloud / Automations
+
+Set one Freshdesk API secret in the Cloud Agents dashboard, then re-run
+environment setup:
+
+| Secret | Purpose |
+| --- | --- |
+| `FRESHDESK_API_KEY` | Preferred Freshdesk API key |
+| `FRESHDESK_TOKEN` | Alternate accepted name |
+| `FRESHDESK_API_KEY_B64` | Optional base64-encoded API key |
+
+The Cloud install script writes the key to `~/.vixxo/freshdesk_api_key` with
+mode `600`. Freshdesk shell scripts and `.cursor/bin/run-freshdesk-mcp.py` both
+load that file. If no Freshdesk secret is configured, `/sp-voicemail-triage-fast/`
+will stop before ticket access with `ERROR: FRESHDESK_API_KEY not configured`.
 
 ### Salesforce auth on Cloud / Automations
 
