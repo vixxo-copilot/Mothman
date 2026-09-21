@@ -60,7 +60,25 @@ python .agents/skills/sf-case-email-sync/scripts/audit_case_accounts.py \
 # Combined email sync plan + account audit
 python .agents/skills/sf-case-email-sync/scripts/sync_case_emails.py \
   --owner-me --days 7 --account-audit --output .tmp/sf-email-sync-plan.json
+
+# EOD automation: dry-run → execute high/medium → report
+python .agents/skills/sf-case-email-sync/scripts/eod_case_mail_sync.py \
+  --days 1 --limit 25
 ```
+
+## EOD automation (Cursor cron)
+
+Cursor automation **EOD SF Case Email Sync** runs daily at **16:00 America/Chicago**
+(`cron: 0 21 * * *` UTC). Each run:
+
+1. Dry-run scans open Cases (`--owner-me`) for today’s mail (`--days 1`)
+2. Executes matched syncs (high/medium only)
+3. Skips `manual_review` (Adobe Sign, weak hits) — operator follow-up
+4. Writes `.tmp/sf-email-sync-eod-*.json` (plan + execute + summary)
+
+**Runtime:** needs Salesforce CLI (`sf` org `vixxo`) and M365 Graph token cache
+(same as `outlook_mail.mjs` / microsoft-365 MCP). Prefer a **local** or
+dashboard-MCP-wired environment when cloud agents lack those cached tokens.
 
 ## Workflow
 

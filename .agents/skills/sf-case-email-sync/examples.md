@@ -53,6 +53,28 @@ python .agents/skills/sf-case-email-sync/scripts/sync_case_emails.py \
   --case-number 6911 --sr 1-6574285042 --execute --skip-email-message
 ```
 
+## Example 5 — EOD automation batch
+
+Daily Cursor automation (4 PM America/Chicago). Dry-run first, then execute
+high/medium matches; leave `manual_review` for the operator.
+
+```bash
+python .agents/skills/sf-case-email-sync/scripts/eod_case_mail_sync.py \
+  --days 1 --limit 25
+```
+
+Reports:
+
+- `.tmp/sf-email-sync-eod-{stamp}-plan.json` — dry-run plan
+- `.tmp/sf-email-sync-eod-{stamp}-execute.json` — execute results (when matches)
+- `.tmp/sf-email-sync-eod-{stamp}.json` — operator summary
+
+Dry-run only (no uploads):
+
+```bash
+python .agents/skills/sf-case-email-sync/scripts/eod_case_mail_sync.py --dry-run-only
+```
+
 ## Operator summary template
 
 ```markdown
