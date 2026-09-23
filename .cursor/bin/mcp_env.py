@@ -358,11 +358,13 @@ def collect_gateway_bearer_candidates() -> list[str]:
         candidates.append(value)
 
     add(refresh_gateway_oauth_tokens())
+    add(refresh_vixxonow_oauth_tokens())
     add(first_env("GATEWAY_API_TOKEN", "VIXXONOW_API_TOKEN"))
     vixxo = Path.home() / ".vixxo"
     for name in ("gateway_api_token", "vixxonow_api_token"):
         add(load_token_file(vixxo / name))
     add(load_oauth_access_token(GATEWAY_AUTH_ID))
+    add(load_oauth_access_token(VIXXONOW_AUTH_ID))
     return candidates
 
 
@@ -555,11 +557,11 @@ def mcp_remote_config_dirs() -> list[Path]:
     return dirs
 
 
-def clear_vixxolink_oauth_in_progress() -> int:
-    """Remove in-flight VixxoLink PKCE files so mcp-remote does not resume browser OAuth."""
+def clear_oauth_in_progress(auth_id: str) -> int:
+    """Remove in-flight PKCE/lock files so mcp-remote does not resume browser OAuth."""
     removed = 0
-    prefix = f"{VIXXOLINK_AUTH_ID}_code_verifier"
-    lock_suffix = f"{VIXXOLINK_AUTH_ID}_lock.json"
+    prefix = f"{auth_id}_code_verifier"
+    lock_suffix = f"{auth_id}_lock.json"
     for config_dir in mcp_remote_config_dirs():
         if not config_dir.is_dir():
             continue
@@ -569,6 +571,16 @@ def clear_vixxolink_oauth_in_progress() -> int:
                 path.unlink(missing_ok=True)
                 removed += 1
     return removed
+
+
+def clear_vixxolink_oauth_in_progress() -> int:
+    """Remove in-flight VixxoLink PKCE files so mcp-remote does not resume browser OAuth."""
+    return clear_oauth_in_progress(VIXXOLINK_AUTH_ID)
+
+
+def clear_vixxonow_oauth_in_progress() -> int:
+    """Remove in-flight VixxoNow PKCE files so mcp-remote does not resume browser OAuth."""
+    return clear_oauth_in_progress(VIXXONOW_AUTH_ID)
 
 
 def mirror_gateway_bearer_to_vixxolink(token: str) -> Path:
@@ -581,18 +593,7 @@ def mirror_gateway_bearer_to_vixxolink(token: str) -> Path:
 
 def clear_gateway_oauth_in_progress() -> int:
     """Remove in-flight Gateway PKCE files so mcp-remote does not resume browser OAuth."""
-    removed = 0
-    prefix = f"{GATEWAY_AUTH_ID}_code_verifier"
-    lock_suffix = f"{GATEWAY_AUTH_ID}_lock.json"
-    for config_dir in mcp_remote_config_dirs():
-        if not config_dir.is_dir():
-            continue
-        for path in config_dir.iterdir():
-            name = path.name
-            if name.startswith(prefix) or name == lock_suffix:
-                path.unlink(missing_ok=True)
-                removed += 1
-    return removed
+    return clear_oauth_in_progress(GATEWAY_AUTH_ID)
 
 
 def _auth_id_for_server_url(server_url: str) -> str | None:
@@ -665,6 +666,11 @@ def launch_mcp_remote_with_bearer(server_url: str, token: str) -> int:
         clear_vixxolink_oauth_in_progress()
         if not mcp_tools_list_ok(server_url, token):
             print(vixxolink_bearer_failure_message(server_url), file=sys.stderr)
+            return 1
+    if server_url.rstrip("/").endswith("/vixxonow"):
+        clear_vixxonow_oauth_in_progress()
+        if not mcp_tools_list_ok(server_url, token):
+            print(gateway_bearer_failure_message(server_url), file=sys.stderr)
             return 1
     seed_mcp_remote_token_cache(server_url, token, headers)
     npx = resolve_npx()
