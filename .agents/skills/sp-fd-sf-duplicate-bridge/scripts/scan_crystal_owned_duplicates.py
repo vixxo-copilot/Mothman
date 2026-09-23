@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Duplicate review seeded from Crystal-owned open Cases only.
+"""Salesforce-only duplicate review seeded from Crystal-owned open Cases.
 
 Shows each of Crystal's Cases that has an open duplicate sibling
 (owned by anyone, including Crystal). Does not list org-wide clusters
-where Crystal is not an owner of at least one member.
+where Crystal is not an owner of at least one member. Never calls Freshdesk.
 
 Morning cascade (after case window export):
 
@@ -237,9 +237,11 @@ def build_seeded_pairs(
         sf_cache=str(sf_cache),
         scope=(
             f"Seeded from Crystal open Cases ({len(mine_open)}); "
-            "duplicates may be owned by others; one row per duplicate group"
+            "duplicates may be owned by others; one row per duplicate group; "
+            "Salesforce-only (no Freshdesk)"
         ),
         open_only=True,
+        include_fd_xref=False,
     )
 
     rows: list[dict] = []
@@ -251,7 +253,8 @@ def build_seeded_pairs(
 
     for g in full.get("phone_duplicates") or []:
         phone = scan.norm_phone(str(g.get("phone") or ""))
-        if phone and phone in scan.IGNORE_CLUSTER_PHONES:
+        ignore_phones = getattr(scan, "IGNORE_CLUSTER_PHONES", frozenset())
+        if phone and phone in ignore_phones:
             continue
         cases = g.get("cases") or []
         mine_members = [c for c in cases if summary_is_mine(c, owner_name)]

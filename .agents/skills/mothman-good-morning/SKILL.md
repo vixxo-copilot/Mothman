@@ -358,7 +358,10 @@ python .agents/skills/mothman-priority-mail-review/scripts/export_priority_mail.
 ### 2.3 SF duplicate review — **Crystal queue only**
 
 Load [`sp-fd-sf-duplicate-bridge`](../sp-fd-sf-duplicate-bridge/SKILL.md).
-Morning default is **SF-only, Crystal-owned seed, report-only**.
+Morning default is **Salesforce-only, Crystal-owned seed, report-only**.
+Crystal does **not** operate in Freshdesk for this cascade — do **not**
+open FD, call Freshdesk MCP, run `scan_duplicates.py`, or pass
+`--include-fd-xref`. Intra-SF twins only.
 
 1. **Always refresh the Case window cache for today** (do **not** reuse a
    prior-day file — owner changes like Case 6472 → Shelby drop off only when
@@ -385,9 +388,11 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 ```
 
 3. Present: groups count, Cases with dupes, other-owner sibling count, HTML path.
-   Open HTML in Chrome (Crystal’s default).
+   Open HTML in Chrome (Crystal’s default). SF Case links only — no FD ticket table.
 4. **Do not** run `merge_sf_duplicates.py --execute` from Good Morning.
    Offer merge plan only if Crystal asks.
+5. **Do not** run the AP→FD check, attachment sync, or Federated FD search
+   from Good Morning unless Crystal explicitly asks for Freshdesk.
 
 ### 2.4 Voicemail triage + vet/rename (new assignments)
 
@@ -453,7 +458,7 @@ After Phase 2, add 4–8 lines:
 - Evidence from system data only; label assumptions.
 - Do not invent meetings, Case numbers, or weather.
 - Dry-run only for mail sync and account audit.
-- Duplicate cascade = report only; never auto-merge.
+- Duplicate cascade = report only; never auto-merge. **SF-only** — no Freshdesk.
 - **Exception:** VixxoLink probe (2.0) failure **blocks** legs 2.1–2.4 — do not continue.
 - Other MCP/script failures: note in `skipped` / `skill_cascade.*.error` and continue.
 

@@ -106,8 +106,10 @@ python scripts/scan_sf_duplicates.py \
 3. Present **one row per SP**: recommended primary Case, Cases to merge/close.
 4. Operator approves before any Case status change or merge.
 
-**Crystal queue only (morning cascade / “my queue”):** seed from Crystal-owned
-open Cases; siblings may be other owners. Report-only from Good Morning.
+**Crystal queue only (morning cascade / “my queue”):** **Salesforce-only.**
+Seed from Crystal-owned open Cases; siblings may be other owners.
+Report-only from Good Morning. Crystal no longer works the FD queue — do **not**
+compare to Freshdesk, run `scan_duplicates.py`, or `--include-fd-xref`.
 **Refresh the Case window cache every morning** (do not reuse prior-day JSON —
 ownership moves like Case 6472 → Shelby will otherwise linger):
 
