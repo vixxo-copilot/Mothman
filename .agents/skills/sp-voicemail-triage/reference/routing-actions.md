@@ -16,7 +16,8 @@ decision, and [company vetting](company-vetting.md).
 | Payment Information | `aphelp@vixxo.com` (Outlook-only) or **stay on QSIAP**; SF 4046 → close Case | Same as Billing — AP owns; no SPM Task | |
 | COI / Compliance (Insurance) | `COI@vixxo.com` | Internal note + forward; resolve when routed | |
 | Coverage / Onboarding | See **Onboarding branch** below | Varies | |
-| Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | |
+| **Customer / Circle K Help Desk** | Circle K **account team** — never `service.providermanagement@vixxo.com` | Internal note + account-team forward when mailbox resolved; resolve FD | If FWKD / SR present → **SR assistance branch** (PM + Support). Else Graph `list-users` for Circle K program mailbox — do not invent SMTP. SF 4046: Task then **close Case as Duplicate** (wrong queue). Review Yes if mailbox unresolved. |
+| Service Request / Dispatch | See **SR assistance branch** below | Resolve after forward + note | **Exception:** Circle K Help Desk identity or ANI `952-921-4916` / `866-805-4357` → row above, not SPS |
 | Wrong Number / Non-SP | None | Internal note only; resolve | No forward |
 | Foul Language / Abusive | **None** | Internal note + resolve | **No forward** — profanity in transcript |
 | Too Short (<10s) | **None** | Internal note + resolve | **No forward** — duration under 10 seconds |
@@ -111,8 +112,10 @@ Applies when the caller wants to **onboard as a service provider** (Coverage /
 Onboarding category, or clear recruitment intent).
 
 1. Run [company vetting](company-vetting.md) — **Salesforce Lead search is
-   mandatory**.
-2. **Lead found** in Salesforce:
+   mandatory** and must include **Closed** and converted Leads (`scripts/search_sf_leads.py`).
+   First-name-only + phone → web identity, then search LastName (see
+   Case 00011971 / Thomas Kornacki).
+2. **Lead found** in Salesforce (including **Closed**):
    - Freshdesk **internal note** referencing Salesforce Lead Id / number, full
      transcript, callback number, and vetting summary.
    - Add a **Salesforce Task** on the Lead with the transcribed voicemail (see
@@ -132,10 +135,31 @@ Do **not** send onboarding recruitment mail when vetting shows a **Known SP**
 already in Siebel unless the caller explicitly says they are a new entity or
 re-onboarding.
 
+## Circle K Help Desk branch (not SPS)
+
+Applies when the caller **is** Circle K Maintenance / Help Desk (see
+[categories.md](categories.md)), including Amazon Connect `Vixxo Voicemail`
+Cases on Crystal’s SPS queue.
+
+1. Classify **Customer / Circle K Help Desk**. Callback **No**.
+2. **Do not** forward to `service.providermanagement@vixxo.com` or leave the
+   Case on SPS for callback.
+3. If an FWKD / `1-#########` / SR is in the transcript, run the **SR
+   assistance branch** (Gateway PM + Support staff = account-team handoff).
+4. If no SR: resolve recipients with M365 `list-users` (`ConsistencyLevel:
+   eventual`, `$search="displayName:Circle K"` or equivalent). Do not invent
+   addresses. If none resolve, skip forward and set **Review for
+   {{employee_name}}: Yes**.
+5. **SF 4046:** Subject `Voicemail — Circle K Help Desk — {ask}`; Completed
+   Task (route + recipients or unresolved); then close Case
+   `Status=Closed` `Reason=Existing problem` `Not_Filled_Reason__c=Duplicate`.
+
 ## SR assistance branch
 
 Applies when the caller needs help with a **Service Request** (SR cited or
-clear SR/dispatch ask).
+clear SR/dispatch ask). **Do not** use this as the *category* when the
+caller is Circle K Help Desk — still use this branch for **recipients**
+when an SR is present.
 
 1. Extract **SR number** from transcript. If missing, internal note only — do
    not forward; flag for callback.
@@ -145,9 +169,11 @@ clear SR/dispatch ask).
    staff** email addresses (field names vary by program — inspect the response
    for PM, support, CSR, or account-team contacts). Use `list-users` (M365) to
    validate addresses; never invent emails.
-4. **Forward** to PM + Support staff (and `service.providermanagement@vixxo.com`
-   only if no PM/support emails are on the SR — note the gap in the internal
-   note).
+4. **Forward** to PM + Support staff. On **Customer / Circle K Help Desk**,
+   **never** fall back to `service.providermanagement@vixxo.com` — note the
+   gap and Review Yes instead. For other SR/Dispatch items, add
+   `service.providermanagement@vixxo.com` only if no PM/support emails are
+   on the SR (note the gap).
 5. Set forward **subject** to exactly: `{SR_NUMBER}, Need Assistance` (example:
    `12345678, Need Assistance`).
 6. Freshdesk **internal note**: transcript, SR summary, PM/support recipients,

@@ -103,6 +103,42 @@ when forwarding to SPM.
 keywords in email boilerplate do **not** override sourcing intent in the
 **audio transcript**.
 
+This is **Vixxo SPM** for an **SP** who wants more work. It is **not** the
+Circle K customer help desk — use **Customer / Circle K Help Desk** when the
+caller *is* Circle K Maintenance / Help Desk.
+
+---
+
+### Customer / Circle K Help Desk
+
+Circle K Maintenance / Help Desk (Couche-Tard) calling Vendor Relations /
+4046 / SPS about a **store work order** — typically asking the SP to
+**accept, reject, or reassign** on the portal. This is the **Circle K
+account team**, **not SPS**.
+
+**Signals:**
+
+- Caller identity: `this is` / `from` / `calling from` Circle K Maintenance
+  or Circle K Help Desk (STT often mangles as Circle Clay, Circle Cree,
+  Circle Kay, Zhokul K)
+- ANI **952-921-4916** and/or callback **866-805-4357**
+- Store ID + FWKD / `1-#########` + accept / reject / reassign / portal
+
+**Do not** use this when an **SP** mentions a Circle K **store** (vet the
+contractor; keep the SP category).
+
+**Forward to:** Circle K **account team**. If an FWKD / SR is present, use
+the **SR assistance branch** (Gateway SR PM + Support staff). If no SR,
+resolve the program mailbox with Graph `list-users` (`ConsistencyLevel:
+eventual`, `$search` on Circle K) — **do not invent** SMTP. Never
+`service.providermanagement@vixxo.com`.
+
+**Salesforce 4046:** rewrite Subject `Voicemail — Circle K Help Desk —
+{store/WO ask}`, Completed Task, then **close as Duplicate** (wrong queue).
+Do **not** leave Working for an SPS callback.
+
+**Callback:** No (account team owns it).
+
 ---
 
 ### Service Request / Dispatch
@@ -116,6 +152,10 @@ technician, site access, scope, priority
 **Forward to:** Gateway SR **Project Manager + Support staff** (from
 `vixxolink_resolve_service_request` / `gateway_get_service_request`); subject
 `{SR#}, Need Assistance`. Resolve Freshdesk after forward + internal note.
+
+**Anti-misroute:** Circle K Maintenance / Help Desk identity or ANI
+`952-921-4916` / `866-805-4357` → **Customer / Circle K Help Desk**, not
+this category and **not** SPS.
 
 **Related skills:** `sr-triage-pre-dispatch`, VixxoLink MCP for SR lookup
 
@@ -146,6 +186,11 @@ activation, rate card, W-9 setup (onboarding context)
 **Forward to:** See onboarding branch in [routing-actions.md](routing-actions.md)
 — Salesforce Lead found → Lead note + resolve; no Lead →
 `spm-recruitment@vixxo.com`
+
+**Salesforce 4046:** this is **not Crystal / SPS**. Subject
+`Voicemail — {company} — onboarding`; Completed Task; then **close as
+Duplicate**. Do not leave Prospect SP / “looking to join” Cases on her
+queue.
 
 ---
 
@@ -241,7 +286,8 @@ Spoken transcript is empty or only one or two words after STT.
 When the caller mentions multiple topics:
 
 1. Identify the **primary ask** — what blocks them from working or getting paid.
-2. Typical priority order: **COI/compliance hold** > **sourcing / account team**
-   (work-opportunity ask) > **payment** > **invoice rejection** > **dispatch/SR**
-   > **VixxoLink access** > **general**.
+2. Typical priority order: **COI/compliance hold** > **Customer / Circle K
+   Help Desk** (customer help-desk identity) > **sourcing / account team**
+   (SP work-opportunity ask) > **payment** > **invoice rejection** >
+   **dispatch/SR** > **VixxoLink access** > **general**.
 3. Note secondary topics in the summary; do not split into multiple categories.

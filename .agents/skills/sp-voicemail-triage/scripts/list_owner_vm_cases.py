@@ -14,6 +14,8 @@ A Case is "generic" when it has not been rewritten to
 
 New assignment window (default 3 days): CreatedDate in LAST_N_DAYS, plus every
 generic-subject Case still in Status = New (assigned, not yet vetted/renamed).
+`--all-generic` includes Working leftovers. `--skip-triaged-tasks` drops Cases
+that already have a Completed SP Voicemail Triage Task.
 """
 
 from __future__ import annotations
@@ -120,6 +122,28 @@ def intake_kind(subject: str, record_type: str) -> str | None:
     return None
 
 
+def completed_triage_task_case_ids(org: str, case_ids: list[str]) -> set[str]:
+    """Cases that already have a Completed SP Voicemail Triage Task."""
+    found: set[str] = set()
+    chunk = 40
+    for i in range(0, len(case_ids), chunk):
+        part = [cid for cid in case_ids[i : i + chunk] if cid]
+        if not part:
+            continue
+        in_list = ",".join(f"'{cid}'" for cid in part)
+        soql = (
+            "SELECT WhatId, Subject, Status FROM Task "
+            f"WHERE WhatId IN ({in_list}) AND IsClosed = true "
+            "AND (Subject LIKE '%SP Voicemail Triage%' "
+            "OR Subject LIKE 'Voicemail triage%')"
+        )
+        for rec in sf_query(soql, org):
+            what = rec.get("WhatId")
+            if what:
+                found.add(what)
+    return found
+
+
 def parse_sf_dt(raw: str | None) -> datetime | None:
     if not raw:
         return None
@@ -148,6 +172,14 @@ def main() -> int:
         "--all-generic",
         action="store_true",
         help="Include every generic-subject open VM Case the owner has (not only new/New)",
+    )
+    p.add_argument(
+        "--skip-triaged-tasks",
+        action="store_true",
+        help=(
+            "Exclude Cases that already have a Completed Task named "
+            "SP Voicemail Triage (or Voicemail triage) even if Subject is still generic"
+        ),
     )
     p.add_argument("--json", action="store_true")
     p.add_argument(
@@ -202,6 +234,13 @@ def main() -> int:
             }
         )
 
+    already_triaged_ids: set[str] = set()
+    if args.skip_triaged_tasks and cases:
+        already_triaged_ids = completed_triage_task_case_ids(
+            args.org, [c["id"] for c in cases if c.get("id")]
+        )
+        cases = [c for c in cases if c.get("id") not in already_triaged_ids]
+
     payload = {
         "ok": True,
         "owner_email": owner["email"],
@@ -210,6 +249,8 @@ def main() -> int:
         "owner_source": owner["source"],
         "new_days": args.new_days,
         "all_generic": args.all_generic,
+        "skip_triaged_tasks": args.skip_triaged_tasks,
+        "already_triaged_task_count": len(already_triaged_ids),
         "generic_open": len(rows),
         "in_scope": len(cases),
         "cases": cases,

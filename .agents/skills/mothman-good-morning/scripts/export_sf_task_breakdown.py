@@ -18,6 +18,11 @@ REPO_ROOT = SKILL_ROOT.parents[2]
 HELPERS = SKILL_ROOT.parent / "sf-case-email-sync" / "scripts"
 sys.path.insert(0, str(HELPERS))
 
+from prospect_onboarding import (  # noqa: E402
+    ROUTE_NOTE,
+    is_prospect_or_onboarding,
+    prospect_onboarding_reason,
+)
 from sf_helpers import resolve_user_id, sf_query  # noqa: E402
 
 OUTPUT_DIR = REPO_ROOT / ".tmp" / "mothman-good-morning"
@@ -79,6 +84,8 @@ def _case_row(c: dict) -> dict[str, Any]:
         "status": c.get("Status"),
         "priority": c.get("Priority"),
         "record_type": _rt_name(c),
+        "type_picklist": c.get("Type") or "",
+        "not_crystal_reason": prospect_onboarding_reason(c),
         "created": (c.get("CreatedDate") or "")[:10],
         "last_modified": (c.get("LastModifiedDate") or "")[:16],
         "url": f"{LIGHTNING}/Case/{cid}/view" if cid else None,
@@ -143,21 +150,21 @@ def build_payload(owner_id: str, org: str, as_of: date) -> dict[str, Any]:
     tasks = [_task_row(t, as_of) for t in tasks_raw]
 
     high_cases = sf_query(
-        "SELECT Id, CaseNumber, Subject, Status, Priority, CreatedDate, LastModifiedDate, "
+        "SELECT Id, CaseNumber, Subject, Status, Priority, Type, CreatedDate, LastModifiedDate, "
         "RecordType.Name "
         f"FROM Case WHERE OwnerId = '{owner_id}' AND IsClosed=false AND Priority='High' "
         "ORDER BY CreatedDate ASC",
         org=org,
     )
     med_cases = sf_query(
-        "SELECT Id, CaseNumber, Subject, Status, Priority, CreatedDate, LastModifiedDate, "
+        "SELECT Id, CaseNumber, Subject, Status, Priority, Type, CreatedDate, LastModifiedDate, "
         "RecordType.Name "
         f"FROM Case WHERE OwnerId = '{owner_id}' AND IsClosed=false AND Priority='Medium' "
         "ORDER BY CreatedDate ASC",
         org=org,
     )
     new_cases = sf_query(
-        "SELECT Id, CaseNumber, Subject, Status, Priority, CreatedDate, LastModifiedDate, "
+        "SELECT Id, CaseNumber, Subject, Status, Priority, Type, CreatedDate, LastModifiedDate, "
         "RecordType.Name "
         f"FROM Case WHERE OwnerId = '{owner_id}' AND IsClosed=false "
         "AND CreatedDate = LAST_N_DAYS:3 "
@@ -199,8 +206,12 @@ def build_payload(owner_id: str, org: str, as_of: date) -> dict[str, Any]:
         priority_items.append(row)
 
     for c in high_cases:
+        if is_prospect_or_onboarding(c):
+            continue
         add_priority(_case_row(c), "P1 — High Case", "SF Priority = High")
     for c in med_cases:
+        if is_prospect_or_onboarding(c):
+            continue
         add_priority(_case_row(c), "P2 — Medium Case", "SF Priority = Medium")
     for t in overdue:
         add_priority(t, "P1 — Overdue Task", f"Due {t['due']}")
@@ -208,13 +219,29 @@ def build_payload(owner_id: str, org: str, as_of: date) -> dict[str, Any]:
         add_priority(t, "P2 — Duplicate merge", "Carefree / merge queue")
     for c in new_cases:
         row = _case_row(c)
+        if row.get("not_crystal_reason"):
+            continue
         subj = (row.get("subject") or "").lower()
         if "voicemail" in subj:
             continue
-        if row.get("record_type") in ("Provider Onboarding", "Recruitment Request"):
+        if _case_pri_rank(row.get("priority")) <= 2:
             add_priority(row, "P2 — New assignment", f"Created {row['created']}")
-        elif _case_pri_rank(row.get("priority")) <= 2:
-            add_priority(row, "P2 — New assignment", f"Created {row['created']}")
+
+    not_mine_raw = sf_query(
+        "SELECT Id, CaseNumber, Subject, Status, Priority, Type, CreatedDate, "
+        "LastModifiedDate, RecordType.Name "
+        f"FROM Case WHERE OwnerId = '{owner_id}' AND IsClosed=false AND ("
+        "Type = 'Prospect SP' "
+        "OR RecordType.Name IN ('Provider Onboarding','Recruitment Request') "
+        "OR Subject LIKE '%Potential provider lead%' "
+        "OR Subject LIKE '%Prospect SP%' "
+        "OR Subject LIKE '%onboard%' "
+        "OR Subject LIKE '%become a provider%' "
+        "OR Subject LIKE '%become a vendor%'"
+        ") ORDER BY CreatedDate ASC",
+        org=org,
+    )
+    not_mine = [_case_row(c) for c in not_mine_raw if is_prospect_or_onboarding(c)]
 
     priority_items.sort(
         key=lambda x: (
@@ -233,10 +260,11 @@ def build_payload(owner_id: str, org: str, as_of: date) -> dict[str, Any]:
             "tasks_total": len(tasks),
             "tasks_overdue": len(overdue),
             "tasks_due_today": len(due_today),
-            "cases_high": len(high_cases),
-            "cases_medium": len(med_cases),
-            "cases_new_3d": len(new_cases),
+            "cases_high": len([c for c in high_cases if not is_prospect_or_onboarding(c)]),
+            "cases_medium": len([c for c in med_cases if not is_prospect_or_onboarding(c)]),
+            "cases_new_3d": len([c for c in new_cases if not is_prospect_or_onboarding(c)]),
             "rate_new": len(rate_new),
+            "not_crystal_prospect_onboarding": len(not_mine),
             "leads_open": len(leads),
             "case_priority_mix": {
                 (r.get("Priority") or "Unknown"): int(r.get("cnt") or 0)
@@ -248,9 +276,13 @@ def build_payload(owner_id: str, org: str, as_of: date) -> dict[str, Any]:
         "priority_items": priority_items,
         "overdue_tasks": overdue,
         "due_today_tasks": due_today,
-        "high_cases": [_case_row(c) for c in high_cases],
-        "medium_cases": [_case_row(c) for c in med_cases],
-        "new_cases_last_3_days": [_case_row(c) for c in new_cases],
+        "high_cases": [_case_row(c) for c in high_cases if not is_prospect_or_onboarding(c)],
+        "medium_cases": [_case_row(c) for c in med_cases if not is_prospect_or_onboarding(c)],
+        "new_cases_last_3_days": [
+            _case_row(c) for c in new_cases if not is_prospect_or_onboarding(c)
+        ],
+        "not_crystal_prospect_onboarding": not_mine,
+        "not_crystal_note": ROUTE_NOTE,
         "rate_new_cases": [_case_row(c) for c in rate_new],
         "open_leads": [_lead_row(l) for l in leads],
         "task_buckets": {k: v for k, v in sorted(buckets.items(), key=lambda x: -len(x[1]))},

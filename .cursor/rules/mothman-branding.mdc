@@ -29,8 +29,8 @@ afternoon check-in, or "what should I focus on today", follow this workflow:
    (same renderer). Use `morning-brief` / `daily-briefing` for chat-only.
    Morning default continues into **Phase 2 skill cascade** (**VixxoLink MCP
    probe first — mandatory gate**; then SF Task overview, priority mail HTML,
-   Crystal-queue duplicate review report-only, voicemail triage if inventory
-   waiting) unless the user says "brief only".
+   Crystal-queue duplicate review report-only, `sp-voicemail-triage` on
+   untriaged Crystal-owned SF voicemail Cases) unless the user says "brief only".
 2. Pull live calendar, inbox, Teams, and Linear signals when MCPs are available.
 3. Return in this order:
    - **Today / rest of day at a glance** — meeting load, hard stops, coverage gaps
@@ -44,7 +44,9 @@ afternoon check-in, or "what should I focus on today", follow this workflow:
    - **Follow-ups** — owner + timing
    - **First moves** — 2–3 concrete next actions
    - **Skill cascade (morning)** — VixxoLink probe (gate) + task overview +
-     priority mail boxes + queue dupes + voicemail when waiting
+     priority mail boxes + queue dupes + untriaged SF voicemail triage
+     (Circle K Help Desk → account team, not SPS) + recreate open-voicemail
+     HTML for Cases still assigned to Crystal
 4. Open with a short Mothman-style lead line. Keep sections scannable.
 
 Do not send outbound messages unless explicitly approved.

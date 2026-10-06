@@ -8,8 +8,10 @@ description: >-
   and first moves. Then runs a Phase 2 skill cascade: SF Task breakdown HTML
   (priority queue + buckets), SF Task overview, priority mail HTML (Inbox +
   Maria/Leslie/SPM, Kate/ORMB, Invoices/Statements), Crystal-queue duplicate
-  review (report-only), and voicemail triage + vet/rename for new Cases
-  assigned to Crystal. Use
+  review (report-only), `sp-voicemail-triage` on Crystal-owned Salesforce
+  voicemail Cases that have not already been transcribed/triaged, then
+  recreate the open-voicemail HTML report for Cases still assigned to
+  Crystal. Use
   for good morning, Good Morning Crystal, mothman
   good morning, full morning, or HTML morning report. Say "brief only" to
   skip the cascade.
@@ -62,15 +64,17 @@ python .agents/skills/mothman-good-morning/scripts/render_good_morning_html.py \
 3. **Today's meetings** — chronological table
 4. **Salesforce — open workload** — total / cases / leads / tasks
 5. **Open Cases by type** — RecordType subsections; **Rate Changes** first
-6. **SF queue Excel** — full open Case breakdown by type × status (oldest first); overwrites daily workbook
-7. **SF case mail to sync** — dry-run only
-8. **Account corrections** — audit-only (never write AccountId here)
-9. **Email briefing** — unread by urgency + date (folder ignore list; see below)
-10. **Blockers and risks**
-11. **Follow-ups**
-12. **First moves** — 2–3 concrete actions
-13. **Day-over-day** — vs prior JSON snapshot when available
-14. **Skill cascade (planned)** — counts / paths when Phase 2 will run (fill results after cascade)
+6. **Not Crystal — Prospect SP / onboarding** — Cases that belong to
+   recruitment, not SPS (see below)
+7. **SF queue Excel** — full open Case breakdown by type × status (oldest first); overwrites daily workbook
+8. **SF case mail to sync** — dry-run only
+9. **Account corrections** — audit-only (never write AccountId here)
+10. **Email briefing** — unread by urgency + date (folder ignore list; see below)
+11. **Blockers and risks**
+12. **Follow-ups**
+13. **First moves** — 2–3 concrete actions (never Prospect SP / onboarding)
+14. **Day-over-day** — vs prior JSON snapshot when available
+15. **Skill cascade (planned)** — counts / paths when Phase 2 will run (fill results after cascade)
 
 ## Workflow
 
@@ -82,10 +86,11 @@ Run in parallel where possible. Constants: [reference.md](reference.md).
 - **Operator:** Crystal Gagner — `Crystal.Gagner@vixxo.com`
 - Do not send outbound mail or Teams. Do not mutate SF Accounts during brief.
 - Phase 2 duplicate review is **report-only** (no merges/closes).
-- Voicemail triage in Phase 2 follows `sp-voicemail-triage` write rules
-  (pre-authorized for that skill): **always** vet/rename newly assigned
-  operator-owned generic-subject VM Cases; Outlook/QSIAP only when inventory
-  is waiting.
+- Voicemail triage in Phase 2 **loads and runs** `sp-voicemail-triage` on
+  Crystal-owned Salesforce queue Cases that are still untriaged (generic
+  Subject; no Completed `SP Voicemail Triage` Task). Writes follow that
+  skill (pre-authorized): transcribe, classify, company-vet, Subject
+  rewrite, Case Task. Outlook/QSIAP only when those inventories are waiting.
 
 ### 1. Weather — Wichita, KS
 
@@ -122,6 +127,41 @@ Then break open Cases by **RecordType** (not the Case `Type` picklist):
    For large buckets (e.g. SP Support), summary + New date range only —
    do not dump hundreds of rows into HTML.
 
+6. **Not Crystal — Prospect SP / onboarding.** These are **not** Crystal’s
+   SPS work. Identify and list separately; do **not** put them in first
+   moves, High/Medium priority, or “new assignment” as hers.
+
+   Flag when **any** of:
+   - `Case.Type` = `Prospect SP`
+   - `RecordType.Name` in `Provider Onboarding`, `Recruitment Request`
+   - Subject shows onboarding intent (`Potential provider lead`,
+     `Prospect SP`, looking/wanting to onboard or become a
+     provider/vendor)
+
+   Route note: **Recruitment / onboarding — not Crystal (SPS).** Voicemail
+   triage uses the Coverage / Onboarding branch (`spm-recruitment@vixxo.com`
+   / Lead Task) and **closes the 4046 Case** off SPS.
+
+   SOQL (Crystal-owned open Cases):
+
+   ```sql
+   SELECT Id, CaseNumber, Subject, Status, Type, RecordType.Name, CreatedDate
+   FROM Case
+   WHERE OwnerId = '{UID}' AND IsClosed = false
+     AND (
+       Type = 'Prospect SP'
+       OR RecordType.Name IN ('Provider Onboarding','Recruitment Request')
+       OR Subject LIKE '%Potential provider lead%'
+       OR Subject LIKE '%Prospect SP%'
+       OR Subject LIKE '%onboard%'
+     )
+   ORDER BY CreatedDate ASC
+   ```
+
+   Put the list in `salesforce.not_crystal_prospect_onboarding` (`cases` +
+   `note`). Excel export also paints these and adds a **Not Crystal -
+   Prospect/Onboard** sheet.
+
 ### 3b. SF queue Excel (full breakdown — required daily)
 
 Regenerate Crystal’s open-Case workbook every Good Morning run (overwrites
@@ -146,16 +186,18 @@ During Phase 1, count pending sources (no transcription yet):
 - SF open Cases: Subject LIKE `%New voicemail%` **or** (RecordType
   `Service Provider Support` + Subject `Vixxo Voicemail`) owned by Crystal
   **or** Vendor Relations / 4046 queue markers (see `sp-voicemail-triage`)
-- **New assigned / still generic:** Crystal-owned Cases whose Subject is
-  still raw intake — 8x8 `New voicemail from …` **or** SP Support
-  `Vixxo Voicemail` — Status = New **or** CreatedDate in the last 3 days.
-  These are the Phase 2.4 vet+rename set.
+- **Untriaged SF queue (Phase 2.4 work set):** Crystal-owned open Cases
+  whose Subject is still raw intake — 8x8 `New voicemail from …` **or**
+  SP Support `Vixxo Voicemail` — and that do **not** already have a
+  Completed `SP Voicemail Triage` Task. Include Status New **and** Working
+  (full queue, not last-3-days only). Skip Subjects already rewritten to
+  `Voicemail — …` / `VM Triage — …`.
 - Outlook folder **VM**: unread / recent `New voicemail` subjects
 - Optional: open QSIAP FD tickets with subject `New voicemail`
 
 Store counts in `skill_cascade.voicemail.inventory` (see reference-json),
-including `sf_generic_subject` / `new_assigned`.
-Do **not** run full triage until Phase 2.
+including `sf_generic_subject` / `untriaged`.
+Do **not** run full STT/triage until Phase 2.
 
 ### 4. SF case mail to sync (dry-run)
 
@@ -262,7 +304,7 @@ Record outcomes into `skill_cascade` (re-render HTML optional; chat
 summary of cascade results is enough if re-render is slow).
 
 **Hard gate:** Leg **2.0 VixxoLink probe is mandatory** on every full
-morning (not brief-only). Run it **before** legs 2.1–2.4. If probe
+morning (not brief-only). Run it **before** legs 2.1–2.5. If probe
 `status` is not `ok` after `--prompt-oauth`, **stop the cascade** — do
 not run task breakdown, mail, dupes, or voicemail. Report the blocker
 in chat and set `skill_cascade.status` to `blocked_vixxolink_mcp`. Only
@@ -275,10 +317,12 @@ skip 2.0 when Crystal explicitly says "skip vixxolink" / "skip mcp probe".
 | 2 | SF Task overview | Read-only export | No |
 | 2b | `mothman-priority-mail-review` | Unread Inbox + 3 named boxes HTML | No |
 | 3 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
-| 4 | `sp-voicemail-triage` | New Crystal-assigned VM Cases: transcribe + **company vet** + **Subject rewrite**; Outlook/QSIAP if inventory &gt; 0 | Yes (per that skill) |
+| 4 | `sp-voicemail-triage` | Untriaged Crystal-owned SF VM Cases: transcribe + classify + **company vet** + **Subject rewrite** + Case Task; Outlook/QSIAP if inventory &gt; 0 | Yes (per that skill) |
+| 5 | Open voicemail HTML | Recreate report of **all open** VM Cases still assigned to Crystal (generic + rewritten) | No |
 
-Skip individual legs **2.1–2.4** if Crystal says e.g. "skip voicemail" /
+Skip individual legs **2.1–2.5** if Crystal says e.g. "skip voicemail" /
 "dupes only". **Never skip 2.0** unless she explicitly skips the VixxoLink probe.
+"skip voicemail" skips 2.4 **and** 2.5. "inventory only" still runs 2.5.
 
 ### 2.0 VixxoLink MCP bearer probe (**required**)
 
@@ -394,29 +438,46 @@ python .agents/skills/sp-fd-sf-duplicate-bridge/scripts/scan_crystal_owned_dupli
 5. **Do not** run the AP→FD check, attachment sync, or Federated FD search
    from Good Morning unless Crystal explicitly asks for Freshdesk.
 
-### 2.4 Voicemail triage + vet/rename (new assignments)
+### 2.4 Voicemail triage — untriaged Salesforce queue
 
-Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md).
+Load [`sp-voicemail-triage`](../sp-voicemail-triage/SKILL.md) and **run it**.
+Do **not** stop after listing. Morning default is Crystal’s **Salesforce
+queue only** for STT + triage; skip Cases already done.
 
-**Always list the signed-in operator’s generic-subject VM Cases first** (do
-not skip this list when Outlook/QSIAP inventory is 0):
+**1. List untriaged owned Cases** (Crystal’s `sf` login; teammates get their
+own queue the same way):
 
 ```bash
-python .agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py --json
+python .agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py \
+  --json --all-generic --skip-triaged-tasks \
+  --output .tmp/mothman-good-morning/vm-untriaged-YYYY-MM-DD.json
 ```
 
-Crystal’s morning run uses her `sf` login. Teammates using
-`sp-voicemail-triage` from GitHub get **their** queue the same way.
+`--all-generic` = every open generic-subject VM Case Crystal owns (New and
+Working), not only last-3-days. `--skip-triaged-tasks` drops Cases that
+already have a Completed Task `SP Voicemail Triage` / `Voicemail triage`.
 
-- **In scope:** open Cases the operator owns whose Subject is still raw intake
-  and Status = **New** or CreatedDate in the last **3 days**:
-  - 8x8: `New voicemail from …` / `via VENDOR RELATIONS` / `via SERVICE
-    PROVIDER MANAGEMENT`
-  - **Service Provider Support** RecordType with Subject **`Vixxo Voicemail`**
-    (Amazon Connect / same-queue VM)
-- Skip Cases already rewritten to `Voicemail — …` / `VM Triage — …`.
-- For **each** in-scope Case: transcribe audio, classify, **company-vet**
-  (Gateway + SF Account/Lead/Contact), then rewrite Subject:
+**Already triaged — skip (do not re-STT):**
+
+- Subject already starts with `Voicemail —` / `Voicemail -` / `VM Triage —`
+  / `VM Triage -` (the list script excludes these)
+- Completed Task `SP Voicemail Triage` (or `Voicemail triage`) on the Case
+- Failed audio download / STT on a prior pass this morning — leave unchanged
+  and count as `failed` (do not loop)
+
+**2. For each in-scope Case (newest `CreatedDate` first):** follow
+`sp-voicemail-triage` end to end:
+
+1. Download `.wav` / `.mp3` from the Case inbound EmailMessage
+2. Transcribe (faster-whisper)
+3. Classify + callback + **company-vet** (Gateway + SF Account/Lead/Contact;
+   Lead search includes Closed/converted via `search_sf_leads.py`; first-name
+   + ANI → web identity then LastName)
+4. Rewrite Subject, then post the Completed Case Task (or close AP/short /
+   **Circle K Help Desk** as Duplicate per that skill). Circle K Maintenance
+   / Help Desk voicemails go to the **Circle K account team** (SR PM +
+   Support when an FWKD is present) — **not SPS**. Subject:
+   `Voicemail — Circle K Help Desk — {ask}`.
 
 ```
 Voicemail — {SP Name} ({SP#}) — {request}
@@ -431,16 +492,44 @@ python .agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py \
   --request "SR callback / dispatch"
 ```
 
-- Then run Outlook VM / QSIAP batches when those inventories are **&gt; 0**.
-- If the list is empty **and** Outlook/QSIAP inventory is 0 → skip; note
-  "no voicemails waiting" in `skill_cascade.voicemail`.
-- That skill’s outbound/SF writes (Task, Subject, AccountId when confident)
-  are pre-authorized **for voicemail triage**; still do **not** send Teams or
-  non-voicemail mail from this cascade.
-- If Crystal said "inventory only" / "dry-run voicemail" → list + preview
-  subjects only (`--dry-run` on the updater); no writes.
+**3. After the SF queue pass**, run Outlook VM / QSIAP batches only when
+those inventories are **&gt; 0**.
 
-### 2.5 Cascade chat wrap
+- Empty untriaged SF list **and** Outlook/QSIAP 0 → skip; note
+  "no untriaged voicemails" in `skill_cascade.voicemail`.
+- That skill’s SF writes (Task, Subject, AccountId when confident) and its
+  own voicemail forwards are pre-authorized **for voicemail triage**; still
+  do **not** send Teams or non-voicemail mail from this cascade.
+- If Crystal said "inventory only" / "dry-run voicemail" / "skip voicemail"
+  → list only (or `--dry-run` on the updater); no writes.
+- Do **not** treat a large untriaged count as a reason to skip. Process the
+  full in-scope list; if time-boxed, finish remaining Cases in the same
+  session rather than reporting "listed only".
+
+### 2.5 Open voicemail HTML (recreate after triage)
+
+Rebuild the HTML inventory of **open voicemail Cases Crystal still owns**
+after 2.4 so rewritten Subjects and closes drop off / update. Do **not**
+reuse yesterday’s HTML.
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_open_vm_cases.py --json
+python .agents/skills/mothman-good-morning/scripts/render_open_vm_html.py \
+  .tmp/mothman-good-morning/open-voicemail-YYYY-MM-DD.json --open
+```
+
+- Includes generic `New voicemail` / `Vixxo Voicemail` **and** rewritten
+  `Voicemail —` / `VM Triage —` Cases that are still `IsClosed = false`
+  and `OwnerId` = Crystal.
+- Sections: untriaged · rewritten still on queue · Prospect SP / onboarding
+  (not Crystal).
+- Artifacts: `.tmp/mothman-good-morning/open-voicemail-YYYY-MM-DD.{json,html}`
+- Open in Chrome. Fold `html`, `json`, totals into
+  `skill_cascade.voicemail.open_report`.
+- Run even when 2.4 found zero untriaged (queue may still have rewritten
+  leftovers). Skip only with "skip voicemail" / brief-only.
+
+### 2.6 Cascade chat wrap
 
 After Phase 2, add 4–8 lines:
 
@@ -449,7 +538,10 @@ After Phase 2, add 4–8 lines:
 - Tasks: open / overdue / due today
 - Priority mail: unread total + urgent/today + HTML path
 - Dupes: N groups (M with other-owner siblings) + report path
-- Voicemail: N generic in-scope · subjects updated · Outlook/QSIAP line
+- Voicemail: N untriaged in-scope · M triaged (subjects + Tasks) · skipped
+  already-done · failed STT · Outlook/QSIAP line
+- Open VM HTML: total open · untriaged · rewritten still assigned · path
+- Not Crystal: N Prospect SP / onboarding Cases listed (not SPS)
 
 ---
 
@@ -459,7 +551,7 @@ After Phase 2, add 4–8 lines:
 - Do not invent meetings, Case numbers, or weather.
 - Dry-run only for mail sync and account audit.
 - Duplicate cascade = report only; never auto-merge. **SF-only** — no Freshdesk.
-- **Exception:** VixxoLink probe (2.0) failure **blocks** legs 2.1–2.4 — do not continue.
+- **Exception:** VixxoLink probe (2.0) failure **blocks** legs 2.1–2.5 — do not continue.
 - Other MCP/script failures: note in `skipped` / `skill_cascade.*.error` and continue.
 
 ## Trigger phrases

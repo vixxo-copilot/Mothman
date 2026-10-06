@@ -34,6 +34,10 @@ REPO_ROOT = SKILL_ROOT.parents[2]
 HELPERS = SKILL_ROOT.parent / "sf-case-email-sync" / "scripts"
 sys.path.insert(0, str(HELPERS))
 
+from prospect_onboarding import (  # noqa: E402
+    ROUTE_NOTE,
+    prospect_onboarding_reason,
+)
 from sf_helpers import resolve_user_id, sf_query  # noqa: E402
 
 
@@ -90,6 +94,8 @@ HEADERS = [
     "Case Number",
     "Subject",
     "Status",
+    "Type",
+    "Not Crystal",
     "Priority",
     "SP Number",
     "Account",
@@ -109,6 +115,7 @@ PRIORITY_FILL = PatternFill("solid", fgColor="E63E3E")
 PRIORITY_FONT = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
 ALT_FILL = PatternFill("solid", fgColor="F7F4FA")
 NEW_FILL = PatternFill("solid", fgColor="FFF3E0")
+NOT_CRYSTAL_FILL = PatternFill("solid", fgColor="F3E8C8")
 THIN = Border(
     left=Side(style="thin", color="D0C8D8"),
     right=Side(style="thin", color="D0C8D8"),
@@ -207,6 +214,7 @@ def normalize_case(row: dict[str, Any], as_of: date) -> dict[str, Any]:
         "priority": row.get("Priority") or "",
         "origin": row.get("Origin") or "",
         "type_picklist": row.get("Type") or "",
+        "not_crystal_reason": prospect_onboarding_reason(row) or "",
         "record_type": rt,
         "label": _type_label(rt),
         "account": acct.get("Name") or "",
@@ -259,6 +267,8 @@ def _write_case_row(ws, row_idx: int, case: dict[str, Any], alt: bool = False) -
         case["case_number"],
         case["subject"],
         case["status"],
+        case["type_picklist"],
+        case["not_crystal_reason"],
         case["priority"],
         case["sp_number"],
         case["account"],
@@ -268,7 +278,10 @@ def _write_case_row(ws, row_idx: int, case: dict[str, Any], alt: bool = False) -
         case["modified_str"],
         case["url"],
     ]
-    fill = NEW_FILL if case["status"] == "New" else (ALT_FILL if alt else None)
+    if case.get("not_crystal_reason"):
+        fill = NOT_CRYSTAL_FILL
+    else:
+        fill = NEW_FILL if case["status"] == "New" else (ALT_FILL if alt else None)
     for col, value in enumerate(values, 1):
         cell = ws.cell(row=row_idx, column=col, value=value)
         cell.font = BODY_FONT
@@ -358,7 +371,24 @@ def build_summary_sheet(
                 cell.fill = PatternFill("solid", fgColor="FDECEA")
         row += 1
 
+    not_mine = [c for c in cases if c.get("not_crystal_reason")]
     row += 1
+    ws.cell(row=row, column=1, value="Not Crystal — Prospect SP / onboarding").font = Font(
+        name="Calibri", bold=True, size=12
+    )
+    row += 1
+    ws.cell(
+        row=row,
+        column=1,
+        value=(
+            f"{len(not_mine)} open Case(s) flagged as Prospect SP, Provider "
+            f"Onboarding, Recruitment Request, or onboarding-intent subject. "
+            f"{ROUTE_NOTE}. Do not treat as SPS work."
+        ),
+    ).font = MUTED_FONT
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
+    row += 2
+
     ws.cell(row=row, column=1, value="By Case Type × Status").font = Font(
         name="Calibri", bold=True, size=12
     )
@@ -432,6 +462,8 @@ def build_all_cases_sheet(wb: Workbook, cases: list[dict[str, Any]]) -> None:
             case["case_number"],
             case["subject"],
             case["status"],
+            case["type_picklist"],
+            case["not_crystal_reason"],
             case["priority"],
             case["sp_number"],
             case["account"],
@@ -441,7 +473,10 @@ def build_all_cases_sheet(wb: Workbook, cases: list[dict[str, Any]]) -> None:
             case["modified_str"],
             case["url"],
         ]
-        fill = NEW_FILL if case["status"] == "New" else (ALT_FILL if i % 2 else None)
+        if case.get("not_crystal_reason"):
+            fill = NOT_CRYSTAL_FILL
+        else:
+            fill = NEW_FILL if case["status"] == "New" else (ALT_FILL if i % 2 else None)
         for col, value in enumerate(values, 2):
             cell = ws.cell(row=row_idx, column=col, value=value)
             cell.font = BODY_FONT
@@ -525,6 +560,10 @@ def build_workbook(
     for rt in sorted(by_type.keys(), key=_type_sort_key):
         build_type_sheet(wb, rt, by_type[rt])
 
+    not_mine = [c for c in ordered if c.get("not_crystal_reason")]
+    if not_mine:
+        build_type_sheet(wb, "Not Crystal - Prospect/Onboard", not_mine)
+
     return wb
 
 
@@ -555,6 +594,7 @@ def export_queue(
     for c in cases:
         breakdown[c["label"]][c["status"]] = breakdown[c["label"]].get(c["status"], 0) + 1
 
+    not_mine_export = [c for c in cases if c.get("not_crystal_reason")]
     result = {
         "ok": True,
         "as_of": as_of.isoformat(),
@@ -562,6 +602,22 @@ def export_queue(
         "owner_id": owner_id,
         "total_open": len(cases),
         "breakdown": {k: dict(v) for k, v in breakdown.items()},
+        "not_crystal_prospect_onboarding": {
+            "count": len(not_mine_export),
+            "note": ROUTE_NOTE,
+            "cases": [
+                {
+                    "CaseNumber": c["case_number"],
+                    "Subject": c["subject"],
+                    "Status": c["status"],
+                    "Type": c["type_picklist"],
+                    "record_type": c["record_type"],
+                    "reason": c["not_crystal_reason"],
+                    "Id": c["id"],
+                }
+                for c in not_mine_export
+            ],
+        },
         "path": str(stable_path),
         "dated_path": str(dated_path) if dated_path else None,
     }
@@ -604,6 +660,8 @@ def main() -> int:
         print(f"Wrote {result['total_open']} open cases → {result['path']}")
         if result.get("dated_path"):
             print(f"Dated copy → {result['dated_path']}")
+        nc = result.get("not_crystal_prospect_onboarding") or {}
+        print(f"  Not Crystal (Prospect/onboard): {nc.get('count', 0)}")
         for label, statuses in result["breakdown"].items():
             parts = ", ".join(f"{s}: {n}" for s, n in statuses.items())
             print(f"  {label}: {parts}")

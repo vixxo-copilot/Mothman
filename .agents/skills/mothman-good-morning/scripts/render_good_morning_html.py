@@ -334,6 +334,41 @@ def _render_case_type_breakdown(types: list[dict[str, Any]]) -> str:
     return "".join(parts)
 
 
+def _render_not_crystal(rows: list[dict[str, Any]], note: str | None) -> str:
+    parts = [
+        "<h2>Not Crystal — Prospect SP / onboarding</h2>",
+        f"<p class='muted'>{_esc(note or 'Recruitment / onboarding — not Crystal (SPS). Do not treat as your queue.')}</p>",
+    ]
+    if not rows:
+        parts.append("<p class='ok-banner'>None flagged on your open Cases.</p>")
+        return "".join(parts)
+    parts.append(
+        "<table><thead><tr><th>Case</th><th>Why</th><th>Type</th>"
+        "<th>Record type</th><th>Status</th><th>Subject</th></tr></thead><tbody>"
+    )
+    for row in rows:
+        num = _esc(row.get("CaseNumber") or row.get("case_number") or row.get("number") or "")
+        cid = row.get("Id") or row.get("id")
+        link = _case_link(str(cid) if cid else None)
+        case_cell = (
+            f"<a href='{_esc(link)}' target='_blank' rel='noopener'>{num}</a>"
+            if link
+            else num
+        )
+        parts.append(
+            "<tr>"
+            f"<td>{case_cell}</td>"
+            f"<td>{_esc(row.get('reason') or row.get('not_crystal_reason') or '')}</td>"
+            f"<td>{_esc(row.get('Type') or row.get('type') or row.get('type_picklist') or '')}</td>"
+            f"<td>{_esc(row.get('record_type') or row.get('RecordType') or '')}</td>"
+            f"<td>{_esc(row.get('Status') or row.get('status') or '')}</td>"
+            f"<td>{_esc(row.get('Subject') or row.get('subject') or '')}</td>"
+            "</tr>"
+        )
+    parts.append("</tbody></table>")
+    return "".join(parts)
+
+
 def _render_sync_cases(rows: list[dict[str, Any]]) -> str:
     if not rows:
         return "<p class='ok-banner'>No cases needing mail sync.</p>"
@@ -583,7 +618,7 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
     if cascade_status == "blocked_vixxolink_mcp":
         parts.append(
             "<p class='urgent'><strong>Cascade blocked:</strong> VixxoLink MCP probe "
-            "did not pass — legs 2.1–2.4 were skipped. Run "
+            "did not pass — legs 2.1–2.5 were skipped. Run "
             "<code>.cursor/bin/refresh-vixxolink-bearer.cmd</code>.</p>"
         )
     vl = cascade.get("vixxolink_mcp") or {}
@@ -605,6 +640,8 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
         inv = vm.get("inventory") or {}
         parts.append("<h3 class='subheading'>Voicemail triage</h3>")
         extra = []
+        if inv.get("untriaged") is not None:
+            extra.append(f"untriaged {_esc(inv.get('untriaged'))}")
         if inv.get("new_assigned") is not None:
             extra.append(f"new assigned {_esc(inv.get('new_assigned'))}")
         if inv.get("sf_generic_subject") is not None:
@@ -614,6 +651,12 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
         updated_txt = (
             f" · subjects updated {_esc(updated)}" if updated is not None else ""
         )
+        if vm.get("triaged") is not None:
+            updated_txt += f" · triaged {_esc(vm.get('triaged'))}"
+        if vm.get("skipped_already") is not None:
+            updated_txt += f" · skipped already-done {_esc(vm.get('skipped_already'))}"
+        if vm.get("failed") is not None:
+            updated_txt += f" · failed {_esc(vm.get('failed'))}"
         parts.append(
             "<p>"
             f"Inventory SF {_esc(inv.get('sf_new_voicemail', 0))} · "
@@ -625,6 +668,22 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
         )
         if vm.get("summary"):
             parts.append(f"<p>{_esc(vm['summary'])}</p>")
+        report = vm.get("open_report") or {}
+        if report:
+            parts.append("<h3 class='subheading'>Open voicemail HTML</h3>")
+            parts.append(
+                "<p>"
+                f"Open {_esc(report.get('total_open', '—'))} · "
+                f"untriaged {_esc(report.get('untriaged', '—'))} · "
+                f"rewritten {_esc(report.get('triaged', '—'))} · "
+                f"not Crystal {_esc(report.get('not_crystal', '—'))}"
+                f" <span class='muted'>({_esc(report.get('status') or 'pending')})</span>"
+                "</p>"
+            )
+            if report.get("html"):
+                parts.append(
+                    f"<p class='muted'>HTML: {_esc(report['html'])}</p>"
+                )
     parts.append("</div>")
     return "".join(parts)
 
@@ -786,7 +845,19 @@ def render_html(data: dict[str, Any]) -> str:
             "Created dates are Case CreatedDate (Central calendar day).</p>"
         )
         parts.append(_render_case_type_breakdown(case_types))
+    not_crystal = (
+        sf.get("not_crystal_prospect_onboarding")
+        or data.get("not_crystal_prospect_onboarding")
+        or []
+    )
+    if isinstance(not_crystal, dict):
+        note = not_crystal.get("note")
+        rows = not_crystal.get("cases") or []
     else:
+        note = sf.get("not_crystal_note")
+        rows = not_crystal
+    parts.append(_render_not_crystal(rows, note))
+    if not case_types:
         parts.append("<div class='card'>")
         parts.append(_render_case_sample(sf.get("open_cases_sample") or []))
         parts.append("</div>")

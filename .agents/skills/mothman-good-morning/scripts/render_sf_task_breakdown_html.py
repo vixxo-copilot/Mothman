@@ -132,7 +132,8 @@ def render_html(data: dict[str, Any]) -> str:
         f"High Cases {summary.get('cases_high', 0)} · "
         f"Medium {summary.get('cases_medium', 0)} · "
         f"Rate New {summary.get('rate_new', 0)} · "
-        f"New Cases (3d) {summary.get('cases_new_3d', 0)}."
+        f"New Cases (3d) {summary.get('cases_new_3d', 0)} · "
+        f"Not Crystal (Prospect/onboard) {summary.get('not_crystal_prospect_onboarding', 0)}."
     )
 
     stats = [
@@ -141,6 +142,7 @@ def render_html(data: dict[str, Any]) -> str:
         ("High Cases", summary.get("cases_high", 0)),
         ("Rate New", summary.get("rate_new", 0)),
         ("Leads", summary.get("leads_open", 0)),
+        ("Not Crystal", summary.get("not_crystal_prospect_onboarding", 0)),
     ]
     stat_html = "".join(
         f"<div class='stat'><div class='n'>{_esc(n)}</div><div class='l'>{_esc(l)}</div></div>"
@@ -166,6 +168,24 @@ def render_html(data: dict[str, Any]) -> str:
         "</div></div>",
         f"<p class='lead'>{_esc(lead)}</p>",
         f"<div class='card stats'>{stat_html}</div>",
+        "<h2>Not Crystal — Prospect SP / onboarding</h2>",
+        f"<p class='muted'>{_esc(data.get('not_crystal_note') or 'Recruitment / onboarding — not Crystal (SPS)')}</p>",
+        _table(
+            ["Case", "Why", "Type", "Record type", "Status", "Created", "Subject"],
+            [
+                [
+                    _link(c.get("url"), f"Case {c.get('number')}"),
+                    _esc(c.get("not_crystal_reason") or "Prospect / onboard"),
+                    _esc(c.get("type_picklist")),
+                    _esc(c.get("record_type")),
+                    _esc(c.get("status")),
+                    _esc(c.get("created")),
+                    _esc((c.get("subject") or "")[:110]),
+                ]
+                for c in data.get("not_crystal_prospect_onboarding") or []
+            ],
+            "None flagged.",
+        ),
         "<h2>Priority queue</h2>",
         _table(
             ["Tier", "Item", "Priority", "Status", "Created", "Due / Modified", "Subject"],

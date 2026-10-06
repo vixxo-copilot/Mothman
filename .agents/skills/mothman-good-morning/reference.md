@@ -118,6 +118,22 @@ WHERE OwnerId = '{UID}' AND IsClosed = false AND Status = 'New'
 GROUP BY RecordType.Name
 ```
 
+Not Crystal — Prospect SP / onboarding (list all; not SPS):
+
+```sql
+SELECT Id, CaseNumber, Subject, Status, Type, RecordType.Name, CreatedDate
+FROM Case
+WHERE OwnerId = '{UID}' AND IsClosed = false
+  AND (
+    Type = 'Prospect SP'
+    OR RecordType.Name IN ('Provider Onboarding','Recruitment Request')
+    OR Subject LIKE '%Potential provider lead%'
+    OR Subject LIKE '%Prospect SP%'
+    OR Subject LIKE '%onboard%'
+  )
+ORDER BY CreatedDate ASC
+```
+
 Rate Changes detail (list all New; include non-New in summary only):
 
 ```sql
@@ -242,9 +258,15 @@ for voicemail inventory (not on the ignore list).
 - `sf-case-email-sync` — mail scan + account audit scripts
 - `mothman-priority-mail-review` — Phase 2 unread Inbox + named boxes HTML
 - `sp-fd-sf-duplicate-bridge` — Phase 2 Crystal-owned duplicate scan
-- `sp-voicemail-triage` — Phase 2.4: new Crystal-assigned VM Cases (8x8
-  `New voicemail` **and** SP Support `Vixxo Voicemail`; vet + Subject
-  rewrite) plus Outlook/QSIAP when inventory &gt; 0
+- `sp-voicemail-triage` — Phase 2.4: **run** on untriaged Crystal-owned SF
+  VM Cases (8x8 `New voicemail` **and** SP Support `Vixxo Voicemail`; skip
+  rewritten Subjects and Completed `SP Voicemail Triage` Tasks). Transcribe,
+  classify, vet, Subject rewrite, Case Task. Circle K Help Desk → account
+  team (close 4046 as Duplicate; not SPS). Outlook/QSIAP when inventory &gt; 0
 - VM list: `.agents/skills/sp-voicemail-triage/scripts/list_owner_vm_cases.py`
+  (`--all-generic --skip-triaged-tasks`)
 - VM subject write: `.agents/skills/sp-voicemail-triage/scripts/update_vm_case_subject.py`
+- Open VM HTML (cascade 2.5, recreate after triage):
+  `scripts/export_open_vm_cases.py` + `scripts/render_open_vm_html.py`
+  → `.tmp/mothman-good-morning/open-voicemail-YYYY-MM-DD.html`
 - `daily-briefing` — lighter work-only brief when MCP is thin

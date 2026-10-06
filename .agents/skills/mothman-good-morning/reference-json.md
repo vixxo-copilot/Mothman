@@ -127,6 +127,21 @@ Prefer `case_types[]` (RecordType subsections). Put **Rate Changes** first
       "status_breakdown": { "New": 232, "Working": 34 }
     }
   ],
+  "not_crystal_prospect_onboarding": {
+    "count": 2,
+    "note": "Recruitment / onboarding — not Crystal (SPS)",
+    "cases": [
+      {
+        "Id": "500...",
+        "CaseNumber": "12000",
+        "Subject": "Potential provider lead — Acme HVAC",
+        "Status": "New",
+        "Type": "Prospect SP",
+        "record_type": "Service Provider Support",
+        "reason": "Prospect SP"
+      }
+    ]
+  },
   "open_cases_sample": [],
   "queue_workbook": {
     "path": ".tmp/mothman-good-morning/Crystal-SF-Queue.xlsx",
@@ -323,13 +338,26 @@ Present on every Good Morning unless brief-only (`enabled: false`).
     "inventory": {
       "sf_new_voicemail": 0,
       "sf_generic_subject": 0,
+      "untriaged": 0,
       "new_assigned": 0,
       "outlook_vm": 0,
       "qsiap": 0
     },
     "subjects_updated": 0,
+    "triaged": 0,
+    "skipped_already": 0,
+    "failed": 0,
     "ran_batch": false,
-    "summary": null
+    "summary": null,
+    "open_report": {
+      "status": "pending",
+      "total_open": null,
+      "untriaged": null,
+      "triaged": null,
+      "not_crystal": null,
+      "json": null,
+      "html": null
+    }
   },
   "vixxolink_mcp": {
     "status": "pending",

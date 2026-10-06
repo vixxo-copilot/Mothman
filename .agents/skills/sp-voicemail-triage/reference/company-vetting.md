@@ -78,20 +78,62 @@ Resolve org with `get_username` before querying. Run **Lead, Case, Account,
 and Contact** searches on every voicemail (unless `--skip-vetting`). Full write
 rules: [salesforce-notes.md](salesforce-notes.md).
 
-### Lead search
+### Lead search (mandatory — include Closed and converted)
 
-```sql
-SELECT Id, Name, Company, Status, Phone, Email, LastModifiedDate
-FROM Lead
-WHERE Company LIKE '%{normalized_company}%'
-   OR Name LIKE '%{contact_name}%'
-   OR Name LIKE '%{normalized_company}%'
-   OR Phone LIKE '%{last10_digits}%'
-ORDER BY LastModifiedDate DESC
-LIMIT 10
+Search **all** Leads. Do **not** add `IsConverted = false`, `Status = 'New'`,
+or `Status != 'Closed'`. A Closed Lead is still a match (Case **00011971**:
+Tom / Turnkey / ANI `716-209-3703` → web identity Thomas Kornacki → Closed
+Lead `00QTS00000h2lQH2AY`, TURNKEY PROPERTY MAINTENANCE LLC, Lead phone
+`716-216-4086` — different from ANI).
+
+Helper (preferred):
+
+```bash
+python .agents/skills/sp-voicemail-triage/scripts/search_sf_leads.py \
+  --phone {ani_or_callback} --company "{spoken_company}" --name "{caller}" --json
 ```
 
-Run phone and contact-name predicates even when company is `Not stated`.
+SOQL (same rules if running MCP directly):
+
+```sql
+SELECT Id, Name, FirstName, LastName, Company, Status, IsConverted,
+       ConvertedAccountId, Phone, MobilePhone, Email, LastModifiedDate
+FROM Lead
+WHERE Company LIKE '%{normalized_company}%'
+   OR LastName LIKE '%{last_name}%'
+   OR Name LIKE '%{full_name}%'
+   OR Phone LIKE '%{last10_digits}%'
+   OR MobilePhone LIKE '%{last10_digits}%'
+ORDER BY LastModifiedDate DESC
+LIMIT 25
+```
+
+**Required predicates**
+
+1. **Company** — always, even when the caller is first-name-only (`Tom` +
+   Turnkey). Phone on the Lead may not match the voicemail ANI.
+2. **Phone and MobilePhone** — last 10 digits of **ANI and** spoken callback
+   (search both). Run even when company is `Not stated`.
+3. **Full name** — when STT or web identity gives first + last.
+4. **Do not** require a phone match to accept a company + name Lead.
+
+**Web identity when first-name-only**
+
+If STT has a first name (`Tom`) and a phone/ANI, and Lead phone search is
+empty **or** you need to confirm which Turnkey Lead:
+
+1. Public web search: `{ANI/callback}`, then `{first name} {company} {phone}`.
+2. If a full name surfaces (Thomas Kornacki), **re-run Lead search** with
+   `--name "Thomas Kornacki"` (LastName).
+3. Record the web source in vetting Notes. Do not invent a last name.
+
+**Which Lead to keep**
+
+- Prefer same **Company** over same first name at another company.
+- Prefer most recently modified when still ambiguous.
+- **Closed** unconverted: still `Prospect (SF Lead only)` — post Lead Task.
+- **Converted:** report `ConvertedAccountId`; Task on Account/Contact, not
+  `WhoId` on the converted Lead.
 
 ### Case search
 

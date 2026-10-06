@@ -23,7 +23,11 @@ record` for Tasks and Cases.
 Run **in parallel** with Gateway vetting after company, caller, and callback
 # are extracted from the **audio transcript**:
 
-1. **Lead** — company + contact name + callback phone (onboarding / prospect)
+1. **Lead** — **all statuses**, including **Closed** and converted. Search
+   company + ANI/callback on Phone **and** MobilePhone + contact name. When
+   the caller is first-name-only, web-search the phone, then re-query by
+   last name. Helper: `scripts/search_sf_leads.py`. Never restrict to open
+   Leads only.
 2. **Case** — callback phone, company, caller name; **Freshdesk id** when present
 3. **Account** — `Type = 'Service Provider'` when Gateway SP # is unknown but
    company name is confident

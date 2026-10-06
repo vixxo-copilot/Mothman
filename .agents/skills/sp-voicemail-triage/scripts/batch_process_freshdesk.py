@@ -371,6 +371,41 @@ def detect_skip_forward(
     return False, ""
 
 
+CIRCLE_K_HELPDESK_PHONES = {"9529214916", "8668054357"}
+CIRCLE_K_IDENTITY_RE = re.compile(
+    r"(?:this is|from|calling from)\s+circle[\s-]*(?:k|kay|key|clay|cree|kate)"
+    r"|circle[\s-]*(?:k|kay|key|clay|cree|kate)[\s,]+(?:maintenance|help\s*desk|helpdesk)"
+    r"|zhokul\s*k",
+    re.I,
+)
+
+
+def _digits_only(value: str) -> str:
+    digits = re.sub(r"\D", "", value or "")
+    if len(digits) == 11 and digits.startswith("1"):
+        return digits[1:]
+    return digits
+
+
+def detect_circle_k_helpdesk(transcript: str, meta: dict | None = None) -> bool:
+    """Customer Circle K Maintenance / Help Desk — not an SP, not SPS."""
+    meta = meta or {}
+    phones = {
+        _digits_only(str(meta.get("phone") or "")),
+        _digits_only(str(meta.get("caller") or "")),
+    }
+    if phones & CIRCLE_K_HELPDESK_PHONES:
+        return True
+    blob = " ".join(
+        [
+            transcript or "",
+            str(meta.get("caller") or ""),
+            str(meta.get("company") or ""),
+        ]
+    )
+    return bool(CIRCLE_K_IDENTITY_RE.search(blob))
+
+
 def detect_sourcing_intent(transcript: str) -> bool:
     text = transcript.lower()
     sourcing_keywords = [
@@ -397,6 +432,9 @@ def classify(transcript: str, meta: dict) -> tuple[str, str, str]:
     sm = SR_RE.search(transcript)
     if sm:
         sr = sm.group(1)
+    if detect_circle_k_helpdesk(transcript, meta):
+        route = "SR_BRANCH" if sr else "CIRCLEK_ACCOUNT_TEAM"
+        return "Customer / Circle K Help Desk", route, sr or ""
     if detect_sourcing_intent(transcript):
         return "Sourcing / Account Team", "service.providermanagement@vixxo.com", sr or ""
     if "audio attachment only" in text or "[inaudible]" in text:
@@ -637,9 +675,18 @@ def process_ticket(
     callback, urgency = callback_decision(transcript)
     if skip_forward:
         callback, urgency = "No", "Normal"
+    elif category == "Customer / Circle K Help Desk":
+        callback, urgency = "No", "Normal"
 
-    if category == "Service Request / Dispatch" and sr and not skip_forward:
+    if (
+        category == "Service Request / Dispatch"
+        and sr
+        and not skip_forward
+    ):
         route = "service.providermanagement@vixxo.com"
+        forward_subject = f"{sr}, Need Assistance"
+    elif category == "Customer / Circle K Help Desk" and sr and not skip_forward:
+        # Recipients come from the SR assistance branch (agent/MCP), not SPS.
         forward_subject = f"{sr}, Need Assistance"
     else:
         forward_subject = None

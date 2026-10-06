@@ -4,11 +4,16 @@ description: >-
   Auto-transcribes and triages service-provider voicemails from Salesforce
   Cases for 8x8 extension 4046 (Vendor Relations Email-to-Case), Freshdesk
   QSIAP AP mailbox (qsiap@vixxo.com), and the user's Outlook VM folder.
-  Vets company names against Siebel, Gateway, JDE, and Salesforce (Lead,
-  Case, Account, Contact); classifies the call reason; determines callback
+  Vets company names against Siebel, Gateway, JDE, and Salesforce Leads
+  (including Closed and converted), Case, Account, and Contact. When the
+  caller is first-name-only, web-search the ANI then re-query Lead by
+  last name. Classifies the call reason; determines callback
   need; posts SF Case Tasks (4046 path — no Freshdesk); for QSIAP posts
   Freshdesk notes/resolves; Billing / Invoice Support and Payment Information
-  stay Freshdesk-only when on QSIAP (no SF Case/Task writes); forwards to
+  stay Freshdesk-only when on QSIAP (no SF Case/Task writes); Circle K
+  Maintenance / Help Desk voicemails route to the Circle K account team
+  (SR PM + Support when an FWKD is present) — never SPS /
+  service.providermanagement@vixxo.com; forwards to
   service.providermanagement@vixxo.com, aphelp@vixxo.com, COI@vixxo.com,
   spm-recruitment@vixxo.com, or Gateway SR PM/support staff. KSOnboarding
   Freshdesk mailbox is retired — do not scan FD type KSOnboarding. Use when
@@ -36,8 +41,10 @@ an active mailbox. Do **not** search or write that queue.
 
 **Write order:**
 
-- **SF 4046:** Case Task (or close AP/short) → optional email forward — **no
-  Freshdesk**
+- **SF 4046:** Case Task (or close AP/short / Circle K Help Desk /
+  Coverage / Onboarding) → optional email forward — **no Freshdesk**.
+  Circle K Help Desk and Prospect SP / onboarding Cases close as Duplicate
+  after the Task (not SPS / not Crystal).
 - **QSIAP:** internal note → forward when misrouted → resolve when required
   (Billing/Payment stay Open on QSIAP; **no SF writes**) — see
   [qsiap-voicemail.md](reference/qsiap-voicemail.md)
@@ -99,7 +106,8 @@ LIMIT 50
 - Download `.wav` / `.mp3` from `EmailMessage` → `ContentDocumentLink` →
   `ContentVersion`; transcribe with faster-whisper before routing.
 - **No Freshdesk** for this source — post Completed Case Tasks (or close
-  Billing/Payment / short as Duplicate per policy).
+  Billing/Payment / short / **Circle K Help Desk** as Duplicate per policy).
+  Circle K Maintenance / Help Desk is the **account team**, not SPS.
 - Prefer SF Case over Outlook when the same 4046 message exists in both.
 
 ### 2. Outlook — {{employee_name}}'s **VM** folder
@@ -225,7 +233,9 @@ Then one **triage packet** per item (see below).
 4. **Callback decision** — [reference/callback-rules.md](reference/callback-rules.md).
 5. **Company vetting** — [reference/company-vetting.md](reference/company-vetting.md)
    (Siebel/Gateway SP, Gateway/VixxoLink customer, JDE vendor, Salesforce
-   Lead/Case/Account/Contact). See [reference/salesforce-notes.md](reference/salesforce-notes.md).
+   Lead/Case/Account/Contact). **Lead search includes Closed and converted**
+   (`scripts/search_sf_leads.py`). First-name-only + ANI → web search, then
+   re-query by full name. See [reference/salesforce-notes.md](reference/salesforce-notes.md).
 6. **Rewrite Case Subject (operator-owned SF Cases)** — after vetting, set
    Subject to `Voicemail — {SP Name} ({SP#}) — {request}` (`{request}` =
    sub-reason). Omit `({SP#})` when unknown. Use
@@ -374,9 +384,13 @@ Sibling skills: **`sp-voicemail-triage-no-email`** (no forwards),
 default 4046 runs.
 **`sp-inbound-vetting`** owns non-voicemail AP Help / SF queue identity
 enrichment — QSIAP **voicemails** are owned here.
-**`mothman-good-morning`** Phase 2.4 lists **the signed-in operator’s**
-generic voicemail Cases (Crystal when she runs morning), vets them, and
-rewrites Subject before Outlook/QSIAP.
+**`mothman-good-morning`** Phase 2.4 **runs this skill** on the signed-in
+operator’s untriaged Salesforce voicemail Cases (Crystal when she runs
+morning): list with `--all-generic --skip-triaged-tasks`, then transcribe,
+vet, rewrite Subject, and post the Case Task (close Circle K Help Desk
+and AP/short as Duplicate). Skip Cases already rewritten or that already
+have a Completed `SP Voicemail Triage` Task. Outlook/QSIAP after the SF
+queue pass when those inventories are waiting.
 
 ## Team use (SPM / SPS)
 

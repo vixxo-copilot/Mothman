@@ -20,8 +20,10 @@ snapshot when available. Include the same **email briefing** (urgency + date,
 folder ignore list) when refreshing inbox mid/late day.
 
 The morning **Phase 2 skill cascade** (task overview, Crystal-queue
-duplicates, voicemail) is **not** default here — run it only when Crystal
-asks (e.g. "afternoon with cascade").
+duplicates, `sp-voicemail-triage` on untriaged SF queue Cases, including
+Circle K Help Desk → account team not SPS, then recreate open-voicemail
+HTML) is **not** default here — run it only when Crystal asks
+(e.g. "afternoon with cascade").
 
 ## When to use
 

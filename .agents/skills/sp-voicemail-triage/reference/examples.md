@@ -188,3 +188,49 @@ overrides incidental billing/payment keywords in email boilerplate. See
 
 **Dedupe:** Do not create a second Case for the same 4046 voicemail. Re-runs
 check for an existing `SP Voicemail Triage` Task on the Case.
+
+---
+
+## Example 9 — Circle K Help Desk on the SPS queue (account team, not SPS)
+
+**Source:** Salesforce Case **00012047** — subject `Vixxo Voicemail` (Amazon
+Connect / SP Support). Caller ANI **952-921-4916**, callback
+**866-805-4357**. STT: Circle Clay / Circle Cree Maintenance asking an SP
+to accept or reassign a store WO (FWKD `1-#########`).
+
+**Correct category:** Customer / Circle K Help Desk
+
+**Correct actions:**
+
+1. Subject `Voicemail — Circle K Help Desk — {store / WO ask}`
+2. Completed Task: route = Circle K account team (Gateway SR PM + Support
+   if FWKD present)
+3. Forward to those account-team recipients — **never**
+   `service.providermanagement@vixxo.com`
+4. Close the 4046 / SPS Case as Duplicate (wrong queue)
+
+**Guardrail:** An SP who mentions a Circle K **store** is still an SP
+voicemail (vet the contractor). Only the **Circle K Maintenance / Help
+Desk** identity (or those ANIs) uses this path.
+
+---
+
+## Example 10 — Closed Lead (first-name-only + web identity)
+
+**Source:** Salesforce Case **00011971** — `Vixxo Voicemail` (Amazon Connect).
+ANI **+1 716-209-3703**. STT: Turnkey / Tom / onboarding issue.
+
+**Miss:** Lead `Phone` is **716-216-4086**, not the ANI. A phone-only or
+open-Lead-only search returns nothing.
+
+**Correct vet:**
+
+1. Company search `Turnkey` on **all** Leads (no Status / IsConverted filter).
+2. Web search the ANI → **Thomas Kornacki**.
+3. Re-query Lead `LastName = Kornacki`.
+4. Match Closed Lead **00QTS00000h2lQH2AY** — Thomas Kornacki / TURNKEY
+   PROPERTY MAINTENANCE LLC / Status Closed / unconverted.
+
+**Routing:** Coverage / Onboarding. Lead Task on the Closed Lead. 4046 Case
+Subject `Voicemail — Turnkey — onboarding`; close Case as Duplicate
+(recruitment, not Crystal / SPS). Do **not** treat as “no Lead found.”

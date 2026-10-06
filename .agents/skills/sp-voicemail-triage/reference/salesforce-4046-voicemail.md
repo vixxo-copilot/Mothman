@@ -49,10 +49,12 @@ not a hardcoded name:
 … AND OwnerId = '{signed_in_user_id}'
 ```
 
-**New assignments:** list operator-owned Cases that still have a generic
-subject (`scripts/list_owner_vm_cases.py`). In-scope = Status `New` or
-`CreatedDate` in the last 3 days. Those must be transcribed, vetted, and
-renamed before they stay in the queue as raw intake subjects.
+**Untriaged queue:** list operator-owned Cases that still have a generic
+subject (`scripts/list_owner_vm_cases.py --all-generic --skip-triaged-tasks`).
+Default list window is Status `New` or `CreatedDate` in the last 3 days;
+Good Morning uses `--all-generic` so Working leftovers are included. Skip
+rewritten Subjects and Completed `SP Voicemail Triage` Tasks. Remaining
+Cases must be transcribed, vetted, and renamed.
 
 **In scope:**
 
@@ -85,8 +87,10 @@ There is **no Freshdesk ticket** for 4046 intake. Do **not** create FD tickets.
 | --- | --- |
 | Triage packet | Source = `SF Case {CaseNumber}` |
 | Billing / Payment | Close Case as Duplicate (`Reason='Existing problem'`, `Not_Filled_Reason__c='Duplicate'`); **no** Completed Task; note AP owns (QSIAP/aphelp) |
+| **Customer / Circle K Help Desk** | Subject `Voicemail — Circle K Help Desk — {ask}`; Completed Task (account team / SR PM+support); then close as Duplicate (wrong queue — **not SPS**). Never `service.providermanagement@vixxo.com`. |
+| **Coverage / Onboarding** (Prospect SP / looking to join) | Subject `Voicemail — {company} — onboarding`; Completed Task; onboarding branch (Lead Task and/or `spm-recruitment@vixxo.com`); then **close 4046 as Duplicate** (recruitment, **not Crystal / SPS**). |
 | Short / foul / minimal | Completed Task documenting skip + close Case as Duplicate |
-| All other categories | Completed **Task** on the Case (`Status='Completed'`); forward email to route recipients when needed (M365); leave Case open/Working for callback |
+| All other categories | Completed **Task** on the Case (`Status='Completed'`); forward email to route recipients when needed (M365); leave the Case **open**. Do **not** change Case `Status` to Working. Keep `Status='New'` unless the operator asks for a status change. |
 | Account link | Set `AccountId` when SP Account match is confident |
 | **Subject rewrite** | After company vet + classify, set Case Subject to `Voicemail — {SP Name} ({SP#}) — {request}`. `{request}` is the sub-reason (plain English). Omit `({SP#})` when unknown. Do not leave `New voicemail from {CALLER} via VENDOR RELATIONS` or bare `Vixxo Voicemail` on a vetted Case. Script: `scripts/update_vm_case_subject.py` |
 
