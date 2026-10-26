@@ -561,6 +561,22 @@ def _render_skill_cascade(cascade: dict[str, Any]) -> str:
             parts.append(
                 f"<p class='muted'>HTML: {_esc(breakdown['html'])}</p>"
             )
+    addr = cascade.get("address_changes") or {}
+    if addr:
+        parts.append("<h3 class='subheading'>Address Changes (org-wide)</h3>")
+        parts.append(
+            "<p>"
+            f"Open {_esc(addr.get('open', '—'))} · "
+            f"Closed {_esc(addr.get('closed', '—'))} · "
+            f"Crystal open {_esc(addr.get('crystal_open', '—'))} · "
+            f"Owners {_esc(addr.get('owner_count', '—'))}"
+            f" <span class='muted'>({_esc(addr.get('status') or 'pending')})</span>"
+            "</p>"
+        )
+        if addr.get("html"):
+            parts.append(
+                f"<p class='muted'>HTML: {_esc(addr['html'])}</p>"
+            )
     tasks = cascade.get("task_overview") or {}
     if tasks:
         parts.append("<h3 class='subheading'>SF Task overview</h3>")

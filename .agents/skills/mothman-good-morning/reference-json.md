@@ -316,6 +316,18 @@ Present on every Good Morning unless brief-only (`enabled: false`).
     "json": null,
     "html": null
   },
+  "address_changes": {
+    "status": "pending",
+    "scope": "all",
+    "open": null,
+    "closed": null,
+    "typed": null,
+    "subject_only": null,
+    "owner_count": null,
+    "crystal_open": null,
+    "json": null,
+    "html": null
+  },
   "task_overview": {
     "status": "pending",
     "total_open": null,

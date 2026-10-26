@@ -19,11 +19,11 @@ are framing (remaining day), paths, and day-over-day vs this morning’s
 snapshot when available. Include the same **email briefing** (urgency + date,
 folder ignore list) when refreshing inbox mid/late day.
 
-The morning **Phase 2 skill cascade** (task overview, Crystal-queue
-duplicates, `sp-voicemail-triage` on untriaged SF queue Cases, including
-Circle K Help Desk → account team not SPS, then recreate open-voicemail
-HTML) is **not** default here — run it only when Crystal asks
-(e.g. "afternoon with cascade").
+The morning **Phase 2 skill cascade** (task overview, org-wide Address
+Change HTML, Crystal-queue duplicates, `sp-voicemail-triage` on untriaged
+SF queue Cases, including Circle K Help Desk → account team not SPS, then
+recreate open-voicemail HTML) is **not** default here — run it only when
+Crystal asks (e.g. "afternoon with cascade").
 
 ## When to use
 

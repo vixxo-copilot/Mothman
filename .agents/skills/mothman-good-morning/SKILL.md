@@ -6,12 +6,12 @@ description: >-
   Excel workbook (by case type × status, oldest first), SF case mail sync,
   account corrections, email briefing (urgency + date, folder ignore list),
   and first moves. Then runs a Phase 2 skill cascade: SF Task breakdown HTML
-  (priority queue + buckets), SF Task overview, priority mail HTML (Inbox +
-  Maria/Leslie/SPM, Kate/ORMB, Invoices/Statements), Crystal-queue duplicate
-  review (report-only), `sp-voicemail-triage` on Crystal-owned Salesforce
-  voicemail Cases that have not already been transcribed/triaged, then
-  recreate the open-voicemail HTML report for Cases still assigned to
-  Crystal. Use
+  (priority queue + buckets), org-wide Address Change HTML (open + closed),
+  SF Task overview, priority mail HTML (Inbox + Maria/Leslie/SPM, Kate/ORMB,
+  Invoices/Statements), Crystal-queue duplicate review (report-only),
+  `sp-voicemail-triage` on Crystal-owned Salesforce voicemail Cases that have
+  not already been transcribed/triaged, then recreate the open-voicemail HTML
+  report for Cases still assigned to Crystal. Use
   for good morning, Good Morning Crystal, mothman
   good morning, full morning, or HTML morning report. Say "brief only" to
   skip the cascade.
@@ -303,56 +303,69 @@ Run **after** the HTML brief opens, in this order. Load each sibling
 Record outcomes into `skill_cascade` (re-render HTML optional; chat
 summary of cascade results is enough if re-render is slow).
 
-**Hard gate:** Leg **2.0 VixxoLink probe is mandatory** on every full
-morning (not brief-only). Run it **before** legs 2.1–2.5. If probe
-`status` is not `ok` after `--prompt-oauth`, **stop the cascade** — do
-not run task breakdown, mail, dupes, or voicemail. Report the blocker
-in chat and set `skill_cascade.status` to `blocked_vixxolink_mcp`. Only
-skip 2.0 when Crystal explicitly says "skip vixxolink" / "skip mcp probe".
+**Hard gate:** Leg **2.0 VixxoLink is mandatory** on every full morning
+(not brief-only). Run it **before** legs 2.1–2.5. Prefer the **live
+Cursor plugin ping** (yesterday’s fix). Do **not** block the cascade on
+a stale `~/.vixxo/vixxolink_api_token` or Chrome `:37882` when the
+plugin already answers. Only skip 2.0 when Crystal explicitly says
+"skip vixxolink" / "skip mcp probe".
 
 | # | Skill / script | Morning mode | Writes? |
 | --- | --- | --- | --- |
-| 0 | `vixxo-mcp-bearer-fix` — VixxoLink probe (**required gate**) | Silent refresh + Chrome if needed | Yes (`~/.vixxo`, `~/.mcp-auth`) |
+| 0 | VixxoLink live ping (**required gate**) | Plugin `vixxolink_catalog` first; `~/.vixxo` probe only if plugin is down | No unless bearer repair runs |
 | 1 | SF Task breakdown (HTML) | Read-only export + render | No |
+| 1b | Address Changes (HTML) | Org-wide Type/subject match; include closed | No |
 | 2 | SF Task overview | Read-only export | No |
 | 2b | `mothman-priority-mail-review` | Unread Inbox + 3 named boxes HTML | No |
 | 3 | `sp-fd-sf-duplicate-bridge` | Crystal-owned seed scan | **No** (report only) |
 | 4 | `sp-voicemail-triage` | Untriaged Crystal-owned SF VM Cases: transcribe + classify + **company vet** + **Subject rewrite** + Case Task; Outlook/QSIAP if inventory &gt; 0 | Yes (per that skill) |
 | 5 | Open voicemail HTML | Recreate report of **all open** VM Cases still assigned to Crystal (generic + rewritten) | No |
 
-Skip individual legs **2.1–2.5** if Crystal says e.g. "skip voicemail" /
-"dupes only". **Never skip 2.0** unless she explicitly skips the VixxoLink probe.
-"skip voicemail" skips 2.4 **and** 2.5. "inventory only" still runs 2.5.
+Skip individual legs **2.1–2.5** (including **2.1b**) if Crystal says e.g.
+"skip voicemail" / "dupes only" / "skip address". **Never skip 2.0** unless
+she explicitly skips the VixxoLink probe. "skip voicemail" skips 2.4 **and**
+2.5. "inventory only" still runs 2.5. Address Change HTML is **local mothman
+workspace only** — do not publish this leg to `vixxo-copilot/agent-skills`.
 
-### 2.0 VixxoLink MCP bearer probe (**required**)
+### 2.0 VixxoLink live ping (**required**)
 
-Load [`vixxo-mcp-bearer-fix`](../vixxo-mcp-bearer-fix/SKILL.md). Run **first**
-every morning so VixxoLink MCP is green when Crystal uses Cursor. Crystal
-does **not** need a separate VixxoLink login — run this at the desk; complete
-Chrome if it opens (~once per week).
+Two auth paths exist. **Cursor plugins are the source of truth for this
+cascade.** The `~/.vixxo` JWT + Chrome `:37882` launcher is the old
+mcp-remote path; it can stay expired (today: 2026-10-08) while plugins
+are green.
 
-```bash
-.cursor/bin/probe-vixxolink-bearer-morning.cmd
-```
+**1. Plugin ping (do this first — every morning):**
 
-Or (same behavior + hard gate exit code):
+Call `vixxolink_catalog` (no args) on namespace
+`plugin-vixxo-mcp-vixxolink-vixxolink` (fallback:
+`project-0-mothman-vixxolink`). Success = JSON with `ok: true` or a
+`catalog_version` / `actions` list — not `needsAuth` / error.
+
+- If **ok:** set `skill_cascade.vixxolink_mcp.status=done`,
+  `path=cursor_plugin`. **Do not** run
+  `probe_vixxolink_bearer.py --prompt-oauth`. Continue to 2.1.
+- If plugin is **needsAuth / missing:** go to step 2.
+
+**2. Bearer probe (only when the plugin is down):**
+
+Load [`vixxo-mcp-bearer-fix`](../vixxo-mcp-bearer-fix/SKILL.md).
 
 ```bash
 python .agents/skills/vixxo-mcp-bearer-fix/scripts/probe_vixxolink_bearer.py \
   --silent-refresh --prompt-oauth --write-tmp --json --gate
 ```
 
-- **Agent must execute this command** — do not infer token health from memory.
 - Artifact: `.tmp/vixxo-mcp-bearer/probe-vixxolink-latest.json`
-- If `status=ok`: set `skill_cascade.vixxolink_mcp.status=done`, continue to 2.1.
-- If Chrome opens: Crystal completes sign-in once; re-run probe until `ok`.
-- If still not `ok`: **stop cascade**; set `skill_cascade.status=blocked_vixxolink_mcp`;
-  list fix: `.cursor/bin/refresh-vixxolink-bearer.cmd`.
-- Fold into `skill_cascade.vixxolink_mcp` (`status`, `launch_ok`, `oauth_expires_at`,
-  `actions`, `artifact`).
+- If still not `ok`: **stop cascade**;
+  `skill_cascade.status=blocked_vixxolink_mcp`;
+  fix `.cursor/bin/refresh-vixxolink-bearer.cmd`.
+- Fold `status`, `path` (`cursor_plugin` | `vixxo_file`), `launch_ok`,
+  `oauth_expires_at`, `actions`, `artifact`.
 
 **Scheduled (optional):** Task Scheduler can run
-`.cursor/bin/probe-vixxolink-bearer.cmd` daily (silent refresh only, no browser).
+`.cursor/bin/probe-vixxolink-bearer.cmd` daily (silent refresh only, no
+browser). That refreshes the **file** token; it is not the morning gate
+when the plugin is already green.
 
 ### 2.1 SF Task breakdown (HTML)
 
@@ -370,6 +383,26 @@ python .agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html
 - Chat: tasks open / overdue, High Cases, Rate New, new Cases (3d), top buckets
 - Fold summary into `skill_cascade.task_breakdown`
 - Also run on demand when Crystal asks to refresh the task breakdown report
+
+### 2.1b Address Changes (HTML) — org-wide
+
+Read-only snapshot of Address Change Cases **across Salesforce**, not Crystal's
+queue only. Same HTML family as the task breakdown. Default includes closed
+Cases with `Type = Address Change`. Open Cases also match subject
+(`Address Change` / `change of address`) when Type is blank.
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_address_change_report.py \
+  --scope all --include-closed --open
+```
+
+- Artifacts: `.tmp/mothman-good-morning/address-changes-all-YYYY-MM-DD.{json,html}`
+- Chat: open count, closed count, owners, Crystal's rows, HTML path
+- Fold summary into `skill_cascade.address_changes`
+- Crystal-only (her queue): `--scope mine` (no `--include-closed` unless asked)
+- Skip if Crystal says "skip address" / "skip address changes"
+- Local mothman skill only. Do **not** copy this leg into the GitHub
+  `agent-skills` publish of mothman-good-morning.
 
 ### 2.2 SF Task overview
 
@@ -535,6 +568,7 @@ After Phase 2, add 4–8 lines:
 
 - VixxoLink MCP: ok / refreshed / needs sign-in + expires_at
 - Task breakdown HTML path + priority highlights (High Cases, Rate New, new 3d)
+- Address changes: open / closed / Crystal-owned open + HTML path
 - Tasks: open / overdue / due today
 - Priority mail: unread total + urgent/today + HTML path
 - Dupes: N groups (M with other-owner siblings) + report path
@@ -551,7 +585,8 @@ After Phase 2, add 4–8 lines:
 - Do not invent meetings, Case numbers, or weather.
 - Dry-run only for mail sync and account audit.
 - Duplicate cascade = report only; never auto-merge. **SF-only** — no Freshdesk.
-- **Exception:** VixxoLink probe (2.0) failure **blocks** legs 2.1–2.5 — do not continue.
+- **Exception:** VixxoLink probe (2.0) failure **blocks** remaining cascade
+  legs (2.1–2.5 including 2.1b) — do not continue.
 - Other MCP/script failures: note in `skipped` / `skill_cascade.*.error` and continue.
 
 ## Trigger phrases

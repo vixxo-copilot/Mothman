@@ -45,6 +45,12 @@ def _urg_tag(urgency: str | None) -> str:
     return f"<span class='{cls}'>{_esc(label)}</span>"
 
 
+MAIL_TABLE_CSS = """\
+.page-shell{width:min(1480px,calc(100vw - 2.5rem));max-width:1480px;}\
+th,td{overflow-wrap:break-word;}\
+td a{overflow-wrap:anywhere;}"""
+
+
 def _table(headers: list[str], rows: list[list[str]], empty: str = "None.") -> str:
     if not rows:
         return f"<p class='muted'>{_esc(empty)}</p>"
@@ -121,7 +127,7 @@ def render_html(data: dict[str, Any]) -> str:
         "<meta name='viewport' content='width=device-width,initial-scale=1'>",
         f"<title>Priority Mail — {_esc(data.get('date_label', ''))}</title>",
         FONT_LINKS,
-        f"<style>{THEME_CSS}</style></head><body>",
+        f"<style>{THEME_CSS}{MAIL_TABLE_CSS}</style></head><body>",
         "<span class='ember'></span><span class='ember'></span><span class='ember'></span>",
         "<main class='page-shell'>",
         "<div class='hero'>",

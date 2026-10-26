@@ -50,6 +50,9 @@ WMO weather_code → short text (common codes):
 | Task breakdown export | `.agents/skills/mothman-good-morning/scripts/export_sf_task_breakdown.py` |
 | Task breakdown renderer | `.agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html.py` |
 | Task breakdown JSON/HTML | `.tmp/mothman-good-morning/sf-task-breakdown-YYYY-MM-DD.{json,html}` |
+| Address Change export | `.agents/skills/mothman-good-morning/scripts/export_address_change_report.py` |
+| Address Change JSON/HTML (org) | `.tmp/mothman-good-morning/address-changes-all-YYYY-MM-DD.{json,html}` |
+| Address Change JSON/HTML (mine) | `.tmp/mothman-good-morning/address-changes-YYYY-MM-DD.{json,html}` |
 | Task overview script | `.agents/skills/mothman-good-morning/scripts/export_sf_task_overview.py` |
 | Task overview JSON/MD | `.tmp/mothman-good-morning/Crystal-SF-Tasks-YYYY-MM-DD.{json,md}` |
 | Mail sync dry-run | `.tmp/sf-email-sync-morning.json` |
@@ -201,6 +204,17 @@ python .agents/skills/mothman-good-morning/scripts/render_sf_task_breakdown_html
 
 Priority queue at top: High Cases, overdue Tasks, dupes, new assignments (3d).
 Then sections: High/Medium Cases, new Cases, Rate New, Leads, Tasks by bucket.
+
+## Phase 2 cascade — Address Changes (HTML)
+
+Org-wide, local mothman skill only (not the GitHub agent-skills copy):
+
+```bash
+python .agents/skills/mothman-good-morning/scripts/export_address_change_report.py \
+  --scope all --include-closed --open
+```
+
+Open: `Type = Address Change` or subject match. Closed: Type only.
 
 ## Phase 2 cascade — Task overview SOQL
 
